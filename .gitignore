@@ -1,0 +1,40 @@
+# System
+.bash_history
+.bashrc
+.profile
+.Xauthority
+.cache/
+.config/
+.chelper/
+.dbclient/
+.dotnet/
+.gnupg/
+.lesshst
+.marscode/
+.net/
+.npm/
+.opencode/
+.pki/
+.w3m/
+.xinputrc
+.parcel-cache/
+
+# Runtime / tools
+.bun/
+.codex/
+.local/
+.nvm/
+.openclaw/
+.ssh/
+cert/
+logs/
+tmp/
+*.log
+*.pid
+
+# Dev
+node_modules/
+.bun/
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
