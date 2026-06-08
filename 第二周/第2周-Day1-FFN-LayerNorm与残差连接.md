@@ -62,6 +62,15 @@
 
 ---
 
+## 🎬 推荐视频
+- [从零实现Transformer——FFN+残差连接+整体实现（B站）](https://www.bilibili.com/video/BV1xr8meLE87/)
+
+## 📖 延伸阅读
+- [Transformer 细节死磕：从残差连接、LayerNorm 到 GLU 变体全解析（知乎）](https://zhuanlan.zhihu.com/p/1996512512993153744)
+- [理解 Transformer 中的子层连接结构：残差与规范化的协奏（CSDN）](https://blog.csdn.net/Wei_sx/article/details/148838359)
+
+---
+
 ## ✏️ 课堂练习
 
 1. FFN的"升维再降维"扩展了多少倍？
