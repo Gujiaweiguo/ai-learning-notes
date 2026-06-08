@@ -12,6 +12,19 @@
 - **硬件**: RTX 4060Ti 16G
 - **开发工具**: opencode（CLI AI编程助手）
 
+## 📅 日程调整（2026-06-08）
+
+按日历周编号，第一周=6/2-6/8，第二周=6/9-6/15，以此类推。
+Jason从第一周周四（6/4）开始学习：
+- 第一周-Day1（6/4 周四）= 自注意力机制 ✅
+- 第一周-Day2（6/5 周五）= Multi-Head Attention ✅
+- 第二周-Day1（6/9 周一）= FFN、LayerNorm与残差连接
+- 第二周-Day2（6/10 周二）= Tokenizer与词嵌入
+- 第二周-Day3（6/11 周三）= 整体架构回顾 GPT vs BERT
+- 第二周-Day4（6/12 周四）= ⚡代码实战（NumPy实现Self-Attention）
+- 第二周-Day5（6/13 周五）= 🔄复习日
+- 第三周起（6/16）= W2 大模型训练全景
+
 ## 每周节奏（7天循环）
 
 | 日期 | 类型 | 内容 |
@@ -55,17 +68,17 @@
 
 ## 🤖 大模型路线（W1-W6）
 
-### W1：Transformer 深入理解
-- Day 1（周一）: 自注意力机制核心原理
-- Day 2（周二）: Multi-Head Attention 与位置编码
-- Day 3（周三）: FFN、LayerNorm 与残差连接
-- Day 4（周四）: Tokenizer与词嵌入（BPE/SentencePiece）
-- Day 5（周五）: 整体架构回顾（GPT vs BERT）
-- Day 6（周六）: ⚡opencode实战：用NumPy从零实现Self-Attention
+### 第一周-第二周：Transformer 深入理解（跨两周完成）
+- ~~第一周-Day1（6/4 周四）: 自注意力机制核心原理~~ ✅
+- ~~第一周-Day2（6/5 周五）: Multi-Head Attention 与位置编码~~ ✅
+- 第二周-Day1（6/9 周一）: FFN、LayerNorm 与残差连接
+- 第二周-Day2（6/10 周二）: Tokenizer与词嵌入（BPE/SentencePiece）
+- 第二周-Day3（6/11 周三）: 整体架构回顾（GPT vs BERT）
+- 第二周-Day4（6/12 周四）: ⚡opencode实战：用NumPy从零实现Self-Attention
   - 任务：50行代码实现Q/K/V计算+softmax+加权求和
   - 验证：手动输入一个句子矩阵，检查输出是否合理
   - 目标：不依赖任何框架，真正理解每一步计算
-- Day 7（周日）: 🔄 复习 Day 1-5 核心概念 + 补漏练习
+- 第二周-Day5（6/13 周五）: 🔄 复习核心概念 + 补漏练习
 
 ### W2：大模型训练全景
 - Day 1（周一）: 预训练：数据、规模与涌现能力
