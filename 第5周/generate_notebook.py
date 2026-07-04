@@ -1,0 +1,215 @@
+#!/usr/bin/env python3
+import json
+
+# Create the notebook structure
+notebook = {
+    "cells": [
+        {
+            "cell_type": "markdown",
+            "metadata": {},
+            "source": [
+                "# 🧠🤖 第5周-Day7：推理能力全景回顾\n",
+                "\n",
+                "## 欢迎来到推理能力的全面复习日！\n",
+                "\n",
+                "今天我们将系统性地回顾前5周的核心内容，特别是第5周的推理技术。通过今天的复习，我们将把零散的知识点串联成完整的推理能力体系。\n",
+                "\n",
+                "🎯 **学习目标：**\n",
+                "- 理解不同推理技术的适用场景\n",
+                "- 掌握推理能力的评估方法\n",
+                "- 构建从训练到推理的完整知识图谱"
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": None,
+            "metadata": {},
+            "outputs": [],
+            "source": [
+                "# 导入必要的库\n",
+                "import numpy as np\n",
+                "import matplotlib.pyplot as plt\n",
+                "import matplotlib\n",
+                "import matplotlib.font_manager as fm\n",
+                "import os\n",
+                "from IPython.display import HTML, display\n",
+                "import json\n",
+                "\n",
+                "# 配置 matplotlib 中文显示\n",
+                "cache_dir = matplotlib.get_cachedir()\n",
+                "for item in os.listdir(cache_dir):\n",
+                "    if item.startswith('fontlist'):\n",
+                "        os.remove(os.path.join(cache_dir, item))\n",
+                "\n",
+                "# 重新构建字体列表\n",
+                "fm._load_fontmanager(try_read_cache=False)\n",
+                "\n",
+                "# 配置中文字体：WenQuanYi Zen Hei 已确认可用\n",
+                "plt.rcParams['font.sans-serif'] = ['WenQuanYi Zen Hei', 'Noto Sans CJK JP', 'DejaVu Sans']\n",
+                "plt.rcParams['axes.unicode_minus'] = False\n",
+                "print('✅ 中文字体配置完成')\n",
+                "\n",
+                "# 设置图表样式\n",
+                "plt.style.use('seaborn-v0_8')\n",
+                "colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7']"
+            ]
+        },
+        {
+            "cell_type": "markdown",
+            "metadata": {},
+            "source": [
+                "## 📚 W1-W5 推理技术演进图谱\n",
+                "\n",
+                "让我们先从宏观视角理解推理技术在整个大模型体系中的位置：\n",
+                "\n",
+                "🔄 **复习逻辑：** 从基础架构到推理能力的演进"
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": None,
+            "metadata": {},
+            "outputs": [],
+            "source": [
+                "# 创建推理技术演进图谱\n",
+                "fig, ax = plt.subplots(1, 1, figsize=(12, 8))\n",
+                "\n",
+                "# 定义各阶段的关键技术\n",
+                "weeks = ['W1\\nTransformer基础', 'W2\\nTransformer深入', 'W3\\n训练全景', 'W4\\nRAG检索', 'W5\\n推理能力']\n",
+                "concepts = [\n",
+                "    ['自注意力\\n机制', '多头注意力\\n架构'],\n",
+                "    ['FFN\\n残差连接', 'LayerNorm\\n归一化'],\n",
+                "    ['预训练\\n微调', 'SFT\\nRLHF\\nDPO'],\n",
+                "    ['向量检索\\n重排序', '知识图谱\\n查询改写'],\n",
+                "    ['CoT\\nToT', 'DeepSeek R1', 'ReAct\\nAgent']\n",
+                "]\n",
+                "\n",
+                "# 绘制演进图\n",
+                "for i, (week, week_concepts) in enumerate(zip(weeks, concepts)):\n",
+                "    # 绘制时间轴\n",
+                "    ax.plot([i, i], [0, 1], 'k-', alpha=0.3, linewidth=2)\n",
+                "    \n",
+                "    # 绘制周标题\n",
+                "    ax.text(i, 1.1, week, ha='center', va='bottom', fontsize=14, fontweight='bold')\n",
+                "    \n",
+                "    # 绘制技术点\n",
+                "    for j, concept in enumerate(week_concepts):\n",
+                "        y_pos = 0.2 + j * 0.15\n",
+                "        ax.text(i, y_pos, concept, ha='center', va='center', \n",
+                "               bbox=dict(boxstyle='round,pad=0.3', facecolor=colors[i], alpha=0.7),\n",
+                "               fontsize=10)\n",
+                "\n",
+                "# 添加连接线表示技术演进\n",
+                "for i in range(len(weeks)-1):\n",
+                "    ax.annotate('', xy=(i+1, 0.8), xytext=(i, 0.8),\n",
+                "                arrowprops=dict(arrowstyle='->', color='gray', alpha=0.5))\n",
+                "\n",
+                "ax.set_xlim(-0.5, len(weeks)-0.5)\n",
+                "ax.set_ylim(0, 1.3)\n",
+                "ax.set_title('推理技术演进图谱', fontsize=16, fontweight='bold', pad=20)\n",
+                "ax.set_xticks([])\n",
+                "ax.axis('off')\n",
+                "\n",
+                "plt.tight_layout()\n",
+                "plt.show()"
+            ]
+        },
+        {
+            "cell_type": "markdown",
+            "metadata": {},
+            "source": [
+                "## 🔍 推理技术深度对比\n",
+                "\n",
+                "让我们深入分析第5周的核心推理技术："
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": None,
+            "metadata": {},
+            "outputs": [],
+            "source": [
+                "# 创建推理技术对比表格\n",
+                "fig, ax = plt.subplots(1, 1, figsize=(14, 8))\n",
+                "\n",
+                "# 定义推理技术对比数据\n",
+                "reasoning_methods = [\n",
+                "    {'method': 'Chain-of-Thought', 'complexity': 3, 'accuracy': 4, 'speed': 3, 'interpretability': 5},\n",
+                "    {'method': 'Tree-of-Thought', 'complexity': 4, 'accuracy': 5, 'speed': 2, 'interpretability': 4},\n",
+                "    {'method': 'DeepSeek R1', 'complexity': 5, 'accuracy': 5, 'speed': 2, 'interpretability': 3},\n",
+                "    {'method': 'ReAct', 'complexity': 4, 'accuracy': 4, 'speed': 3, 'interpretability': 4},\n",
+                "    {'method': 'Zero-shot', 'complexity': 1, 'accuracy': 2, 'speed': 5, 'interpretability': 2}\n",
+                "]\n",
+                "\n",
+                "# 准备雷达图数据\n",
+                "categories = ['复杂度', '准确性', '推理速度', '可解释性']\n",
+                "angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()\n",
+                "angles += angles[:1]  # 闭合图形\n",
+                "\n",
+                "# 绘制多个方法的雷达图\n",
+                "for i, method in enumerate(reasoning_methods):\n",
+                "    values = [method['complexity'], method['accuracy'], method['speed'], method['interpretability']]\n",
+                "    values += values[:1]  # 闭合图形\n",
+                "    \n",
+                "    ax.plot(angles, values, 'o-', linewidth=2, label=method['method'], color=colors[i])\n",
+                "    ax.fill(angles, values, alpha=0.1, color=colors[i])\n",
+                "\n",
+                "# 设置图表\n",
+                "ax.set_xticks(angles[:-1])\n",
+                "ax.set_xticklabels(categories)\n",
+                "ax.set_ylim(0, 6)\n",
+                "ax.set_title('推理技术能力雷达图', fontsize=16, fontweight='bold', pad=20)\n",
+                "ax.legend(loc='upper right', bbox_to_anchor=(1.2, 1.0))\n",
+                "ax.grid(True)\n",
+                "\n",
+                "plt.tight_layout()\n",
+                "plt.show()"
+            ]
+        },
+        {
+            "cell_type": "markdown",
+            "metadata": {},
+            "source": [
+                "## 💡 总结：推理能力的核心价值\n",
+                "\n",
+                "通过今天的复习，我们深入理解了推理技术在大模型体系中的核心价值：\n",
+                "\n",
+                "1. **思维链(CoT)**：让模型能够进行逐步推理，处理复杂的多步骤问题\n",
+                "2. **树状推理(ToT)**：通过分支探索多种可能性，提高问题解决成功率\n",
+                "3. **DeepSeek R1**：通过强化学习优化推理过程，提升数学和代码能力\n",
+                "4. **ReAct框架**：结合推理和行动，实现Agent与外部环境的交互\n",
+                "\n",
+                "这些技术为我们提供了从简单响应到复杂推理的能力跃迁，为大模型在实际业务中的应用奠定了基础。\n",
+                "\n",
+                "🎯 **下一阶段展望：** 第6周我们将学习Agent与工具使用，把推理能力转化为实际行动能力。"
+            ]
+        }
+    ],
+    "metadata": {
+        "kernelspec": {
+            "display_name": "Python 3",
+            "language": "python",
+            "name": "python3"
+        },
+        "language_info": {
+            "codemirror_mode": {
+                "name": "ipython",
+                "version": 3
+            },
+            "file_extension": ".py",
+            "mimetype": "text/x-python",
+            "name": "python",
+            "nbconvert_exporter": "python",
+            "pygments_lexer": "ipython3",
+            "version": "3.8.5"
+        }
+    },
+    "nbformat": 4,
+    "nbformat_minor": 4
+}
+
+# Generate the notebook file
+with open('/root/learning-notebooks/第5周/第5周-Day7-推理能力全景回顾.ipynb', 'w', encoding='utf-8') as f:
+    json.dump(notebook, f, ensure_ascii=False, indent=2)
+
+print("✅ 笔记本文件已重新生成")
