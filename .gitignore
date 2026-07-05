@@ -13,6 +13,7 @@
 .marscode/
 .net/
 .npm/
+.omo/
 .opencode/
 .pki/
 .w3m/
@@ -38,3 +39,4 @@ node_modules/
 .ruff_cache/
 .mypy_cache/
 .pytest_cache/
+unsloth_compiled_cache/
