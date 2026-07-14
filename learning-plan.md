@@ -9,7 +9,7 @@
 - **交付形式**: 文字推送，用户用手机朗读功能听读
 - **硬件**: RTX 4060Ti 16G
 - **开发工具**: opencode（CLI AI编程助手）
-- **总计划**: 21 周
+- **总计划**: 18 周
 
 ## 核心定位
 
@@ -95,14 +95,14 @@ W7      🔥 数字员工架构深化（进行中）       → Level 3 Agent Run
 W8      📝 AI基础补强                      → Level 1 Prompt实战+安全
 W9      🔌 MCP协议深入                     → Level 2 全链路
 W10     ⚙️ Agent Runtime进阶               → Level 3 OpenClaw+Hermes对比
-W11-12  🧠 AI Compiler                     → Level 4 核心技术壁垒
-W13     🏛 Capability Platform             → Level 5 产品核心
-W14     📊 ChatBI与数据分析Agent            → Level 5+11 业务核心
-W15     🔒 企业权限与安全                   → Level 6 架构保障
-W16-17  🎯 RL与优化                        → Level 9 Agent越用越聪明
-W18     👁 商业地产视觉AI                   → Level 5+11 行业能力
-W19     🚀 前沿与部署                       → 落地最后一公里
-W20-21  🧠 脑科学精华                       → 个人兴趣
+W11     🧠 AI Compiler                     → Level 4 核心技术壁垒
+W12     🏛 Capability Platform             → Level 5 产品核心
+W13     📊 ChatBI与数据分析Agent            → Level 5+11 业务核心
+W14     🔒 企业权限与安全                   → Level 6 架构保障
+W15     🎯 RL与优化                        → Level 9 Agent越用越聪明
+W16     👁 商业地产视觉AI                   → Level 5+11 行业能力
+W17     🚀 前沿与部署                       → 落地最后一公里
+W18     🧠 脑科学精华                       → 个人兴趣
 ```
 
 ---
@@ -302,10 +302,10 @@ W20-21  🧠 脑科学精华                       → 个人兴趣
 
 ---
 
-# W11：🧠 AI Compiler基础
+# W11：🧠 AI Compiler
 
 > 自然语言→可执行Skill的核心技术。LangChat最核心的技术壁垒。
-> Level 4 AI Compiler 上半。
+> Level 4 AI Compiler + Level 11 AI产品设计。
 
 - Day 1（周一）: AI Compiler概念与动机
   - 什么是AI Compiler：从自然语言需求到可执行程序
@@ -314,91 +314,39 @@ W20-21  🧠 脑科学精华                       → 个人兴趣
   - 为什么Skill是第一公民，不是Workflow
   - 💡 对应：LangChat的核心产品定位
 
-- Day 2（周二）: NL理解与意图解析
-  - 自然语言需求的结构化提取
-  - 意图识别与参数填充（Slot Filling）
-  - 歧义消解与多轮对话中的需求澄清
-  - 复杂需求的分解策略
-  - 💡 对应：LangChat NL→Blueprint的第一步
+- Day 2（周二）: NL理解与Blueprint设计
+  - NL需求的结构化提取与意图解析（Slot Filling、歧义消解）
+  - Blueprint Schema：输入/输出/步骤/依赖/错误处理
+  - DSL设计原则与Skill类型系统
+  - 程序综合（Program Synthesis）基础
+  - 💡 对应：NL→Blueprint的核心步骤
 
-- Day 3（周三）: Skill Blueprint设计
-  - Blueprint Schema设计：输入/输出/步骤/依赖/错误处理
-  - DSL（领域特定语言）设计原则
-  - Skill的类型系统：数据类型、约束、验证规则
-  - Blueprint示例：设计几个典型Skill的Blueprint
-  - 💡 对应：LangChat的核心数据结构
+- Day 3（周三）: Validator与Simulator
+  - 验证层级：语法→语义→安全→业务
+  - 沙箱执行环境：隔离、资源限制、状态回滚、Dry Run
+  - Skill Composition：串行/并行/条件分支/错误处理
+  - 💡 对应：LangChat Validator + Simulator
 
-- Day 4（周四）: 程序综合（Program Synthesis）
-  - 从规约生成代码的基本原理
-  - LLM作为Program Synthesizer的优势与局限
-  - 代码生成vs程序合成：有什么区别
-  - 技能组合（Composition）：多个Skill如何安全组合
-  - 💡 对应：Blueprint生成的理论基础
+- Day 4（周四）: Review/Inspector与Publish
+  - Inspector：Blueprint Diff、执行追踪、人审流程
+  - Publish流程：Validate→Approve→Publish→Deploy
+  - 版本管理与Runtime调度
+  - Skill健康度、退化检测、Canary发布
+  - 💡 对应：LangChat Inspector + Publish + Observability
 
-- Day 5（周五）: Validator设计
-  - 验证层级：语法验证→语义验证→安全验证→业务验证
-  - 静态分析：Blueprint的结构正确性检查
-  - 安全验证：权限检查、资源限制、敏感操作标记
-  - 业务验证：与实际系统能力的匹配度检查
-  - 💡 对应：LangChat Validator的核心逻辑
-
-- Day 6（周六）: ⚡ 实战：设计一个Skill Blueprint Schema
-  - 任务：为"查询某商场本月客流趋势"设计完整Blueprint
-  - 验证：写出Validator的检查规则
-
-- Day 7（周日）: 🔄 复习 W11 + AI Compiler核心概念
-
----
-
-# W12：🧠 AI Compiler实战
-
-> Simulator、Skill Composition、Inspector——AI Compiler的下半场。
-> Level 4 AI Compiler 下半 + Level 11 AI产品设计。
-
-- Day 1（周一）: Simulator设计
-  - 沙箱执行环境：隔离、资源限制、状态管理
-  - Dry Run模式：不真正执行，模拟结果
-  - 状态回滚：执行失败时恢复到之前状态
-  - 成本预估：执行前的Token/时间/费用估算
-  - 💡 对应：LangChat Simulator的核心能力
-
-- Day 2（周二）: Skill Composition与编排
-  - 串行组合：Step1→Step2→Step3
-  - 并行组合：同时执行多个Skill
-  - 条件分支：根据结果选择不同Skill
-  - 错误处理：重试、降级、人工介入
-  - 💡 对应：复杂业务需求需要组合多个Skill
-
-- Day 3（周三）: Review/Inspector设计
-  - Inspector的可视化定位：检查、调试、微调
-  - Blueprint Diff：版本对比、变更影响分析
-  - 执行追踪：逐步查看Skill执行过程
-  - 人审流程：AI生成→人审→批准→发布
-  - 💡 对应：LangChat Inspector的产品核心
-
-- Day 4（周四）: Publish与Runtime
-  - Skill发布流程：Validate→Approve→Publish→Deploy
-  - 版本管理：语义化版本、回滚策略
-  - Runtime执行：Skill在运行时的调度与监控
-  - 冷启动vs热启动：Skill加载策略
-  - 💡 对应：LangChat Skill全生命周期
-
-- Day 5（周五）: Skill生命周期与Observability
-  - Skill健康度：成功率、延迟、错误率
-  - 退化检测：Prompt变更后Skill行为是否退化
-  - Canary发布：新Skill先对部分流量开放
+- Day 5（周五）: Skill全生命周期总结
+  - 从NL需求到Runtime执行的完整链路回顾
   - A/B测试框架：Skill版本对比
+  - 与Capability Platform的集成关系
   - 💡 对应：企业级Skill管理
 
-- Day 6（周六）: ⚡ 实战：设计完整的AI Compiler管线
+- Day 6（周六）: ⚡ 实战：设计完整AI Compiler管线
   - 任务：为"商管系统自动生成月度经营分析报告"设计端到端管线
-  - 验证：画出NL→Blueprint→Validate→Simulate→Review→Publish→Runtime全流程
+  - 验证：NL→Blueprint→Validate→Simulate→Review→Publish→Runtime全流程
 
-- Day 7（周日）: 🔄 复习 W11-W12 + AI Compiler全链路
+- Day 7（周日）: 🔄 复习 W11 + AI Compiler全链路
 
----
-
-# W13：🏛 Capability Platform
+# W12：🏛 Capability Platform
 
 > 能力注册、网关、Skill全生命周期——企业级AI能力平台的核心。
 > Level 5 Capability Platform + Level 9 AI运营。
@@ -442,11 +390,11 @@ W20-21  🧠 脑科学精华                       → 个人兴趣
   - 任务：为LangChat设计完整的Capability Registry + Gateway方案
   - 验证：用商管/会员/ChatBI场景验证设计
 
-- Day 7（周日）: 🔄 复习 W7-W13 阶段总结 + 主线能力串联
+- Day 7（周日）: 🔄 复习 W7-W12 阶段总结 + 主线能力串联
 
 ---
 
-# W14：📊 ChatBI与数据分析Agent
+# W13：📊 ChatBI与数据分析Agent
 
 > Text-to-SQL、ChatBI架构、数据洞察——直接服务于LnkChatBI。
 > Level 5 Capability + Level 8 数据与存储。
@@ -487,11 +435,11 @@ W20-21  🧠 脑科学精华                       → 个人兴趣
   - 任务：选择一个实际业务查询场景，分析当前实现并优化
   - 输出：优化前后对比报告
 
-- Day 7（周日）: 🔄 复习 W13-W14 + Capability Platform + ChatBI串联
+- Day 7（周日）: 🔄 复习 W12-W13 + Capability Platform + ChatBI串联
 
 ---
 
-# W15：🔒 企业权限与安全
+# W14：🔒 企业权限与安全
 
 > Delegation、AI Governance、PII脱敏——企业级安全体系。
 > Level 6 企业权限与安全。
@@ -537,84 +485,47 @@ W20-21  🧠 脑科学精华                       → 个人兴趣
 
 ---
 
-# W16：🎯 RL与优化基础
+# W15：🎯 RL与优化
 
-> 让Agent"越用越聪明"——RL基础理论与偏好学习。
+> 让Agent"越用越聪明"——RL理论+偏好学习+DPO实战+评估闭环。
 > Level 9 AI运营 + RL核心。
 
 - Day 1（周一）: 强化学习基础
   - MDP、策略、价值函数、奖励信号
   - 经典RL vs 大模型时代的RL
-  - 为什么RL对Agent优化重要
-
-- Day 2（周二）: RLHF与RLAIF
   - RLHF全流程：奖励模型训练→PPO优化
   - RLAIF：用AI替代人类标注
-  - 实际案例：ChatGPT如何用RLHF对齐
 
-- Day 3（周三）: 偏好学习方法
+- Day 2（周二）: 偏好学习方法与DPO
   - DPO / IPO / KTO / ORPO 对比
-  - 各方法的适用场景与优缺点
-  - 偏好数据集的构造原则
+  - DPO数学原理与TRL库使用
+  - 偏好数据集构造原则
+  - 💡 对应：Skill质量优化
 
-- Day 4（周四）: Agent评估与反馈闭环
+- Day 3（周三）: Agent评估与反馈闭环
   - 评估指标：任务完成率、用户满意度、安全合规
-  - 显式反馈：用户评分、点赞/点踩
-  - 隐式反馈：使用时长、重试率、修改率
-  - 反馈→改进的闭环流程
-
-- Day 5（周五）: RL与ChatBI/LangChat的结合
-  - 用RL优化ChatBI的查询质量
-  - 用偏好学习优化Skill生成质量
-  - 用在线学习让Agent从交互中持续改进
-  - 💡 对应：LangChat Skill质量的持续优化
-
-- Day 6（周六）: ⚡ 实战：构造偏好数据集
-  - 任务：为ChatBI场景构造50条偏好对（chosen vs rejected）
-  - 验证：分析数据质量对RL效果的影响
-
-- Day 7（周日）: 🔄 复习 W15-W16 + 安全+RL核心
-
----
-
-# W17：🎯 RL实战与优化
-
-> DPO微调→策略优化→评估迭代——动手让模型变"聪明"。
-> Level 9 RL实战。
-
-- Day 1（周一）: DPO微调实战
-  - DPO数学原理与代码实现
-  - TRL库使用：数据格式、训练配置、超参数
-  - 在4060Ti上跑DPO微调
-
-- Day 2（周二）: Agent策略优化
-  - 从固定Prompt到自适应策略
-  - 工具选择优化：减少冗余调用
+  - 显式/隐式反馈机制
+  - Skill回归测试与Golden Set设计
   - Prompt Version管理与A/B测试
+  - 💡 对应：LangChat Skill质量持续优化
 
-- Day 3（周三）: 在线学习与持续改进
-  - Agent从用户交互中学习
-  - 安全约束下的在线更新
-  - 模型路由的动态调整
+- Day 4（周四）: RL与ChatBI/LangChat的结合
+  - 用RL优化ChatBI查询质量
+  - 用偏好学习优化Skill生成质量
+  - 在线学习：Agent从交互中持续改进
+  - 💡 对应：企业级Agent优化
 
-- Day 4（周四）: Skill回归测试
-  - Golden Set设计：固定评估集
-  - 自动评分：改了Prompt后行为是否退化
-  - 回归测试框架设计
-
-- Day 5（周五）: W7-W17 阶段测验
+- Day 5（周五）: W7-W15 阶段测验
   - 测验覆盖：Agent Runtime/MCP/AI Compiler/Capability Platform/ChatBI/权限/RL
-  - 知识脉络梳理：从W7到W17的完整链路
+  - 知识脉络梳理：从W7到W15的完整链路
 
-- Day 6（周六）: ⚡ 实战：端到端优化
-  - 任务：选一个实际Skill/查询场景，用RL方法优化质量
-  - 验证：优化前后对比
+- Day 6（周六）: ⚡ 实战：DPO微调+端到端优化
+  - 任务：在4060Ti上用TRL做DPO微调，优化一个ChatBI/Agent场景
+  - 验证：微调前后行为对比
 
-- Day 7（周日）：🔄 复习 W7-W17 主线能力总串联
+- Day 7（周日）: 🔄 复习 W7-W15 主线能力总串联
 
----
-
-# W18：👁 商业地产视觉AI
+# W16：👁 商业地产视觉AI
 
 > 精准客流、通道拥堵、异常检测、消防预警——视觉能力作为Capability。
 > Level 5 Capability + Level 11 行业AI。
@@ -654,11 +565,11 @@ W20-21  🧠 脑科学精华                       → 个人兴趣
   - 任务：用YOLO跑客流计数或拥堵检测demo
   - 验证：模型准确率与推理速度
 
-- Day 7（周日）: 🔄 复习 W18 + 视觉AI核心能力
+- Day 7（周日）: 🔄 复习 W16 + 视觉AI核心能力
 
 ---
 
-# W19：🚀 前沿与部署
+# W17：🚀 前沿与部署
 
 > AI趋势、量化部署、成本优化——落地最后一公里。
 > Level 9 AI运营 + 部署。
@@ -693,15 +604,15 @@ W20-21  🧠 脑科学精华                       → 个人兴趣
   - 任务：用llama.cpp对7B模型做INT4量化
   - 验证：量化前后大小、速度、质量对比
 
-- Day 7（周日）: 🎓 W7-W19 大模型路线总复习 + 结业回顾
+- Day 7（周日）: 🎓 W7-W17 大模型路线总复习 + 结业回顾
 
 ---
 
-# W20-21：🧠 脑科学精华（个人兴趣）
+# W18：🧠 脑科学精华（个人兴趣）
 
-> 从原来6周压缩到2周精华版，保留AI关联度最高的内容。
+> 精华版，保留AI关联度最高的内容。
 
-### W20：神经科学基础精选
+### W18 Day1-2：神经科学基础
 - Day 1（周一）: 神经元与信号传递
   - 生物神经元 vs 人工神经元
   - 动作电位 vs 前向传播
@@ -725,26 +636,12 @@ W20-21  🧠 脑科学精华                       → 个人兴趣
   - 任务：画一张生物大脑 vs AI模型的架构对比图
 - Day 7（周日）: 🔄 复习 W20 脑科学×AI交叉点
 
-### W21：脑科学与AI交汇
-- Day 1（周一）: 脑启发AI
-  - 从感知器到Transformer：哪些是脑启发
-  - 注意力机制真的是"大脑注意力"吗
-- Day 2（周二）: 意识、记忆与通用智能
-  - 意识的神经相关物（NCC）
-  - AGI需要"意识"吗
-  - 记忆的本质：大脑vs大模型vs数字员工
-- Day 3（周三）: 脑机接口与未来
-  - Neuralink、BrainGate等前沿
-  - BCI如何改变人机交互
-- Day 4（周四）: 神经科学与Agent优化
-  - 课程学习 vs 预训练策略
-  - 神经可塑性 vs 持续学习
-  - 情绪与决策 vs Agent人格设计
-- Day 5（周五）: 脑科学与AI的未来展望
-  - 类脑计算、神经形态芯片
-  - 2026年后可能突破的方向
+### W18 Day3-4：脑科学与AI交汇
+- 神经科学与Agent优化（课程学习vs预训练、可塑性vs持续学习）
+- 意识、记忆与通用智能（NCC、AGI需要意识吗）
+- 脑机接口与未来（Neuralink、BCI）
 - Day 6（周六）: ⚡ 实战：脑科学×AI终极对比项目
   - 任务：交互式脚本展示生物大脑vs AI在"学习"上的异同
-- Day 7（周日）: 🎓 21周总复习 + 结业回顾
+- Day 7（周日）: 🎓 18周总复习 + 结业回顾
   - 从Transformer到数字员工到ChatBI到脑科学：完整知识脉络
   - 企业AI平台架构师能力总结
