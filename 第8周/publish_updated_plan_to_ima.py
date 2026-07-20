@@ -29,8 +29,15 @@ def post(path: str, payload: dict) -> dict:
 
 
 def publish(title: str, content: str) -> str:
-    imported = post("openapi/wiki/v1/import_doc", {"title": title, "content": content})
-    doc_id = imported["data"]["doc_id"]
+    imported = post(
+        "openapi/note/v1/import_doc",
+        {"content_format": 1, "content": content},
+    )
+    print(f"IMA import response for {title}: {json.dumps(imported, ensure_ascii=False)}")
+    data = imported.get("data") or {}
+    doc_id = data.get("doc_id") or data.get("note_id") or data.get("content_id")
+    if not doc_id:
+        raise RuntimeError(f"IMA import did not return a document ID: {json.dumps(imported, ensure_ascii=False)}")
     time.sleep(1)
     try:
         post(
