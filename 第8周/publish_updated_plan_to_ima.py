@@ -59,11 +59,11 @@ def publish(title: str, content: str) -> str:
 def main() -> None:
     docs = [
         (
-            "Week8-Day1｜LangChat：谁在调用能力平台？",
+            "第8周-Day1｜LangChat：谁在调用企业能力平台？（中文版）",
             (ROOT / "第8周/Week8-Day1-LangChat-用户意图.md").read_text(encoding="utf-8"),
         ),
         (
-            "AI产品学习计划｜Week8-13：LangChat到Vision Intelligence",
+            "AI产品学习计划｜第8周-第13周：LangChat到视觉智能（中文版）",
             (ROOT / "Week8-13-AI-Product-Learning-Plan.md").read_text(encoding="utf-8"),
         ),
     ]
