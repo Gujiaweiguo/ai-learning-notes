@@ -1,647 +1,347 @@
-# 🏗 企业 AI 平台架构师学习计划（v8）
+# AI 产品学习计划（Week 8-13）
 
-## 基本信息
-- **对象**: Jason
-- **学习目标**: 成为企业级 AI Platform 架构师，围绕 LangChat（Enterprise Capability Platform）和 OpenClaw（Orchestrator）建立完整知识体系，服务于商业地产 AI SaaS
-- **每天时间**: 30分钟学习 + 实战练习另计
-- **推送时间**: 每天 6:00（周一到周日每天推送）
-- **资料语言**: 视频/图片英文也行，文字必须中文
-- **交付形式**: 文字推送，用户用手机朗读功能听读
-- **硬件**: RTX 4060Ti 16G
-- **开发工具**: opencode（CLI AI编程助手）
-- **总计划**: 18 周
-
-## 核心定位
-
-> 不是学习某一个 AI 框架，而是成长为企业级 AI Platform 架构师。
-> 技术栈：OpenClaw（Orchestrator Agent）→ Orchestrator（统一入口/路由/权限/审计）→ LangChat（AI Compiler/Skill管线）→ LnkChatBI/商管/会员/物业
-
-## 技术栈全景
+## 总览
 
 ```
-用户 → OrchestratorAgent（入口/capability路由/system binding/权限/trace/audit/metrics）
-         ├── LangChat（knowledge.query/workflow.execute/RAG/人审/Skill管线）
-         │    └── AI Compiler：NL需求 → Blueprint → Validator → Simulator → Review → Publish → Runtime
-         ├── LnkChatBI（data.query/Text-to-SQL/图表/数据分析）
-         ├── 商管系统（项目/商铺/租赁/招商/收费/运营）
-         ├── 会员系统（会员/积分/权益/营销/画像）
-         └── 物业管理系统（工单/巡检/能耗/设备）
-底层：OpenClaw / Hermes Agent / MCP
+Week 1-7:   AI 基础（已完成）
+Week 8-11:  LangChat 心智模型（4周）
+Week 12-13: Vision Intelligence 能力地图（2周）
+Week 14+:   商管系统 / 开发阶段
 ```
 
-## 知识领域（11个Level）
-
+学习顺序 = 产品架构顺序：
 ```
-Level 1  AI基础（LLM/Prompt/Embedding/Reasoning）
-Level 2  MCP协议（Protocol/Tool/Auth/Session/Transport）
-Level 3  Agent Runtime（Execution/Checkpoint/Memory/Planner/Event Bus）
-Level 4  AI Compiler（Program Synthesis/DSL/Validator/Simulator/Composition）
-Level 5  Capability Platform（Registry/Gateway/Skill Lifecycle/Observability）
-Level 6  企业权限与安全（RBAC/ABAC/OAuth2/Delegation/AI Governance/PII）
-Level 7  企业系统集成（REST/Webhook/EDA/Saga/多租户/事件溯源）
-Level 8  数据与存储（PostgreSQL/PGVector/CQRS/Row-Level Security）
-Level 9  AI运营（Trace/Cost/Token/Evaluation/Feedback/Testing/Canary）
-Level 10 API设计（OpenAPI/MCP/Webhook/SSE/Streaming/Idempotency）
-Level 11 AI产品设计（Capability/Skill/Blueprint/Publish/Multi-Tenant）
-```
-
-## 日程调整
-
-按日历周编号，周一为每周起始：
-- 第一周 = 6/1-6/7（Jason从6/4周四开始学习）
-
-## 每周节奏（7天循环）
-
-| 日期 | 类型 | 内容 |
-|------|------|------|
-| 周一 | 📚 新知识 | Day 1：当周第一个主题 |
-| 周二 | 📚 新知识 + 🔄复习 | Day 2：新主题 + 复习 Day 1 |
-| 周三 | 📚 新知识 + 🔄复习 | Day 3：新主题 + 复习 Day 2 |
-| 周四 | 📚 新知识 + 🔄复习 | Day 4：新主题 + 复习 Day 3 |
-| 周五 | 📚 新知识 + 🔄复习 | Day 5：新主题 + 复习 Day 4 |
-| 周六 | ⚡ 代码实战 | opencode动手练习，基于本周知识点写代码 |
-| 周日 | 🔄 复习日 | 本周 Day 1-5 全部回顾 + 查漏补缺 |
-
-## 学习方法论：新学+复习+练习→代码→总复习
-
-每天推送为一条完整文字消息：
-- 📚 今日新知识
-- 🔄 昨日复习（周二起）
-- 🔑 英文术语（3-5个，来自当天内容）
-- 🎬 推荐视频 + 📖 延伸阅读
-- ✏️ 课堂练习 + 📝 课后测试
-- 🔄 往期回顾
-
-每天学习流程：
-- 6:00 收到推送，朗读听知识点（30分钟）
-- 先看「昨日复习」回忆昨天的内容（5分钟）
-- 再学「今日新知识」（20分钟）
-- 有空时做练习和测试，回复答案批改
-- 周六动手写代码（有整块时间）
-- 周日全面复习，查漏补缺
-
-## 灵活机制
-- 每周允许1天「请假」，当天只推往期复习题
-- 连续3天未回复答案 → 自动降速
-- 回复任意答案后 → 自动恢复正常
-
----
-
-# 📅 学习路线总览
-
-```
-W1-W6   ✅ AI基础与Agent入门（已完成）
-W7      🔥 数字员工架构深化（进行中）       → Level 3 Agent Runtime 入门
-W8      📝 AI基础补强                      → Level 1 Prompt实战+安全
-W9      🔌 MCP协议深入                     → Level 2 全链路
-W10     ⚙️ Agent Runtime进阶               → Level 3 OpenClaw+Hermes对比
-W11     🧠 AI Compiler                     → Level 4 核心技术壁垒
-W12     🏛 Capability Platform             → Level 5 产品核心
-W13     📊 ChatBI与数据分析Agent            → Level 5+11 业务核心
-W14     🔒 企业权限与安全                   → Level 6 架构保障
-W15     🎯 RL与优化                        → Level 9 Agent越用越聪明
-W16     👁 商业地产视觉AI                   → Level 5+11 行业能力
-W17     🚀 前沿与部署                       → 落地最后一公里
-W18     🧠 脑科学精华                       → 个人兴趣
+LangChat（平台层）→ MallSenseAI（行业层）→ 商管系统（应用层）
 ```
 
 ---
 
-# ✅ 已完成阶段
+# Part 1: LangChat Mental Model（Week 8-11）
 
-## W1-W2：Transformer 与大模型训练 ✅
-- W1：自注意力机制、Multi-Head Attention、位置编码
-- W2：预训练、SFT、RLHF、DPO、QLoRA微调实战
+## 目标
 
-## W3：RAG 与知识增强 ✅
-- 向量检索、Embedding、高级RAG、混合检索、GraphRAG、RAG实战
+**Week 8-11（4周）建立 LangChat 完整心智模型。**
 
-## W4：推理与思维链 ✅
-- Chain-of-Thought、Tree-of-Thought、DeepSeek R1、推理评测、Prompt工程
+前7周（Week 1-7）是 AI 基础阶段。从 Week 8 开始，学习焦点从泛 AI 知识转向 LangChat 产品架构。这是延续，不是重来。
 
-## W5：Agent 与工具使用 ✅
-- LLM Agent架构、Function Calling、ReAct模式、Agent安全
+结束后能用自己的话讲清楚：
+- LangChat 为什么不是 Dify？
+- 为什么 ExecutionPlan 不是 Blueprint？
+- 为什么 Runtime 无状态？
+- 为什么 Capability 独立？
+- 为什么 Governance 前移？
+- 脑子里有一张完整的图，任何模块放进去都知道为什么存在
 
-## W6：LLM Agent 实战 ✅
-- 搭建Function Calling Agent、Agent框架设计、实战代码
+## 信息源
 
----
+| 来源 | 路径 | 内容 |
+|---|---|---|
+| 代码仓库 | `/root/langchat` | 当前实现事实 |
+| ADR | `/root/langchat-docs/lanlnk/out/prd/langchat/output/review/ADR-00*.md` | ADR-001~008 |
+| v2战略文集 | `.../review/v2-strategy/` | Charter + Domain Model + Execution Spec（已冻结） |
+| PRD | `.../langchat/output/产品PRD.md` 等 | 产品需求 |
+| OpenSpec | `/root/langchat/openspec/specs/` | 100+ 能力规格 |
+| AGENTS.md | `/root/langchat/AGENTS.md` | 代码架构指南 |
 
-# W7：🔥 数字员工架构深化（进行中）
+## 每日推送格式
 
-> Agent Runtime 入门。多Agent协作、长期记忆、任务编排——数字员工的核心骨架。
-> Level 3 Agent Runtime 基础能力。
+```
+🧱 LangChat 心智模型 | WeekX-DayY
+📌 当前主题
 
-- Day 1（周一）: 数字员工总览 + Agent行为设计 ✅
-  - 数字员工是什么：从聊天机器人到自主工作Agent
-  - System Prompt + SOUL.md：定义Agent人格与行为规则
-  - 输出格式控制（JSON/Markdown/模板）
+🎯 Today's Question
+   每天一个"为什么X不是Y"的核心问题
 
-- Day 2（周二）: 长期记忆与语义检索 ✅
-  - 记忆三层结构：短期/中期/长期
-  - MEMORY.md 与 memory/*.md 持久化策略
-  - 语义搜索（memory_search）：embedding + 相似度匹配
+1. 为什么需要（10%）
+2. ADR 怎么设计的（25%）— 扫描相关 ADR / v2-strategy / OpenSpec
+3. 现有代码怎么实现的（25%）— 读 /root/langchat 对应模块
+4. Gap Analysis（20%）— 目标态 vs 代码现实
+5. 今日产出（20%）— 明确下一步 action
 
-- Day 3（周三）: 任务编排与工作流
-  - 工具编排：单工具→多工具链→自动化工作流
-  - 定时任务（Cron）、延迟提醒、周期工作
-  - 跨平台消息路由（微信/Telegram/Signal）
+📘 今天多理解了什么？
+   以前以为：XXX → 现在知道：XXX
 
-- Day 4（周四）: 多Agent协作模式
-  - 主Agent + 子Agent（subagent）编排
-  - TaskFlow：多步骤可追踪工作流
-  - 上下文传递：isolated vs fork
+🔮 如果今天重新设计 LangChat，你还会这样设计吗？为什么？
+```
 
-- Day 5（周五）: 评估体系与质量保障
-  - Agent输出质量评估：准确性、一致性、安全性
-  - 护栏设计：Prompt护栏 → 工具护栏 → 流程护栏
-  - 监控与日志：审计轨迹、异常检测、人工介入
+加上：
+```
+📝 Daily Engineering Log（结构化）
+   新增 / 修改 / 删除 / 确认 / 遗留 / 技术债 / 下一步
+```
 
-- Day 6（周六）: ⚡ 实战：搭建一个完整数字员工原型
-  - 任务：SOUL.md + MEMORY.md + 工具链 + 子Agent协作
+## 每周节奏
 
-- Day 7（周日）: 🔄 复习 W7 关键概念
+| 日期 | 角色 | 内容 |
+|---|---|---|
+| 周一~周五 | Chief Architect Mentor | 推进当日链路/对象/关注点 |
+| 周六 | Chief Architect Mentor | 实战：画图 / 写文档 / Gap Matrix |
+| 周日 | Virtual CTO | Architecture Review + 五维评分 + ADR Health Check + Progress Report |
 
----
+## 周日 Virtual CTO Review 模板
 
-# W8：📝 AI基础补强
+```
+🔍 Weekly Architecture Review
 
-> Prompt工程实战、安全防御、结构化输出——为LangChat的Skill生成和Orchestrator的权限护栏打底。
-> Level 1 AI基础补强 + Level 6 安全入门。
+1. 本周理解进度（1-10）
+2. 本周新增认知清单
+3. 是否符合 v2 Charter
+4. ADR Health Check（是否过时/需拆分/需冻结）
+5. 五维评分：
+   - Architecture Quality (X/10)
+   - Code Health (X/10)
+   - ADR Consistency (X/10)
+   - Technical Debt (X/10, 分越高质量越好)
+   - Developer Experience (X/10)
+6. 下周建议
+```
 
-- Day 1（周一）: Prompt工程进阶
-  - System Prompt 设计模式（角色→约束→输出模板→示例）
-  - Few-Shot优化：样本选择策略、顺序效应
-  - Structured Output：JSON Schema约束、Function Calling输出控制
-  - 💡 对应：LangChat的Skill输出需要严格的Schema定义
+## 永久文档
 
-- Day 2（周二）: Prompt安全与护栏
-  - Prompt Injection：直接注入、间接注入、越狱攻击
-  - 防御策略：输入过滤、输出过滤、权限隔离
-  - Guardrail设计：Content Policy + Tool Policy + Output Policy 三层护栏
-  - 💡 对应：Orchestrator和LangChat的安全防线
+### Engineering Journal
+每天追加到 `/root/learning-notebooks/engineering-journal.md`
 
-- Day 3（周三）: 模型输出可控性
-  - Temperature/Top-P与输出质量的关系
-  - 重复检测与多样化策略
-  - JSON/Markdown输出的稳定性保障
-  - Retry与Fallback策略（模型不可靠时的降级方案）
-  - 💡 对应：Skill Compiler需要可靠的模型输出
-
-- Day 4（周四）: 多模型协作基础
-  - 大模型 vs 小模型：什么时候用哪个
-  - 模型路由策略：按任务复杂度、按成本、按延迟
-  - Fallback与降级：主模型不可用时的切换策略
-  - 💡 对应：Orchestrator的多模型调度
-
-- Day 5（周五）: Token优化与成本管理
-  - Context Window管理：压缩、摘要、滑动窗口
-  - Token预算与配额设计
-  - 缓存策略：语义缓存、精确缓存
-  - 成本估算与控制框架
-  - 💡 对应：企业SaaS的成本控制
-
-- Day 6（周六）: ⚡ 实战：设计一套完整的Prompt安全方案
-  - 任务：为Orchestrator设计输入过滤+输出过滤+权限护栏
-  - 验证：用常见攻击样本测试防御效果
-
-- Day 7（周日）: 🔄 复习 W7-W8 + Prompt工程核心能力串联
+```
+## YYYY-MM-DD
+### 今天最大的认知
+### 今天最大的坑
+### 今天最大的决策
+```
 
 ---
 
-# W9：🔌 MCP协议深入
+## Week 8：End-to-End Journey（一条链走通）
 
-> Model Context Protocol 全链路深入。LangChat的Skill对接外部系统的核心协议。
-> Level 2 MCP协议 + Level 10 API设计。
+> 不拆模块。从用户输入到执行结果，一天走一步。
+> 7月20日-7月26日
 
-- Day 1（周一）: MCP协议基础
-  - MCP设计哲学：标准化AI与外部系统的交互
-  - 三大原语：Tool（工具调用）、Resource（资源读取）、Prompt（模板管理）
-  - Transport层：STDIO（本地进程） vs SSE（远程服务）
-  - 💡 对应：LangChat的Skill最终通过MCP暴露为标准能力
+| Day | 日期 | 跟着链路走 | Today's Question |
+|---|---|---|---|
+| D1 周一 | 7/20 | **用户意图**：谁在调用 LangChat？Agent Host 怎么连进来？ | 为什么 LangChat 不是 Agent Host？ |
+| D2 周二 | 7/21 | **ApplicationContract**：用户要做什么？怎么描述？ | 为什么 Contract 不是 API 文档？ |
+| D3 周三 | 7/22 | **Blueprint → Compiler → ExecutionPlan**：意图怎么变成可执行的？ | 为什么 Blueprint 不能直接运行？ |
+| D4 周四 | 7/23 | **Runtime**：执行计划怎么跑起来的？ | 为什么 Runtime 不保存状态？ |
+| D5 周五 | 7/24 | **Capability + Connector → Enterprise System**：执行时怎么连到业务系统？ | 为什么 Capability 不是 Plugin？ |
+| D6 周六 | 7/25 | ⚡ **走完整条链**：画一张完整链路图，标出每一步的输入输出 | 为什么这条链不能短一步？ |
+| D7 周日 | 7/26 | 🔄 **Virtual CTO**：这条链上哪里最薄弱？五维评分 | — |
 
-- Day 2（周二）: MCP Tool深入
-  - Tool Schema设计：输入/输出类型、必需/可选参数
-  - Tool发现与注册：Capability Registry如何发现MCP Tool
-  - Tool版本管理：向后兼容、Breaking Change
-  - Tool执行模型：同步vs异步、超时、重试
-  - 💡 对应：商管/会员系统的能力注册
-
-- Day 3（周三）: MCP认证与会话
-  - Auth机制：OAuth2 Bearer Token、API Key、签名认证
-  - Session管理：有状态会话vs无状态
-  - Sampling：模型请求工具执行权限的交互模式
-  - 多租户场景下的MCP隔离
-  - 💡 对应：Orchestrator的system binding与权限传递
-
-- Day 4（周四）: MCP Resource与Prompt
-  - Resource：静态资源vs动态资源、URI设计
-  - Prompt：模板管理、变量注入、版本控制
-  - MCP与RAG的结合：Resource作为知识源
-  - MCP与Function Calling的关系
-  - 💡 对应：LangChat知识查询的底层实现
-
-- Day 5（周五）: MCP企业级实践
-  - MCP Gateway设计：多MCP Server的统一入口
-  - 限流、熔断、降级策略
-  - MCP监控：调用统计、延迟追踪、错误率
-  - MCP与OpenAPI的互补关系
-  - 💡 对应：Orchestrator的capability路由架构
-
-- Day 6（周六）: ⚡ 实战：实现一个MCP Server
-  - 任务：为商管系统写一个MCP Server（商铺查询+租赁信息）
-  - 验证：通过标准MCP Client调用并测试
-
-- Day 7（周日）: 🔄 复习 W7-W9 + MCP协议核心能力
+**Week 8 结束后：LangChat 完整链路在脑子里是通的。**
 
 ---
 
-# W10：⚙️ Agent Runtime进阶
+## Week 9：Domain Deep Dive（拆对象，理解为什么）
 
-> OpenClaw与Hermes Agent架构对比，理解Agent运行时的核心机制。
-> Level 3 Agent Runtime 核心。
+> 回到每个对象，理解它为什么存在、边界在哪、替代方案是什么。
+> 7月27日-8月2日
 
-- Day 1（周一）: OpenClaw架构剖析
-  - 核心模块：Plugin/Skill/Session/Channel/MCP
-  - 执行模型：Execution State、Checkpoint、Resume
-  - 事件系统：Event Bus、订阅发布、执行回放
-  - 💡 对应：Orchestrator的Agent执行引擎
+| Day | 日期 | 对象 | Today's Question |
+|---|---|---|---|
+| D1 周一 | 7/27 | **BlueprintVersion** | 为什么 Blueprint 是制品不是配置？ |
+| D2 周二 | 7/28 | **SkillRelease** | 为什么 SkillRelease 是唯一可部署单元？ |
+| D3 周三 | 7/29 | **Deployment / DeploymentRevision** | 为什么 Deployment 独立于 Release？ |
+| D4 周四 | 7/30 | **ReleaseChannel / TrafficPolicy** | 为什么需要灰度？不能一次全量？ |
+| D5 周五 | 7/31 | **DigitalEmployeeDefinition** | 为什么数字员工不拥有 Runtime？ |
+| D6 周六 | 8/1 | ⚡ **画 Domain Model Diagram**：对象关系、生命周期、依赖 | 哪个对象最可能被合并？哪个最可能被拆分？ |
+| D7 周日 | 8/2 | 🔄 **Virtual CTO**：ADR Health Check — 8个 ADR 有没有过时或需要拆分的？ | — |
 
-- Day 2（周二）: Hermes Agent架构剖析
-  - 核心模块：Provider/Node Registry/Planner/Reducer/Artifact
-  - Memory模型：短期/长期/用户画像
-  - Skill系统：Skill定义、加载、执行
-  - 💡 对应：LangChat的Agent Runtime设计参考
-
-- Day 3（周三）: OpenClaw vs Hermes对比
-  - 设计哲学差异：CLI-first vs Web-first
-  - Skill系统对比：OpenClaw Skill vs Hermes Skill
-  - Channel机制对比：消息路由策略
-  - Context管理对比：Fork/Isolated/Shared
-  - 各自的优缺点与适用场景
-
-- Day 4（周四）: Agent Runtime核心概念
-  - Execution State：状态机、持久化、恢复
-  - Planner：任务分解、依赖分析、并行执行
-  - Reducer：结果聚合、冲突解决
-  - Artifact：中间产物管理（文件、图表、报告）
-  - 💡 对应：LangChat Runtime需要这些核心能力
-
-- Day 5（周五）: 自研Agent设计思路
-  - 核心模块清单：最小可用Agent需要什么
-  - 技术选型考虑：语言、框架、部署
-  - 与OpenClaw/Hermes的差异化方向
-  - MVP设计：先做什么，后做什么
-  - 💡 对应：Jason自研Agent的规划
-
-- Day 6（周六）: ⚡ 实战：画出你的Agent Runtime架构图
-  - 任务：设计自研Agent的核心模块与交互关系
-  - 验证：与OpenClaw/Hermes对比，明确取舍
-
-- Day 7（周日）: 🔄 复习 W7-W10 + Agent Runtime核心能力
+**Week 9 结束后：每个对象都能解释"为什么它必须独立存在"。**
 
 ---
 
-# W11：🧠 AI Compiler
+## Week 10：Governance（横切关注点）
 
-> 自然语言→可执行Skill的核心技术。LangChat最核心的技术壁垒。
-> Level 4 AI Compiler + Level 11 AI产品设计。
+> 不按模块学，按关注点学。因为 Governance 横跨所有模块。
+> 8月3日-8月9日
 
-- Day 1（周一）: AI Compiler概念与动机
-  - 什么是AI Compiler：从自然语言需求到可执行程序
-  - 与传统编译器的类比：Lexer→Parser→IR→CodeGen→Optimize
-  - LangChat的管线：NL → Blueprint → Validator → Simulator → Review → Publish → Runtime
-  - 为什么Skill是第一公民，不是Workflow
-  - 💡 对应：LangChat的核心产品定位
+| Day | 日期 | 主题 | Today's Question |
+|---|---|---|---|
+| D1 周一 | 8/3 | **Permission & Policy**：谁允许谁做什么？ | 为什么 Permission 不放 Runtime 里？ |
+| D2 周二 | 8/4 | **Audit & Trace**：怎么知道发生了什么？ | 为什么 Trace 不是日志？ |
+| D3 周三 | 8/5 | **Approval（人审）**：哪些操作需要人审？ | 为什么 AI 不能全自动发布？ |
+| D4 周四 | 8/6 | **PII & Compliance**：敏感数据怎么管？ | 为什么 Governance 不能最后做？ |
+| D5 周五 | 8/7 | **FrozenExecutionContext**：身份和委托怎么传递？ | 为什么 Context 必须冻结？ |
+| D6 周六 | 8/8 | ⚡ **画 Governance 覆盖图**：哪些模块已有治理，哪些没有 | 最大的治理 Gap 在哪？ |
+| D7 周日 | 8/9 | 🔄 **Virtual CTO**：如果只能修一个治理问题，先修哪个？ | — |
 
-- Day 2（周二）: NL理解与Blueprint设计
-  - NL需求的结构化提取与意图解析（Slot Filling、歧义消解）
-  - Blueprint Schema：输入/输出/步骤/依赖/错误处理
-  - DSL设计原则与Skill类型系统
-  - 程序综合（Program Synthesis）基础
-  - 💡 对应：NL→Blueprint的核心步骤
-
-- Day 3（周三）: Validator与Simulator
-  - 验证层级：语法→语义→安全→业务
-  - 沙箱执行环境：隔离、资源限制、状态回滚、Dry Run
-  - Skill Composition：串行/并行/条件分支/错误处理
-  - 💡 对应：LangChat Validator + Simulator
-
-- Day 4（周四）: Review/Inspector与Publish
-  - Inspector：Blueprint Diff、执行追踪、人审流程
-  - Publish流程：Validate→Approve→Publish→Deploy
-  - 版本管理与Runtime调度
-  - Skill健康度、退化检测、Canary发布
-  - 💡 对应：LangChat Inspector + Publish + Observability
-
-- Day 5（周五）: Skill全生命周期总结
-  - 从NL需求到Runtime执行的完整链路回顾
-  - A/B测试框架：Skill版本对比
-  - 与Capability Platform的集成关系
-  - 💡 对应：企业级Skill管理
-
-- Day 6（周六）: ⚡ 实战：设计完整AI Compiler管线
-  - 任务：为"商管系统自动生成月度经营分析报告"设计端到端管线
-  - 验证：NL→Blueprint→Validate→Simulate→Review→Publish→Runtime全流程
-
-- Day 7（周日）: 🔄 复习 W11 + AI Compiler全链路
-
-# W12：🏛 Capability Platform
-
-> 能力注册、网关、Skill全生命周期——企业级AI能力平台的核心。
-> Level 5 Capability Platform + Level 9 AI运营。
-
-- Day 1（周一）: Capability Registry设计
-  - 能力注册模型：Capability元数据、版本、状态
-  - 能力发现：按领域/按场景/按关键词搜索
-  - 能力分类：数据查询/知识问答/工作流/分析/视觉
-  - 能力依赖管理：A能力依赖B能力
-  - 💡 对应：LangChat的核心能力注册中心
-
-- Day 2（周二）: Capability Gateway
-  - 统一入口：所有能力通过Gateway暴露
-  - 路由策略：按意图→按能力类型→按成本
-  - 限流与配额：每个用户/租户的调用上限
-  - 缓存策略：相同查询的缓存与复用
-  - 💡 对应：Orchestrator的capability路由
-
-- Day 3（周三）: Skill作为Capability
-  - Skill→Capability的映射关系
-  - Skill Provider模型：谁提供的、谁维护的、谁来审批
-  - Skill Release流程：开发→测试→审批→发布
-  - 多租户Skill隔离：不同租户看到不同Skill集
-  - 💡 对应：LangChat Skill的产品形态
-
-- Day 4（周四）: 能力编排与组合
-  - 单能力调用vs多能力编排
-  - Pipeline模式：能力串联执行
-  - Orchestrator模式的编排决策
-  - 能力降级：A不可用时切到B
-  - 💡 对应：Orchestrator的system binding
-
-- Day 5（周五）: AI运营（Observability）
-  - Trace/Span：能力调用的分布式追踪
-  - Cost/Token：调用成本统计与预算控制
-  - Evaluation：能力输出质量评估
-  - Feedback Loop：用户反馈→能力优化
-  - 💡 对应：LangChat运营必需
-
-- Day 6（周六）: ⚡ 实战：设计Capability Platform架构
-  - 任务：为LangChat设计完整的Capability Registry + Gateway方案
-  - 验证：用商管/会员/ChatBI场景验证设计
-
-- Day 7（周日）: 🔄 复习 W7-W12 阶段总结 + 主线能力串联
+**Week 10 结束后：理解 Governance 不是模块，而是横切所有模块的约束。**
 
 ---
 
-# W13：📊 ChatBI与数据分析Agent
+## Week 11：Code Reality（面对代码事实）
 
-> Text-to-SQL、ChatBI架构、数据洞察——直接服务于LnkChatBI。
-> Level 5 Capability + Level 8 数据与存储。
+> 前三周建立了心智模型。第四周面对现实：代码和模型差多远？
+> 8月10日-8月16日
 
-- Day 1（周一）: Text-to-SQL 原理
-  - 自然语言到SQL的转换流程
-  - Schema Linking：理解表结构与字段含义
-  - SQL生成的关键技术：意图识别→表选择→条件构建→排序聚合
-  - 常见挑战：歧义消解、多表JOIN、复杂聚合
-  - 💡 对应：LnkChatBI的核心技术
+| Day | 日期 | 任务 | Today's Question |
+|---|---|---|---|
+| D1 周一 | 8/10 | **Capability Inventory**：扫描代码，列出所有现有能力 + 状态 | 哪些 Capability 名不副实？ |
+| D2 周二 | 8/11 | **Gap Matrix**：目标态对象 vs 代码实现，逐个打分 | 哪个 Gap 最危险？ |
+| D3 周三 | 8/12 | **Connector 现状**：REST/MCP/Channel 各自到什么程度？ | Connector 是 LangChat 最弱的部分吗？ |
+| D4 周四 | 8/13 | **Knowledge 现状**：当前 RAG 实现 vs Knowledge Governance 目标 | Knowledge 治理缺什么？ |
+| D5 周五 | 8/14 | **竞品对比**：Dify/LangGraph/OpenClaw/Claude Code 各自的链路 | LangChat 最独特的设计是什么？ |
+| D6 周六 | 8/15 | ⚡ **输出：LangChat v2 实施路线图 v1.0** — 按 Sprint 拆分 | 前3个 Sprint 做什么？ |
+| D7 周日 | 8/16 | 🔄 **最终 Virtual CTO Review**：4周总复盘 + 五维评分趋势 + 后续开发节奏 | — |
 
-- Day 2（周二）: ChatBI 架构设计
-  - ChatBI完整工作流：查询理解→SQL生成→执行→结果解读→可视化
-  - 查询改写与意图分类（数据查询 vs 知识问答）
-  - 结果解读：数字转洞察、自动生成文字分析
-  - 图表生成：根据数据特征自动选择图表类型
-  - 💡 对应：LnkChatBI产品架构
-
-- Day 3（周三）: 查询结果分析与数据洞察
-  - 数据分析Agent的核心能力：趋势、异常、对比、预测
-  - 自动洞察生成：从SQL结果中提取业务价值
-  - 追问与多轮交互：用户连续提问的场景处理
-  - 💡 对应：LnkChatBI的analysis.execute
-
-- Day 4（周四）: ChatBI作为Capability
-  - ChatBI如何注册为LangChat的Capability
-  - 与其他Capability的编排：数据查询→知识检索→报告生成
-  - PGVector在ChatBI中的应用：语义搜索辅助Schema Linking
-  - 💡 对应：LnkChatBI与LangChat的集成
-
-- Day 5（周五）: ChatBI评估与产品化
-  - ChatBI质量评估：SQL准确率、回答相关性、响应速度
-  - 错误处理：SQL执行失败、空结果、超时的用户引导
-  - 多数据源切换、角色权限、审计日志
-  - 💡 对应：LnkChatBI的企业级能力
-
-- Day 6（周六）: ⚡ 实战：优化一个ChatBI场景
-  - 任务：选择一个实际业务查询场景，分析当前实现并优化
-  - 输出：优化前后对比报告
-
-- Day 7（周日）: 🔄 复习 W12-W13 + Capability Platform + ChatBI串联
+**Week 11 结束后：有一张"现状-目标"对照图 + 一份可执行的实施路线图。**
 
 ---
 
-# W14：🔒 企业权限与安全
+## 4周交付物
 
-> Delegation、AI Governance、PII脱敏——企业级安全体系。
-> Level 6 企业权限与安全。
+```
+Week 8: LangChat 完整链路图
+Week 9: Domain Model Diagram + ADR Health Check 报告
+Week 10: Governance 覆盖图 + 最大 Gap 清单
+Week 11: Capability Inventory + Gap Matrix + 实施路线图 v1.0
 
-- Day 1（周一）: 企业身份认证
-  - OAuth2/OIDC：授权码模式、客户端模式
-  - JWT：Token设计、刷新、吊销
-  - 多系统SSO：Orchestrator↔LangChat↔商管系统的统一认证
-  - 💡 对应：Orchestrator的认证基础
+持续4周:
+  📖 Engineering Journal（28天设计史）
+  📝 Daily Engineering Log（每天代码事实）
+  ❓ 28个核心 Question 及回答
+  📊 五维评分趋势（每周日）
+```
 
-- Day 2（周二）: 授权模型深化
-  - RBAC回顾：角色、权限、资源
-  - ABAC深入：基于属性的访问控制（用户属性、资源属性、环境属性）
-  - Delegation（委派授权）：A授权B代表A执行操作
-  - Scope设计：API调用粒度的权限控制
-  - 💡 对应：Orchestrator权限体系的核心
+## Week 8-11 后
 
-- Day 3（周三）: 多租户架构
-  - 数据隔离层级：Database per tenant / Schema per tenant / Row-level
-  - 配置隔离：每个租户的模型、权限、Skill集合
-  - 计费模型：按租户、按用户、按Token
-  - 💡 对应：SaaS平台的多租户架构
-
-- Day 4（周四）: AI Governance
-  - AI输出安全：有害内容过滤、敏感信息检测
-  - PII脱敏：识别并脱敏用户数据（手机号、身份证、银行卡）
-  - Skill发布安全：AI生成→人审→发布，不能跳过审批
-  - 合规基础：数据安全法、AI相关法规
-  - 💡 对应：LangChat Skill管线的安全要求
-
-- Day 5（周五）: 审计与监控
-  - 审计日志：谁、什么时候、做了什么、结果如何
-  - Trace：完整请求链路追踪
-  - 异常检测：异常调用模式识别
-  - Row-Level Security：PostgreSQL行级权限
-  - 💡 对应：Orchestrator的trace/audit/metrics
-
-- Day 6（周六）: ⚡ 实战：设计Orchestrator权限方案
-  - 任务：为Orchestrator设计完整的认证+授权+审计方案
-  - 验证：用多租户场景验证设计
-
-- Day 7（周日）: 🔄 复习 W15 + 企业安全核心能力
+Week 8-11 是"建立心智模型"。之后进入开发阶段：
+- 按路线图分 Sprint 推进
+- 每周保持 Virtual CTO Review
+- OpenClaw 从"架构导师"切换为"开发搭档"
 
 ---
 
-# W15：🎯 RL与优化
+# Part 2: Vision Intelligence 能力地图（Week 12-13）
 
-> 让Agent"越用越聪明"——RL理论+偏好学习+DPO实战+评估闭环。
-> Level 9 AI运营 + RL核心。
+## 定位
 
-- Day 1（周一）: 强化学习基础
-  - MDP、策略、价值函数、奖励信号
-  - 经典RL vs 大模型时代的RL
-  - RLHF全流程：奖励模型训练→PPO优化
-  - RLAIF：用AI替代人类标注
+**建立 Vision Intelligence 认知地图，明确 MallSenseAI 作为 LangChat 行业能力包（Industry Capability Pack）的定位和演进路径。**
 
-- Day 2（周二）: 偏好学习方法与DPO
-  - DPO / IPO / KTO / ORPO 对比
-  - DPO数学原理与TRL库使用
-  - 偏好数据集构造原则
-  - 💡 对应：Skill质量优化
+> 统一术语：Vision Intelligence（不叫 Computer Vision）
+> 因为未来系统不会只有 Detection，还有 Tracking → Scene Understanding → Knowledge → Reasoning → Agent → Business Decision
+> 后面都是 AI，不只是 CV
 
-- Day 3（周三）: Agent评估与反馈闭环
-  - 评估指标：任务完成率、用户满意度、安全合规
-  - 显式/隐式反馈机制
-  - Skill回归测试与Golden Set设计
-  - Prompt Version管理与A/B测试
-  - 💡 对应：LangChat Skill质量持续优化
+### 产品关系
 
-- Day 4（周四）: RL与ChatBI/LangChat的结合
-  - 用RL优化ChatBI查询质量
-  - 用偏好学习优化Skill生成质量
-  - 在线学习：Agent从交互中持续改进
-  - 💡 对应：企业级Agent优化
+```
+LangChat（企业 AI 应用平台）
+ │  Agent Runtime / Workflow / MCP / Knowledge / Governance
+ │
+ ▼
+MallSenseAI（视觉智能行业能力包）
+ │  Detection / Video Analytics / People Analytics
+ │  Security Analytics / Retail Analytics / Vision Agent
+ │
+ ▼
+商管系统 / MI / CRM（业务应用层）
+```
 
-- Day 5（周五）: W7-W15 阶段测验
-  - 测验覆盖：Agent Runtime/MCP/AI Compiler/Capability Platform/ChatBI/权限/RL
-  - 知识脉络梳理：从W7到W15的完整链路
+- **LangChat** = 平台层（AI 应用平台）
+- **MallSenseAI** = 行业层（视觉智能能力包）
+- **商管系统** = 应用层（业务消费）
 
-- Day 6（周六）: ⚡ 实战：DPO微调+端到端优化
-  - 任务：在4060Ti上用TRL做DPO微调，优化一个ChatBI/Agent场景
-  - 验证：微调前后行为对比
+### Vision Capability 五层模型
 
-- Day 7（周日）: 🔄 复习 W7-W15 主线能力总串联
+```
+L1  Image Understanding     — Detection / OCR / Segmentation
+L2  Video Understanding     — Tracking / MOT / Video Analytics
+L3  Scene Understanding     — Counting / Heatmap / Crowd / Queue
+L4  Business Intelligence   — 客流 KPI / 安全事件 / 运营指标
+L5  Vision Agent            — 自动分析 / 推理 / 建议 / 日报
+```
 
-# W16：👁 商业地产视觉AI
+每一层只依赖下一层。新增能力（ReID / Pose / Action / VLM）都知道放哪。
 
-> 精准客流、通道拥堵、异常检测、消防预警——视觉能力作为Capability。
-> Level 5 Capability + Level 11 行业AI。
+## 信息源
 
-- Day 1（周一）: 视觉检测基础
-  - YOLO原理快速过：图像→检测框→分类
-  - 目标检测 vs 图像分类 vs 语义分割
-  - 边缘部署考虑：模型大小、推理速度
-  - 💡 对应：商业地产场景的视觉基础
-
-- Day 2（周二）: 精准客流统计
-  - 进出计数算法（线段计数法）
-  - 区域热力图：客流密度可视化
-  - 停留时长分析
-  - 💡 对应：商管运营核心指标
-
-- Day 3（周三）: 通道拥堵与异常检测
-  - 人群密度估计
-  - 拥堵预警：实时检测+阈值报警
-  - 地面脏污检测、杂物占道检测
-  - 区域入侵检测
-  - 💡 对应：物业管理的AI能力
-
-- Day 4（周四）: 消防安全检测
-  - 烟雾识别、火焰识别
-  - 联动报警机制
-  - 误报率控制策略
-  - 💡 对应：商业地产安全合规
-
-- Day 5（周五）: 视觉能力接入Capability Platform
-  - 视觉检测作为MCP Tool或Capability注册
-  - 实时检测vs定时巡检的架构设计
-  - 视觉结果与LangChat的集成
-  - 💡 对应：视觉AI融入LangChat平台
-
-- Day 6（周六）: ⚡ 实战：跑一个视觉检测场景
-  - 任务：用YOLO跑客流计数或拥堵检测demo
-  - 验证：模型准确率与推理速度
-
-- Day 7（周日）: 🔄 复习 W16 + 视觉AI核心能力
+| 来源 | 路径 | 内容 |
+|---|---|---|
+| 代码仓库 | `/root/MallSenseAI` | 当前实现事实 |
+| PRD | `/root/langchat-docs/lanlnk/out/prd/MallSenseAI/output/` | 产品需求 |
+| 域知识 | `.../MallSenseAI/域知识.md` | 检测器/巡检流水线/设计决策 |
+| AGENTS.md | `/root/MallSenseAI/AGENTS.md` | 代码架构指南（25KB） |
+| OpenSpec | `/root/MallSenseAI/openspec/specs/` | 能力规格 |
 
 ---
 
-# W17：🚀 前沿与部署
+## Week 12：Vision Intelligence 全景 + MallSenseAI 现状
 
-> AI趋势、量化部署、成本优化——落地最后一公里。
-> Level 9 AI运营 + 部署。
+> 8月17日-8月23日
 
-- Day 1（周一）: AI for Business趋势
-  - 2026年AI行业趋势与机会
-  - 数字员工/Agent平台市场格局
-  - 企业AI落地成熟度模型
+| Day | 日期 | 任务 | Today's Question |
+|---|---|---|---|
+| D1 周一 | 8/17 | **Vision Intelligence 全景**：CV/VLM/Video Analytics 生态，五层模型总览 | 为什么 MallSenseAI 不是 CV 项目？ |
+| D2 周二 | 8/18 | **MallSenseAI 仓库精读**：Pipeline/Detectors/Rules/Alerts/Workers 全链路 | 为什么当前是定时截图而不是视频流？ |
+| D3 周三 | 8/19 | **Detection 体系**：YOLO/RT-DETR/SAM/GroundingDINO，什么时候用哪个 | 为什么 MallSenseAI 选择了 YOLO-World？ |
+| D4 周四 | 8/20 | **Video Analytics 基线**：当前截图模式 vs 未来 RTSP/FFmpeg/GPU 推理 | 从截图到视频流，架构要改什么？ |
+| D5 周五 | 8/21 | **Business Scene Matrix**：业务目标→场景→能力→系统 映射 | 哪个商业场景 ROI 最高？ |
+| D6 周六 | 8/22 | ⚡ **画 Vision Capability 五层图 + Business Scene Matrix** | MallSenseAI 现在站在 L1 的哪一部分？ |
+| D7 周日 | 8/23 | 🔄 **Virtual CTO**：MallSenseAI 能力边界审视 + 五维评分 | — |
 
-- Day 2（周二）: 模型优化与量化部署
-  - 蒸馏、量化（INT4/INT8）、剪枝
-  - llama.cpp / vLLM / TensorRT-LLM 对比
-  - 边缘部署：NVIDIA Jetson/4060Ti
-
-- Day 3（周三）: 企业级部署架构
-  - 容器化：Docker/K8s部署Agent服务
-  - 监控：健康检查、灰度发布、蓝绿部署
-  - 数据安全与合规
-  - 多模型推理服务架构
-
-- Day 4（周四）: 世界模型前沿
-  - 世界模型概念：让AI理解"世界怎么运转"
-  - Sora、Genie等案例
-  - 与Agent/数字员工的潜在结合
-
-- Day 5（周五）: 具身智能前沿
-  - 从软件Agent到具身Agent
-  - 服务机器人、SLAM、人机交互
-  - 云端大脑+边缘执行：数字员工控制物理设备
-
-- Day 6（周六）: ⚡ 实战：量化部署实验
-  - 任务：用llama.cpp对7B模型做INT4量化
-  - 验证：量化前后大小、速度、质量对比
-
-- Day 7（周日）: 🎓 W7-W17 大模型路线总复习 + 结业回顾
+**Week 12 结束后：Vision Intelligence 全景在脑子里，MallSenseAI 的位置清晰。**
 
 ---
 
-# W18：🧠 脑科学精华（个人兴趣）
+## Week 13：能力蓝图 + LangChat 集成路径
 
-> 精华版，保留AI关联度最高的内容。
+> 8月24日-8月30日
 
-### W18 Day1-2：神经科学基础
-- Day 1（周一）: 神经元与信号传递
-  - 生物神经元 vs 人工神经元
-  - 动作电位 vs 前向传播
-  - 突触可塑性 vs 模型微调
-- Day 2（周二）: 大脑结构与功能分区
-  - 四大脑叶与核心区域
-  - 海马体（记忆） vs 上下文窗口
-  - 前额叶（决策） vs Agent规划
-- Day 3（周三）: 记忆与学习
-  - 短期/长期/工作记忆
-  - 遗忘曲线与间隔学习
-  - 海马体如何"写入"新记忆
-- Day 4（周四）: 注意力与决策
-  - 大脑注意力网络 vs Transformer自注意力
-  - 多巴胺奖赏系统 vs 强化学习
-  - 决策偏差：为什么人不是纯理性的
-- Day 5（周五）: 语言的大脑机制
-  - 布洛卡区（产出） vs 韦尼克区（理解）
-  - 语言模型 vs 大脑语言处理
-- Day 6（周六）: ⚡ 实战：可视化大脑-AI对比
-  - 任务：画一张生物大脑 vs AI模型的架构对比图
-- Day 7（周日）: 🔄 复习 W20 脑科学×AI交叉点
+| Day | 日期 | 任务 | Today's Question |
+|---|---|---|---|
+| D1 周一 | 8/24 | **People Analytics**：客流/密度/停留时间/热区/轨迹 | 客流统计为什么不是 Detection 而是 Tracking？ |
+| D2 周二 | 8/25 | **Security Analytics**：入侵/越界/跌倒/烟火/危险区域/离岗 | 安全场景为什么误报率是核心挑战？ |
+| D3 周三 | 8/26 | **Retail Analytics**：排队分析/货架陈列/缺货检测 | 零售场景的 Vision 能力如何转化为 KPI？ |
+| D4 周四 | 8/27 | **Vision Agent**：从"检测到一个人"到"自动分析→推理→建议→日报" | Vision Agent 和 LangChat Agent 有什么区别？ |
+| D5 周五 | 8/28 | **Vision Capability Architecture**：Vision Capability → Vision Runtime → Vision Agent → LangChat Integration | MallSenseAI 如何成为 LangChat 的行业能力包？ |
+| D6 周六 | 8/29 | ⚡ **输出：Vision Capability Inventory + Vision Technology Radar + 演进路线图** | 前3个 Sprint 做什么？ |
+| D7 周日 | 8/30 | 🔄 **最终 Virtual CTO Review**：2周总复盘 + MallSenseAI × LangChat 集成评估 | — |
 
-### W18 Day3-4：脑科学与AI交汇
-- 神经科学与Agent优化（课程学习vs预训练、可塑性vs持续学习）
-- 意识、记忆与通用智能（NCC、AGI需要意识吗）
-- 脑机接口与未来（Neuralink、BCI）
-- Day 6（周六）: ⚡ 实战：脑科学×AI终极对比项目
-  - 任务：交互式脚本展示生物大脑vs AI在"学习"上的异同
-- Day 7（周日）: 🎓 18周总复习 + 结业回顾
-  - 从Transformer到数字员工到ChatBI到脑科学：完整知识脉络
-  - 企业AI平台架构师能力总结
+**Week 13 结束后：有一张完整的视觉智能能力地图 + 技术雷达 + 演进路线。**
+
+---
+
+## Business Scene Matrix 模板
+
+```
+业务目标 → 视觉场景 → Vision Capability → 系统模块
+
+提升招商   → 客流分析   → Counting/Tracking    → People Analytics
+提高安全   → 消防通道   → Intrusion/Detection   → Security Analytics
+提高运营   → 排队分析   → Queue Analysis       → Retail Analytics
+降低成本   → 自动巡检   → Detection             → MallSenseAI 现有
+```
+
+## Vision Technology Radar 模板
+
+| 技术 | 是否学习 | 是否采用 | 是否进入产品 | 备注 |
+|---|---|---|---|---|
+| YOLO（11n/v8s） | ✅ | ✅ | ✅ | 已用于障碍物/火灾检测 |
+| YOLO-World | ✅ | ✅ | ✅ | 已用于零样本检测 |
+| RT-DETR | ✅ | 待评估 | ❌ | 精度更高但推理更慢 |
+| SAM2 | ✅ | 待评估 | ❌ | 分割能力 |
+| GroundingDINO | ✅ | 规划 | ❌ | 开放词表检测替代 |
+| ByteTrack | ✅ | 规划 | ❌ | 视频流 Tracking |
+| BoT-SORT | ✅ | 规划 | ❌ | 多目标跟踪 |
+| ReID | ✅ | 长期 | ❌ | 跨摄像头追踪 |
+| Pose | ✅ | 长期 | ❌ | 跌倒/行为识别 |
+| VLM | ✅ | 长期 | ❌ | 场景理解 |
+| Vision Agent | ✅ | 长期 | ❌ | 自动分析+建议 |
+
+> 每半年更新一次
+
+---
+
+## Week 12-13 交付物
+
+```
+1. Vision Capability 五层图（L1-L5）
+2. Business Scene Matrix（业务目标→场景→能力→系统）
+3. Vision Capability Inventory（能力清单 + 现状 + 规划）
+4. Vision Technology Radar（技术评估 + 采用状态）
+5. MallSenseAI × LangChat 集成路径
+6. MallSenseAI 演进路线图
+
+持续2周:
+  📖 Engineering Journal（继续追加）
+  ❓ 10个核心 Question 及回答
+  📊 五维评分（每周日）
+```
