@@ -1,0 +1,432 @@
+# 📚 第2周-Day3：GPT 与 BERT 架构对比
+
+> **前两天我们学习了 Transformer 的内部零件（FFN/LayerNorm/残差）和数据预处理（Tokenizer/Embedding）。今天退一步，从宏观视角对比两大经典架构：GPT 和 BERT。它们都基于 Transformer，但设计哲学完全不同——一个擅长"说"，一个擅长"读"。理解它们的差异，你才能在不同业务场景中选择正确的模型。**
+
+## 📅 学习进度
+
+```
+W1 ████████████████████ ✓ 已完成（Transformer 基础架构）
+W2 ██████████░░░░░░░░░░ ← 你在这里（Day 3/7）
+W3 ░░░░░░░░░░░░░░░░░░░░ 预训练与数据工程
+W4 ░░░░░░░░░░░░░░░░░░░░ 微调与对齐
+...
+W13 ░░░░░░░░░░░░░░░░░░░░ 综合项目
+```
+
+---
+
+## 一、为什么需要不同的架构？
+
+### 一个根本问题
+
+语言处理有两大类任务：
+1. **理解型任务**：文本分类、情感分析、命名实体识别 → 需要完整地看到上下文
+2. **生成型任务**：文本续写、对话、翻译 → 需要一个词一个词地产出
+
+**打个比方**：
+- **理解型任务**像"阅读理解考试"——你可以反复阅读全文，综合所有信息后做判断
+- **生成型任务**像"即兴演讲"——你站在台上，说出一个词后不能收回，然后基于已说的内容继续往下说
+
+这两种任务对信息处理的要求根本不同，所以 Transformer 被改造成了两个方向：
+
+- **BERT（Encoder-only）**：双向注意力，能看到前后文 → 适合"理解"
+- **GPT（Decoder-only）**：单向注意力，只看前面 → 适合"生成"
+
+**没有这种区分会怎样？**
+- 用 GPT 做分类：虽然也能做，但它生成式的设计会浪费算力
+- 用 BERT 做生成：做不到！它一次看到所有内容，无法模拟"逐词生成"的过程
+
+---
+
+## 二、核心原理详解
+
+### 2.1 GPT——"说故事的人"
+
+#### 架构：Decoder-Only
+
+GPT 只使用了 Transformer 的 Decoder 部分，核心特征是**因果注意力（Causal Attention / Masked Self-Attention）**。
+
+```
+当 GPT 正在生成第 3 个词时：
+
+  词1   词2   词3   词4   词5
+  ✓     ✓     ✓     ✗     ✗    ← 只能看到自己和前面的词！
+```
+
+#### 因果注意力掩码
+
+在计算注意力时，用一个下三角矩阵遮住"未来"的信息：
+
+```
+注意力掩码（Mask）:
+      词1  词2  词3  词4
+词1 [  ✓    ✗    ✗    ✗  ]
+词2 [  ✓    ✓    ✗    ✗  ]
+词3 [  ✓    ✓    ✓    ✗  ]
+词4 [  ✓    ✓    ✓    ✓  ]
+
+✓ = 可以看到    ✗ = 被遮住
+```
+
+**打个比方**：就像看悬疑小说——你只能从第一页开始按顺序往后看，不能翻到最后一页看结局。每看到一页时，你已经知道了前面所有页的内容，但后面的还是悬念。
+
+#### 自回归生成
+
+GPT 生成文本的过程：
+
+```
+输入: [<BOS>]
+第1步: <BOS> → "今天"
+第2步: <BOS> "今天" → "天气"
+第3步: <BOS> "今天" "天气" → "真"
+第4步: <BOS> "今天" "天气" "真" → "好"
+最终: "今天天气真好"
+```
+
+每一步都把之前生成的所有 token 作为输入，预测下一个 token。
+
+**数学表达**：
+
+$$P(w_1, w_2, ..., w_n) = \prod_{i=1}^{n} P(w_i | w_1, ..., w_{i-1})$$
+
+这就是"自回归"（Autoregressive）的含义——自己之前的输出成为下一步的输入。
+
+### 2.2 BERT——"阅读理解专家"
+
+#### 架构：Encoder-Only
+
+BERT 只使用了 Transformer 的 Encoder 部分，核心特征是**双向注意力（Bidirectional Attention）**。
+
+```
+当 BERT 处理第 3 个词时：
+
+  词1   词2   词3   词4   词5
+  ✓     ✓     ✓     ✓     ✓    ← 能看到所有词！
+```
+
+**打个比方**：就像看一张全景照片——你可以同时看到所有细节。理解"苹果好吃"中的"苹果"是水果，因为你能同时看到后面的"好吃"。
+
+#### MLM（Masked Language Modeling）预训练
+
+BERT 的训练方式很巧妙——随机遮住一些词，让模型猜：
+
+```
+原始: "红豆沙是经典的广式糖水"
+遮住: "红豆[MASK]是经典的广式[MASK]水"
+任务: 猜出 [MASK] 位置是什么
+```
+
+这迫使模型必须理解上下文的双向语义。
+
+#### NSP（Next Sentence Prediction）
+
+BERT 还训练了一个"句子关系"任务：
+
+```
+输入: "[CLS] 红豆沙很好喝 [SEP] 它是广式甜品 [SEP]"
+标签: IsNext（第二句确实是第一句的下一句）
+
+输入: "[CLS] 红豆沙很好喝 [SEP] 今天天气不错 [SEP]"
+标签: NotNext（两句没有关系）
+```
+
+### 2.3 架构对比总结
+
+| 特性 | GPT | BERT |
+|------|-----|------|
+| **架构** | Decoder-only | Encoder-only |
+| **注意力** | 单向（Causal Mask） | 双向（全可见） |
+| **预训练任务** | 预测下一个词 | 完型填空 + 句子关系 |
+| **输入** | 从左到右 | 全文一次性输入 |
+| **擅长任务** | 生成、对话、续写 | 分类、标注、问答 |
+| **推理方式** | 自回归（逐词生成） | 一次性编码 |
+| **代表模型** | GPT-4, LLaMA, Qwen | BERT, RoBERTa, DeBERTa |
+| **特殊 Token** | `<BOS>`(开头), `<EOS>`(结尾) | `[CLS]`(分类), `[SEP]`(分隔) |
+
+### 2.4 为什么大模型时代 GPT 架构胜出？
+
+你可能注意到了——LLaMA、Qwen、ChatGLM、DeepSeek 等几乎所有现代大语言模型都是 Decoder-only 架构。为什么？
+
+1. **生成能力是核心**：ChatGPT 的成功证明了"对话生成"是最大的应用场景
+2. **Scaling Law 友好**：研究表明，Decoder-only 架构在参数量增大时效果提升更稳定
+3. **工程简洁**：只有一个方向的注意力，KV Cache 优化更直接（Day 5 会学）
+4. **Zero-shot 能力强**：Decoder-only 模型不需要微调就能完成各种任务
+
+**但 BERT 并没过时**！在以下场景中，Encoder 模型仍然是首选：
+- 文本分类（情感分析、垃圾邮件检测）
+- 命名实体识别（NER）
+- 句子相似度计算
+- Embedding 提取（RAG 中的检索）
+
+---
+
+## 三、代码实战
+
+### 3.1 用 NumPy 演示因果掩码
+
+```python
+import numpy as np
+
+def causal_attention_demo(seq_len=4, d_k=8):
+    """演示 GPT 的因果注意力掩码"""
+    np.random.seed(42)
+    
+    # 随机生成 Q 和 K
+    Q = np.random.randn(seq_len, d_k)
+    K = np.random.randn(seq_len, d_k)
+    
+    # 计算注意力分数
+    scores = np.dot(Q, K.T) / np.sqrt(d_k)
+    
+    # 创建因果掩码（下三角矩阵）
+    mask = np.triu(np.ones((seq_len, seq_len)), k=1).astype(bool)
+    
+    # 将掩码位置设为负无穷
+    masked_scores = scores.copy()
+    masked_scores[mask] = -np.inf
+    
+    # Softmax
+    attn_weights = np.exp(masked_scores - np.max(masked_scores, axis=-1, keepdims=True))
+    attn_weights /= np.sum(attn_weights, axis=-1, keepdims=True)
+    
+    return scores, mask, attn_weights
+
+scores, mask, attn = causal_attention_demo()
+print("原始注意力分数（无掩码）:")
+print(np.round(scores, 2))
+print("\n因果掩码 (True = 被遮住):")
+print(mask)
+print("\n掩码后的注意力权重:")
+print(np.round(attn, 3))
+print("\n注意：下三角是有效的注意力权重，上三角全是 0")
+```
+
+### 3.2 模拟 BERT 和 GPT 的信息流
+
+```python
+def simulate_gpt_bert(text_tokens):
+    """对比 GPT 和 BERT 的信息流"""
+    n = len(text_tokens)
+    
+    print(f"输入序列: {text_tokens}\n")
+    
+    print("=" * 60)
+    print("GPT 模式（单向，从左到右）:")
+    print("=" * 60)
+    for i in range(n):
+        visible = text_tokens[:i+1]
+        hidden = text_tokens[i+1:]
+        print(f"  位置 {i} ({text_tokens[i]}): 能看到 {visible}")
+    
+    print(f"\n{'=' * 60}")
+    print("BERT 模式（双向，全局可见）:")
+    print("=" * 60)
+    for i in range(n):
+        print(f"  位置 {i} ({text_tokens[i]}): 能看到全部 {text_tokens}")
+
+# 演示
+simulate_gpt_bert(['红', '豆', '沙', '好', '喝'])
+```
+
+### 3.3 计算两种架构的参数量
+
+```python
+def count_parameters(d_model=768, n_heads=12, n_layers=12, d_ff=3072, vocab_size=30000):
+    """计算 Transformer 模型的参数量"""
+    # Embedding 层
+    embed_params = vocab_size * d_model
+    
+    # 每层 Transformer Block
+    # 注意力层: Q, K, V, O 四个投影矩阵
+    attn_params = 4 * d_model * d_model
+    # FFN 层
+    ffn_params = 2 * d_model * d_ff  # 两个线性层
+    # LayerNorm (2个, 每个 2*d_model 参数)
+    ln_params = 2 * 2 * d_model
+    
+    layer_params = attn_params + ffn_params + ln_params
+    total_params = embed_params + n_layers * layer_params
+    
+    print(f"模型配置: d_model={d_model}, layers={n_layers}, vocab={vocab_size}")
+    print(f"  Embedding:     {embed_params/1e6:.1f}M")
+    print(f"  每层参数:      {layer_params/1e6:.1f}M")
+    print(f"    注意力:       {attn_params/1e6:.1f}M")
+    print(f"    FFN:          {ffn_params/1e6:.1f}M")
+    print(f"    LayerNorm:    {ln_params/1e6:.1f}M")
+    print(f"  总参数量:      {total_params/1e6:.1f}M ({total_params/1e9:.3f}B)")
+    
+    return total_params
+
+print("=" * 50)
+print("BERT-base (Encoder-only)")
+print("=" * 50)
+count_parameters(d_model=768, n_heads=12, n_layers=12, d_ff=3072, vocab_size=30522)
+
+print(f"\n{'=' * 50}")
+print("GPT-2 small (Decoder-only)")
+print("=" * 50)
+count_parameters(d_model=768, n_heads=12, n_layers=12, d_ff=3072, vocab_size=50257)
+```
+
+---
+
+## 四、可视化理解
+
+```python
+from matplotlib import font_manager
+import matplotlib.pyplot as plt
+import numpy as np
+
+font_path = "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"
+font_manager.fontManager.addfont(font_path)
+font_name = font_manager.FontProperties(fname=font_path).get_name()
+plt.rcParams["font.family"] = font_name
+plt.rcParams["axes.unicode_minus"] = False
+
+fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+
+# 图1: BERT 双向注意力 vs GPT 单向注意力
+seq_len = 6
+labels = ['红', '豆', '沙', '好', '喝', '！']
+
+# BERT 全可见
+bert_attn = np.ones((seq_len, seq_len))
+axes[0].imshow(bert_attn, cmap='Blues', vmin=0, vmax=1)
+axes[0].set_title('BERT: 双向注意力\n（全可见）', fontsize=14, fontweight='bold')
+axes[0].set_xticks(range(seq_len))
+axes[0].set_yticks(range(seq_len))
+axes[0].set_xticklabels(labels)
+axes[0].set_yticklabels(labels)
+for i in range(seq_len):
+    for j in range(seq_len):
+        axes[0].text(j, i, '✓', ha='center', va='center', fontsize=16, color='white', fontweight='bold')
+
+# GPT 因果掩码
+gpt_attn = np.tril(np.ones((seq_len, seq_len)))
+axes[1].imshow(gpt_attn, cmap='Oranges', vmin=0, vmax=1)
+axes[1].set_title('GPT: 因果注意力\n（只看前面）', fontsize=14, fontweight='bold')
+axes[1].set_xticks(range(seq_len))
+axes[1].set_yticks(range(seq_len))
+axes[1].set_xticklabels(labels)
+axes[1].set_yticklabels(labels)
+for i in range(seq_len):
+    for j in range(seq_len):
+        symbol = '✓' if j <= i else '✗'
+        color = 'white' if j <= i else 'gray'
+        axes[1].text(j, i, symbol, ha='center', va='center', fontsize=16, color=color, fontweight='bold')
+
+# 图3: 应用场景对比
+tasks = ['文本分类', '命名实体识别', '文本生成', '对话系统', '翻译', '问答', '摘要']
+gpt_score = [6, 5, 10, 10, 9, 9, 9]
+bert_score = [9, 9, 2, 1, 5, 8, 4]
+
+x = np.arange(len(tasks))
+width = 0.35
+axes[2].barh(x - width/2, gpt_score, width, label='GPT', color='#e67e22')
+axes[2].barh(x + width/2, bert_score, width, label='BERT', color='#3498db')
+axes[2].set_yticks(x)
+axes[2].set_yticklabels(tasks)
+axes[2].set_xlabel('适用性评分 (1-10)')
+axes[2].set_title('GPT vs BERT: 任务适用性', fontsize=14, fontweight='bold')
+axes[2].legend()
+axes[2].invert_yaxis()
+
+plt.tight_layout()
+plt.savefig('/tmp/gpt_vs_bert.png', dpi=150, bbox_inches='tight')
+plt.show()
+print("✅ 可视化图表已生成！")
+```
+
+---
+
+## 五、业务关联
+
+### 与 LangChat / Agent / 企业 AI 的关系
+
+1. **模型选型决策**：
+   - 客服对话、文档生成 → 选择 GPT 系（LLaMA, Qwen, DeepSeek）
+   - 情感分析、意图分类 → 小规模可用 BERT 系（更轻量高效）
+   - RAG 检索 → 用 BERT 系做 Embedding，GPT 系做生成
+
+2. **LangChat 的架构选择**：LangChat 作为对话框架，主要使用 Decoder-only 模型（因为对话需要生成能力）。理解 GPT 的自回归生成让你能更好地优化生成参数（temperature, top_p, top_k）。
+
+3. **企业 AI 的成本优化**：不是所有任务都需要 70B 的 GPT 模型。简单的分类任务用 BERT-size 的模型可能只用 1/100 的算力就能达到相同效果。
+
+4. **糖水店业务场景**：
+   - 用户对话下单 → GPT 模型（生成式对话）
+   - 评价情感分析 → BERT 模型（分类任务，又快又省）
+   - 知识库检索 → BERT 模型做 Embedding + GPT 模型做回答
+
+---
+
+## 六、常见误区
+
+### 误区 1: "BERT 被 GPT 淘汰了"
+**纠正**：BERT 在生成领域确实不如 GPT，但在理解领域仍然很强！2024 年 DeBERTa-v3 等模型在 GLUE 排行榜上依然领先。很多企业的分类、标注任务仍在使用 BERT 系模型，因为更轻量、更快、更便宜。
+
+### 误区 2: "GPT 不能做理解任务"
+**纠正**：GPT 完全可以做分类、标注等理解任务——通过 Prompt Engineering 让它输出格式化的分类结果。只是相比专门优化的 BERT，可能需要更多的算力和 Prompt 技巧。
+
+### 误区 3: "Encoder 和 Decoder 只是配置不同"
+**纠正**：设计哲学完全不同！Encoder 的本质是"综合所有信息做判断"，Decoder 的本质是"基于已知信息做预测"。这导致了完全不同的注意力掩码、训练目标和推理方式。
+
+---
+
+## 🧪 课堂练习（5分钟）
+
+1. **概念题**：给定句子"我 爱 北京"，画出 GPT 处理"北京"时的注意力掩码矩阵（3×3）。
+
+2. **匹配题**：将以下任务与最合适的架构匹配：
+   - 电影评论情感分析 → ?
+   - AI 对话助手 → ?
+   - 英中翻译 → ?
+   - 命名实体识别 → ?
+
+3. **思考题**：为什么 BERT 不能直接用于文本生成？
+
+---
+
+## 📝 课后测试（15分钟）
+
+1. **简答题**：对比 GPT 的自回归生成和 BERT 的 MLM 预训练，各有什么优缺点？
+
+2. **计算题**：一个 6 层 Decoder-only 模型（d_model=4096, d_ff=16384, vocab_size=32000），计算总参数量。
+
+3. **分析题**：为什么 Decoder-only 架构在大模型（100B+参数）时代更受青睐？从 Scaling Law、工程实现和 Zero-shot 能力三个角度分析。
+
+4. **设计题**：如果你要为糖水店构建一个智能客服系统，同时需要（1）对话下单（2）评价分析（3）知识库问答，你会怎么设计整体架构？选择哪些模型？
+
+5. **编程题**：用 PyTorch 实现一个因果注意力掩码函数，输入是 `(batch, heads, seq_len, seq_len)` 的注意力分数，输出是应用掩码后的分数。
+
+---
+
+## 🔑 今日术语
+
+| 英文 | 音标 | 中文解释 |
+|------|------|---------|
+| Decoder-only | [dɪˈkoʊdər ˈoʊnli] | 仅使用 Transformer Decoder 部分的架构（GPT 系） |
+| Encoder-only | [ɪnˈkoʊdər ˈoʊnli] | 仅使用 Transformer Encoder 部分的架构（BERT 系） |
+| Causal Attention | [ˈkɔːzəl əˈtenʃən] | 因果注意力，通过下三角掩码确保只看到前面的 token |
+| Masked Self-Attention | [mæskt sɛlf əˈtenʃən] | 带掩码的自注意力，GPT 中用于实现因果性 |
+| Bidirectional | [ˌbaɪdəˈrekʃənəl] | 双向的，BERT 同时关注前后文 |
+| Autoregressive | [ˌɔːtoʊrɪˈɡrɛsɪv] | 自回归，基于自身之前的输出预测下一步 |
+| MLM (Masked Language Modeling) | [mæskt ˈlæŋɡwɪdʒ ˈmɒdəlɪŋ] | 完型填空式预训练，BERT 的核心训练任务 |
+| NSP (Next Sentence Prediction) | [nɛkst ˈsɛntəns prɪˈdɪkʃən] | 下一句预测，BERT 的辅助训练任务 |
+| BOS / EOS | [biː-oʊ-ɛs / iː-oʊ-ɛs] | 序列开始 / 结束标记 |
+| CLS Token | [siː-ɛl-ɛs ˈtoʊkɪn] | 分类标记，BERT 中用于汇总句子级表示的特殊 token |
+
+---
+
+## 📎 参考资源
+
+- 📄 [Attention Is All You Need (2017)](https://arxiv.org/abs/1706.03762) - Transformer 原论文
+- 📄 [BERT: Pre-training of Deep Bidirectional Transformers (2018)](https://arxiv.org/abs/1810.04805) - BERT 原论文
+- 📄 [Language Models are Unsupervised Multitask Learners (GPT-2, 2019)](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf) - GPT-2 论文
+- 📄 [Harnessing the Power of LLMs in Practice (2023)](https://arxiv.org/abs/2304.11633) - 大模型实践指南
+- 🎥 [The Illustrated GPT-2 - Jay Alammar](https://jalammar.github.io/illustrated-gpt2/) - GPT 可视化教程
+- 🎥 [The Illustrated BERT - Jay Alammar](https://jalammar.github.io/illustrated-bert/) - BERT 可视化教程
+- 🎥 [Andrej Karpathy: Let's build GPT from scratch](https://www.youtube.com/watch?v=kCc8FmEb1nY) - 从零构建 GPT
+
+---
+
+> 💡 **明日预告**：Day 4 我们将深入位置编码——为什么模型需要知道"词的顺序"？RoPE 和 ALiBi 两种现代位置编码各有什么优势？敬请期待！
