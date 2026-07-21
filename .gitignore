@@ -41,3 +41,7 @@ node_modules/
 .pytest_cache/
 unsloth_compiled_cache/
 第*周/ima/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
