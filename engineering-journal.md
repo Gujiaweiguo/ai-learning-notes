@@ -57,3 +57,17 @@ ExecutionPlanIR 的不可编辑性是整个确定性链条的支点。一旦允�
 
 ### 今天最大的决策
 如果重新设计，无状态 Runtime + FrozenExecutionContext 不可变性 + 封闭性（零 workflow import）会被设为三大不可协商原则。无状态是水平扩展的前提，FEC 不可变是审计的基础，封闭性是可替换性的前提。三者缺一，平台就退化为"有状态单体应用"。
+
+---
+
+## 2026-07-24（Week8-Day5：Capability 与 Connector）
+
+### 今天最大的认知
+以前以为 Capability 就是 Plugin 的新名字——"即插即用的执行模块"。
+现在知道 Capability 是**治理描述符**，不包含任何执行逻辑。E6 migration 后 `runtime_binding={}` 是铁证：Capability API 的 `/invoke`、`/invoke_stream`、`/executions/*` 全部移除，只剩 `/list_capabilities` 和 `/describe_capability` 两个元数据查询端点。真正的执行入口是 SkillRelease 的 canonical invoke。三层分离极其清晰：Capability（描述能做什么）→ SkillRelease（定义用它做什么）→ Workflow（内部实现）。
+
+### 今天最大的坑
+发现 MCP Connector 当前嵌在 Workflow 内部，没有独立治理。ADR-004 §8 描述的"Connector 只在 SkillRelease execution context 内可用"是目标态，代码现实是 Connector 作为 Workflow 的工具节点存在，没有独立的 effect_policy 校验、没有独立的版本管理、没有在 Platform Governance Plane 独立登记。`enforce_read_only()` 的 `_WRITE_INDICATORS` 是枚举式检测（`http_request`/`db_write`/`tool_call`/`provider_conditional_write`），无法覆盖所有可能的写操作形式。这是当前最大的架构债。
+
+### 今天最大的决策
+如果重新设计，Connector 独立治理应该更早做。当前 MCP 嵌在 Workflow 内意味着：Connector 调用不经独立 Capability Resolution、没有独立 effect_policy、版本管理依赖 Workflow。正确做法是 Connector 在 Platform Governance Plane 独立登记，每个 Connector 有自己的 effect_policy 和 scope，SkillRelease 通过 Capability Resolution 引用 Connector。E6 migration 证明了"Capability 不执行"是正确的——如果一开始就不给 Capability 执行能力，E6 迁移就不需要存在。
