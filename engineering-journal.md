@@ -71,3 +71,17 @@ ExecutionPlanIR 的不可编辑性是整个确定性链条的支点。一旦允�
 
 ### 今天最大的决策
 如果重新设计，Connector 独立治理应该更早做。当前 MCP 嵌在 Workflow 内意味着：Connector 调用不经独立 Capability Resolution、没有独立 effect_policy、版本管理依赖 Workflow。正确做法是 Connector 在 Platform Governance Plane 独立登记，每个 Connector 有自己的 effect_policy 和 scope，SkillRelease 通过 Capability Resolution 引用 Connector。E6 migration 证明了"Capability 不执行"是正确的——如果一开始就不给 Capability 执行能力，E6 迁移就不需要存在。
+
+---
+
+## 2026-07-25（Week8-Day6：完整链路图）
+
+### 今天最大的认知
+以前以为各模块是并列的组件图——Capability、SkillRelease、Runtime、Connector 各管各的。
+现在知道它们是一条**不可缩短的串行链路**——10 个站点、7 个治理检查点、覆盖 6 个治理维度（身份认证/访问控制/数据安全/审计追踪/可靠性/性能保护）。每一步有独立的治理目的，去掉任何一步都打开具体的安全/审计/可靠性缺口。画完链路图后，Gap 无处藏身：核心执行链路（①-⑧）已对齐，但 Connector 治理（🔴）和 v2 制品链（🔴）是最大断裂点。
+
+### 今天最大的坑
+发现 `enforce_read_only()` 的递归扫描设计比想象中更重要——它不是简单的配置校验，而是运行时递归 8 层深度的安全扫描，检查键名和字符串值是否匹配 `_WRITE_INDICATORS`。这是 P0 阶段最后的安全防线。同时发现 Connector 治理是链路上最大的 Gap：MCP Connector 嵌在 Workflow 内部，没有独立的 effect_policy、scope 和版本管理，`_WRITE_INDICATORS` 枚举式检测无法覆盖所有写操作形式。
+
+### 今天最大的决策
+如果从零设计这条链路，会更早做三件事：① Connector 独立治理层（不嵌在 Workflow 内）；② v2 制品链从 P0 开始建（不走 WorkflowSpec 弯路）；③ ApplicationContract 在 P0 就引入（不让 SkillReleaseDescriptor 承担三个角色）。不会改变的设计：六维身份作为第一步、Read-Only 守卫作为最后防线、七字段结构化输出、幂等+限流在准备阶段。
