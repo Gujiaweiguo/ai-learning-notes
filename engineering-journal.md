@@ -98,3 +98,17 @@ Week 8 建立了五维评分基线（综合 7.2/10），这个基线将在 Week 
 
 ### 今天最大的决策
 如果从零设计这条链路，会更早做三件事：① Connector 独立治理层（不嵌在 Workflow 内）；② v2 制品链从 P0 开始建（不走 WorkflowSpec 弯路）；③ ApplicationContract 在 P0 就引入（不让 SkillReleaseDescriptor 承担三个角色）。不会改变的设计：六维身份作为第一步、Read-Only 守卫作为最后防线、七字段结构化输出、幂等+限流在准备阶段。
+
+---
+
+## 2026-07-27（Week9-Day1：BlueprintVersion）
+
+### 今天最大的认知
+以前以为 BlueprintVersion 就是"有版本的 Blueprint"——加了个版本号而已。
+现在知道 BlueprintVersion 的不可变性不是流程约定，而是**数学保证**：`@dataclass(frozen=True)` 在 Python 语言层面冻结 + SHA-256 内容寻址在密码学层面保证 + Registry `__post_init__` 自毁式防御在执行层面拦截。三层中任何一层被绕过，其他层仍然有效（防御性深度）。这是企业级代码的典范。
+
+### 今天最大的坑
+发现 ADR-005 D-2 定义的 Source Review（人工评审）在代码中**完全不存在**。当前只有 Admission（机器检查），从 Candidate 到 Version 的升级路径缺少人工评审门。这意味着理论上任何通过机器检查的 Candidate 都能自动升级为 Version——治理缺口。不过考虑到当前是 WP-02 阶段（Blueprint 基础设施），Source Review 可能在后续 WP 中补充。
+
+### 今天最大的决策
+如果重新设计，会保留 BlueprintVersion 的所有核心设计：frozen=True、SHA-256 内容寻址、前向唯一生命周期、Registry 无执行方法 + 自毁防御、评审两段式 + 不检查业务正确性。唯一可能调整的是：增加 Candidate withdraw 状态（允许作者主动撤回 In Review 的 Candidate），以及 Registry 用 event-sourced 持久化模式。
