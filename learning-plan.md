@@ -41,10 +41,10 @@ Monthly（冻结回顾）
 ### 每日时间分配（60-90 分钟）
 | 比例 | 内容 |
 |------|------|
-| 50% | LangChat 架构理解 |
-| 20% | AI 基础补强 |
-| 20% | 代码阅读 |
-| 10% | 行业研究 |
+| 50% | LangChat 架构理解（含 ADR + Gap）|
+| 25% | 商业地产业务映射 |
+| 15% | 代码关键结构验证 |
+| 10% | 架构师决策练习 |
 
 ---
 
@@ -91,28 +91,64 @@ LangChat（平台层）→ MallSenseAI（行业层）→ 商管系统（应用�
 | OpenSpec | `/root/langchat/openspec/specs/` | 100+ 能力规格 |
 | AGENTS.md | `/root/langchat/AGENTS.md` | 代码架构指南 |
 
-## 每日推送格式
+## 每日推送格式（v2 — 架构师训练型）
+
+> **设计原则**：不是代码审计报告，而是企业 AI 架构师训练日志。
+> 保留 ADR→代码→Gap 链路，增加业务映射、替代方案对比、架构决策训练。
+
+### 内容比例
+
+```
+架构理解    50%（保持+增强：核心问题 + ADR + Gap）
+业务映射    25%（新增：LangChat 概念 → MI CRE 场景）
+代码验证    15%（降低：只看关键结构，不到字段级）
+练习        10%（CTO 级架构决策题）
+```
+
+### 每日模板（10 段）
 
 ```
 🧱 LangChat 心智模型 | WeekX-DayY
 📌 当前主题
 
-🎯 Today's Question
-   每天一个"为什么X不是Y"的核心问题
+━━━ 1. 今日核心问题 ━━━
+   每天一个"为什么X不是Y"的架构疑问
 
-1. 为什么需要（10%）
-2. ADR 怎么设计的（25%）— 扫描相关 ADR / v2-strategy / OpenSpec
-3. 现有代码怎么实现的（25%）— 读 /root/langchat 对应模块
-4. Gap Analysis（20%）— 目标态 vs 代码现实
-5. 今日产出（20%）— 明确下一步 action
+━━━ 2. 人话解释 ━━━
+   用 Jason 26 年 ERP 经验讲清楚，不用术语堆砌
 
-📘 今天多理解了什么？
+━━━ 3. LangChat 架构位置 ━━━
+   今天学的东西在 10 站点链路图的哪里
+
+━━━ 4. ADR 依据 ━━━
+   相关 ADR 怎么设计的，扫描 v2-strategy / OpenSpec
+
+━━━ 5. 代码验证 ━━━
+   只看关键结构（class 定义、核心方法签名），不到字段级
+
+━━━ 6. 商业地产映射 ━━━
+   LangChat 概念 → MI CRE 场景对应
+   例如：Capability → lease.contract.query
+        SkillRelease → 合同查询数字员工
+        Connector → MI ERP API
+
+━━━ 7. 与传统方案比较 ━━━
+   替代方案对比（Plugin vs Capability / 直连 vs Connector）
+   为什么选这个设计？不选那个？
+
+━━━ 8. 架构师思考题 ━━━
+   CTO 级问题，不是考试题
+   例如："如果接入 SAP+Oracle+MI 三个 ERP，Capability 怎么设计？"
+
+━━━ 9. 我的理解变化 ━━━
    以前以为：XXX → 现在知道：XXX
 
-🔮 如果今天重新设计 LangChat，你还会这样设计吗？为什么？
+━━━ 10. 明日连接 + Semantic Layer ━━━
+   明天主题预告
+   + 今天知识在 Ontology → Domain Model → Capability → Skill 链上的位置
 ```
 
-加上：
+### Engineering Journal（持续追加）
 ```
 📝 Daily Engineering Log（结构化）
    新增 / 修改 / 删除 / 确认 / 遗留 / 技术债 / 下一步
