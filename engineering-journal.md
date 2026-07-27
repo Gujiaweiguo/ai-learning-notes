@@ -112,3 +112,15 @@ Week 8 建立了五维评分基线（综合 7.2/10），这个基线将在 Week 
 
 ### 今天最大的决策
 如果重新设计，会保留 BlueprintVersion 的所有核心设计：frozen=True、SHA-256 内容寻址、前向唯一生命周期、Registry 无执行方法 + 自毁防御、评审两段式 + 不检查业务正确性。唯一可能调整的是：增加 Candidate withdraw 状态（允许作者主动撤回 In Review 的 Candidate），以及 Registry 用 event-sourced 持久化模式。
+
+## 2026-07-28（Week9-Day2：SkillRelease 唯一可部署单元 + DDD 战略设计验证）
+
+### 今天最大的认知
+SkillRelease 的"唯一可部署单元"地位不是技术决定，而是治理决定。它把制品链上的所有治理（确定性构建、依赖锁、评估、审批、签名）汇聚到一个不可变制品上。同时，从 DDD 战略设计视角看，MI 的 17 个 Bounded Context 划分经得起 DDD 原则检验——Core Domain（P0）/ Supporting Domain（P1）/ Generic Domain 的分层已经隐含在 Domain Model 中。
+
+### 今天最大的坑
+WorkflowSpec binding（W01-W09）当前是 SkillRelease 底层执行态，但目标态要退役。当前代码事实和目标态设计之间存在"过渡期认知 gap"。DDD 战略设计验证中发现：17 个 Context 有数据流边界但缺少显式的 Context Map（跨 Context 集成契约语义不够清晰）。
+
+### 今天最大的决策
+理解了 SkillRelease 和 DigitalEmployeeDefinition 的分离原则：定义是"谁"，SkillRelease 是"什么"。这与 DDD 中 Aggregate 边界划分是同一个思维模式——DigitalEmployeeDefinition 是引用语义锚点而非巨型聚合根，正如 DDD 中 Aggregate 应尽可能小。
+
