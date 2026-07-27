@@ -731,3 +731,131 @@ F. 生命周期前向唯一
 | 不可变性测试 | `/root/langchat/apps/backend/tests/unit_tests/test_blueprint_version_immutability.py` | 测试覆盖 |
 | Admission 测试 | `/root/langchat/apps/backend/tests/unit_tests/test_blueprint_candidate_admission.py` | 测试覆盖 |
 | Build 拒绝 WorkflowSpec 测试 | `/root/langchat/apps/backend/tests/unit_tests/test_build_rejects_workflow_spec.py` | 制品链边界验证 |
+
+---
+
+# 📐 Business Semantic Architecture | PT-W1 Day 1：你已经做了 Domain Model
+
+> **并行轨道 Week 1（7/27-8/2）：DDD → Semantic Model**
+>
+> **今日主题**：什么是 Domain Model（用 ERP 经验举例）
+>
+> **核心问题**：我做的 17 个 Context 就是 DDD？
+
+---
+
+## 1. 一句话
+
+> **你以为你没学过 DDD，但你的 17 个 Bounded Context 就是 DDD 战略设计的产物。**
+
+---
+
+## 2. 什么是 Domain Model？
+
+用你不陌生的说法：
+
+- 你设计数据库表结构时，脑子里想的"租赁表关联铺位表、铺位表关联楼栋表"——那就是一个**业务世界的模型**
+- Domain Model 就是把这个脑子里想的东西，**显式化、结构化**地描述出来
+- 它不是 ER 图，不是表结构。它回答的是：**这个业务世界里有哪些重要的事物、它们怎么交互、规则是什么**
+
+你的 MI Domain Model v1.0 里的 Object Ownership Matrix、Context 划分、Aggregate 定义——这就是一份 Domain Model。
+
+---
+
+## 3. 你的 17 个 Context = DDD 的 Bounded Context
+
+DDD（领域驱动设计）最核心的思想不是 Entity/Value Object（那是战术），而是：
+
+> **一个大系统应该切成若干个边界清晰的"上下文"，每个上下文内部有自己的统一语言和模型。**
+
+你的 MI Domain Model 做的正是这件事：
+
+- **17 个 Bounded Context**（Property / Building / Space / Tenant / Lease / Billing / Payment / Contract...）
+- 每个 Context 有自己的核心对象和职责
+- 跨 Context 通过集成契约协作
+
+**这就是 DDD 战略设计。** 你只是没用这个词。
+
+---
+
+## 4. P0 vs P1 = Core Domain vs Supporting Domain
+
+DDD 另一个关键判断：**不是所有 Context 都一样重要。**
+
+- **P0（9个 Full Model）= Core Domain**：租赁、铺位、租户、账单、收款……这是你的核心竞争力
+- **P1（其余）= Supporting Domain**：辅助性的，可以外包/简化
+
+这个区分至关重要，因为后面设计 AI Agent 时：**Core Domain 的 Ontology 必须自己精确建模，Supporting Domain 可以粗粒度处理。**
+
+---
+
+## 5. 真实材料对照
+
+> **今日绑定材料**：MI Domain Model v1.0 §2 Context Coverage Matrix
+
+打开你的 Domain Model 文档，看 §2：
+
+| DDD 概念 | 你的 MI 对应 | 验证点 |
+|---------|------------|--------|
+| Bounded Context | 17 个 Context | 每个 Context 有独立的核心对象 |
+| Core Domain | P0（9个 Full Model） | 这些是业务核心，Ontology 要精确建模 |
+| Supporting Domain | P1（其余） | 辅助性，Ontology 可粗粒度 |
+| Subdomain | 14 个 CRE BCM 域 | 比 Context 更细的能力域 |
+| Context Map | Domain Model §4 集成契约 | 跨 Context 协作关系 |
+
+---
+
+## 6. 为什么 Domain Model 不够（明天+后天的悬念）
+
+你的 Domain Model 已经很好了。但问一个问题：
+
+> 让一个不了解 MI 的 AI Agent 读你的 Domain Model 文档，它能回答"A101铺位现在能出租吗？"吗？
+
+答案是不能。因为：
+
+- 表结构告诉你 Lease 关联 Space，但**没说"终止流程未完成的 Space 不可出租"**
+- effect-registry 告诉你某些状态转换，但**散落在多个文件里，Agent 无法跨文件推理**
+- 业务规则**藏在代码的 if-else 里**，不在 Domain Model 里
+
+这就是为什么 Domain Model 不够，需要 Ontology。
+
+**这个话题 D3-D4 深入讲。今天先确认一件事：**
+
+---
+
+## 7. ✅ 今日确认
+
+**你已经有 Domain Model 了。你不是从零开始学 DDD，你是在已有的基础上加一层 Ontology 视角。**
+
+---
+
+## 8. 连接思考
+
+| 主线（BlueprintVersion） | 并行轨道（Domain Model） | 认知关联 |
+|--------------------------|-------------------------|----------|
+| Blueprint 是制品不是配置 | Domain Model 是模型不是表结构 | 两者都在说：**把隐式的东西显式化**。表结构是隐式的 Domain Model，配置是隐式的 Blueprint。显式化后才能被 AI 理解 |
+| P0 vs P1 决定 Ontology 精度 | Core vs Supporting Domain | 同一个判断逻辑：不是所有东西都值得同样精度建模 |
+| content_digest 是数学保证不可变 | Domain Model 的 Context 边界是业务保证一致性 | 一个用数学，一个用业务规则，目标相同：**防止漂移** |
+
+---
+
+## 9. 架构师视角
+
+**以前以为**：DDD 是理论方法论，和我的代码没直接关系
+
+**现在知道**：我的 17 个 Context 划分就是 DDD 战略设计的产出。我不是在学新东西，是在给已有经验补一个名字。下一步不是学 Ontology 理论，而是用 Ontology 视角重新审视已有资产。
+
+---
+
+## 10. 练习（5分钟）
+
+打开你的 MI Domain Model v1.0 §2（Context Coverage Matrix），找一下：
+
+1. 你觉得哪个 Context 的边界**最清晰**？
+2. 哪个 Context 的边界**最模糊**（跟其他 Context 职责有重叠）？
+
+不用写长，一句话就够。这个观察将成为 W1 Gap Analysis 的输入。
+
+---
+
+> 📅 **明日预告**：PT-W1 D2 — DDD 战略设计：你已经在做了。验证你的 Bounded Context 划分是否符合 DDD 原则。
