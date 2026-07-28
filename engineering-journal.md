@@ -124,3 +124,15 @@ WorkflowSpec binding（W01-W09）当前是 SkillRelease 底层执行态，但目
 ### 今天最大的决策
 理解了 SkillRelease 和 DigitalEmployeeDefinition 的分离原则：定义是"谁"，SkillRelease 是"什么"。这与 DDD 中 Aggregate 边界划分是同一个思维模式——DigitalEmployeeDefinition 是引用语义锚点而非巨型聚合根，正如 DDD 中 Aggregate 应尽可能小。
 
+## 2026-07-29（Week9-Day3：Deployment / DeploymentRevision）
+
+### 今天最大的认知
+以前以为 Deployment 就是"把 Release 部署到服务器上"，是一个运维动作，不是架构对象。Release 和 Deployment 是"发布"这一个动作的前后两步。
+现在知道 DeploymentRevision 是 Runtime 层最重要的架构对象——它是一个不可变的、内容寻址的完整执行闭包，16 个字段锁死了"这次执行用了什么、跑了什么、在什么环境下跑的"。它是 Supply Chain 和 Runtime 之间唯一的合法通道。SkillRelease 是通用制品（跨环境可移植），DeploymentRevision 是特定实例（绑定到具体环境）。合并它们意味着每次环境变更都要重新走 Supply Chain（构建、评估、签名），这是不可接受的。
+
+### 今天最大的坑
+发现回滚语义是"前向操作"而不是"还原操作"——从历史 DeploymentRevision digest 闭包物化新 Revision，不改变历史对象状态。这与传统 ERP 的"还原数据库"完全不同。一开始觉得这很绕，但理解后意识到这是审计完整性的数学保证：你不修改历史，只创造新的决策记录。另一个坑是 source_channel 只作 provenance，不进 runtime closure digest——这意味着 Channel 名变化不改变 Revision 身份，但它记录了"这个 Revision 是从哪个 Channel 晋升来的"审计线索。
+
+### 今天最大的决策
+如果重新设计，会把 DeploymentRevision 的 16 字段闭包作为不可协商的第一约束。AI 应用的执行结果不确定性远超传统软件——受 prompt、模型版本、知识库快照、策略叠加影响。如果 DeploymentRevision 不把这些全部锁死，就无法做到"同一个闭包 → 同一个执行结果"，灰度对比和回滚就不可靠。evaluation_only 默认值为 True 是一个安全设计典范——默认隔离，生产部署需要显式打开。
+
