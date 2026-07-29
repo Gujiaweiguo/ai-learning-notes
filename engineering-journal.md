@@ -136,3 +136,14 @@ WorkflowSpec binding（W01-W09）当前是 SkillRelease 底层执行态，但目
 ### 今天最大的决策
 如果重新设计，会把 DeploymentRevision 的 16 字段闭包作为不可协商的第一约束。AI 应用的执行结果不确定性远超传统软件——受 prompt、模型版本、知识库快照、策略叠加影响。如果 DeploymentRevision 不把这些全部锁死，就无法做到"同一个闭包 → 同一个执行结果"，灰度对比和回滚就不可靠。evaluation_only 默认值为 True 是一个安全设计典范——默认隔离，生产部署需要显式打开。
 
+## 2026-07-30（Week9-Day4：ReleaseChannel / TrafficPolicy）
+
+### 今天最大的认知
+以前以为灰度发布是部署工具的功能——在 CI/CD 流水线里配个百分比就行了。现在知道 LangChat 把灰度拆成了两个独立架构对象：ReleaseChannel（Supply Chain 层的晋升指针）和 TrafficPolicy（Runtime 层的流量策略）。两者在架构上完全解耦：Channel 移动不改变流量，TrafficPolicy 不读 Channel。这个"标记正式版"≠"全量上线"的中间态，才是灰度发布的工程价值。传统 ERP 的"发布"把版本标记、部署、切流混在一个动作里，LangChat 拆成三个独立动作（晋升→物化→切流），各自独立审计。
+
+### 今天最大的坑
+发现 ReleaseChannel 被严格归在 Supply Chain 层，不在运行时请求路径中。一开始觉得奇怪——"正式版指针"难道不是运行时关心的吗？但理解后意识到：如果 Runtime 读 Channel，那 Channel 移动就会直接影响流量——这恰恰是设计要避免的。Channel 是"版本管理团队的事"，TrafficPolicy 是"运维团队的事"。代码验证了这一点：TrafficPolicy 在构造时就拒绝一切非精确引用（latest、channel 名、mutable name 全被 ValueError 拒绝）。
+
+### 今天最大的决策
+灰度的核心不是"能不能按比例切流量"，而是"版本标记与实际运行状态的解耦程度"。如果重新设计 MI 的合同审核机器人发布流程，会把"标记正式版"（ReleaseChannel）和"实际切流"（TrafficPolicy）分成两个审批流——版本管理委员会标记正式版，运维团队根据灰度策略逐步切流。出错时回滚只需新建 TrafficPolicy 版本指向旧 Revision，不需要动 Channel 指针。
+
