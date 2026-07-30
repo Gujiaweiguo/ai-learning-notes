@@ -147,3 +147,14 @@ WorkflowSpec binding（W01-W09）当前是 SkillRelease 底层执行态，但目
 ### 今天最大的决策
 灰度的核心不是"能不能按比例切流量"，而是"版本标记与实际运行状态的解耦程度"。如果重新设计 MI 的合同审核机器人发布流程，会把"标记正式版"（ReleaseChannel）和"实际切流"（TrafficPolicy）分成两个审批流——版本管理委员会标记正式版，运维团队根据灰度策略逐步切流。出错时回滚只需新建 TrafficPolicy 版本指向旧 Revision，不需要动 Channel 指针。
 
+
+## 2026-07-31（Week9-Day5：DigitalEmployeeDefinition）
+
+### 今天最大的认知
+以前以为数字员工就是一个"智能体"——定义它、启动它、它就开始干活。现在知道 DigitalEmployeeDefinition 只是"语义锚点"——一组引用的集合，指向真正干活的对象（SkillRelease → DeploymentRevision → Execution）。定义不拥有 Runtime，不持有 Deployment 状态，不构造 FrozenExecutionContext，不充当执行入口。当前代码的 `status=active` 同时承载了"定义已发布"和"部署在服役"双重语义——目标态要拆成 `DigitalEmployeeDefinition.Published` + `Deployment.Active` 两个独立状态。这和传统 ERP 里"员工主数据 ≠ 流程实例"是完全一致的道理。
+
+### 今天最大的坑
+当前代码的 `kill_switch` 直接放在 DigitalEmployeeModel 上，看似合理。但从目标态看，kill_switch 属于 Deployment 层——"停止运行"是运行时决策，不是定义层决策。定义可以 Deprecated（退役），不能被"停止运行"，因为定义本身不运行。另外 `bound_skill_id` 是 tag 引用而非 digest 引用，违反了"引用而非持有"原则——目标态要改成 digest/版本指针。
+
+### 今天最大的决策
+如果给 MI 的 10 个 mall 都部署"合同审核数字员工"，正确的做法是：1 个 DigitalEmployeeDefinition（共享身份声明）+ 10 个 Deployment（每个 mall 一个）。每个 Deployment 有独立的 KnowledgeSnapshot、PolicyBundle、DeploymentRevision。知识库更新一个 mall 不影响其他。这正是"定义不拥有 Runtime"的核心价值——多环境部署时定义保持稳定，运行独立演进。
