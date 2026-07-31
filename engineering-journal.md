@@ -158,3 +158,17 @@ WorkflowSpec binding（W01-W09）当前是 SkillRelease 底层执行态，但目
 
 ### 今天最大的决策
 如果给 MI 的 10 个 mall 都部署"合同审核数字员工"，正确的做法是：1 个 DigitalEmployeeDefinition（共享身份声明）+ 10 个 Deployment（每个 mall 一个）。每个 Deployment 有独立的 KnowledgeSnapshot、PolicyBundle、DeploymentRevision。知识库更新一个 mall 不影响其他。这正是"定义不拥有 Runtime"的核心价值——多环境部署时定义保持稳定，运行独立演进。
+
+---
+
+## 2026-08-01（Week9-Day6：Domain Model Diagram 动手交付）
+
+### 今天最大的认知
+以前以为 Domain Model 就是 ER 图加类图——把数据表关系画清楚就够了。
+现在知道 Domain Model 是**治理拓扑图**：不仅画数据关系，还要画生命周期（谁先出生谁先死）、不变量约束（合并后哪些不变量会破裂）、层归属（哪个对象在四层中的哪一层）、禁止职责（这个对象绝对不能做什么）。一张好的 Domain Model Diagram 能让你在 3 分钟内回答"这个对象放这里合不合适"。
+
+### 今天最大的坑
+代码验证发现 Runtime Layer 覆盖度只有 10%——Deployment、DeploymentRevision、TrafficPolicy、FrozenExecutionContext 四个核心对象在代码中完全不存在。当前代码的"数字员工"直接从 SkillRelease 跳到 Execution，中间没有部署闭包。这意味着所有 v2 治理（灰度、回滚、多环境、闭包 digest-pin）在当前代码中都没有基础设施支撑。Blueprint 层（SC-02/03）是代码最成熟的部分，但从 SkillRelease 之后几乎是断崖。
+
+### 今天最大的决策
+合并/拆分判定原则：**如果两个对象的演化节奏不同、生命周期不同、变更 Owner 不同，它们就不应该合并。** 用这个框架可以快速判断：Capability/CapabilityRelease 可短期合并（小团队），但 BlueprintVersion/ExecutionPlanIR 绝不可合并（违反 HC-3 单向制品链）。Definition/Deployment 绝不可合并（否则多环境部署变成不可能）。这条原则将作为后续架构评审的标尺。
