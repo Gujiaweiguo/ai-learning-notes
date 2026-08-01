@@ -172,3 +172,17 @@ WorkflowSpec binding（W01-W09）当前是 SkillRelease 底层执行态，但目
 
 ### 今天最大的决策
 合并/拆分判定原则：**如果两个对象的演化节奏不同、生命周期不同、变更 Owner 不同，它们就不应该合并。** 用这个框架可以快速判断：Capability/CapabilityRelease 可短期合并（小团队），但 BlueprintVersion/ExecutionPlanIR 绝不可合并（违反 HC-3 单向制品链）。Definition/Deployment 绝不可合并（否则多环境部署变成不可能）。这条原则将作为后续架构评审的标尺。
+
+---
+
+## 2026-08-02（Week9-Day7：Virtual CTO Review — ADR Health Check）
+
+### 今天最大的认知
+以前以为"ADR 通过了就等于稳定了"——只要状态是 accepted，就可以放心引用。
+现在知道 ADR 体系本身也有健康度问题：两套编号体系并存（品牌 ADR-00X vs 技术 ADR-LC-0XX vs v2 战略 ADR-00X）、v2-ADR-005/007/008 覆盖面过大需要拆分、v2-ADR-001~004 长期停留在"评审中"/"文档事实"状态阻碍下层推进。ADR Health Check 不只是看"有没有过时"，更要看"覆盖面是否合理"、"编号体系是否一致"、"实施状态是否可追踪"。
+
+### 今天最大的坑
+五维评分从 Week 8 的 7.2 降到 6.8。初看像是退步，实际上是"达克效应的正向穿越"——Week 8 看到的是链路全景（框架完整），Week 9 拆开每个对象后发现"框架完整但内容空洞"（Runtime Layer 覆盖度仅 10%）。评分下降不是架构变差了，是理解更深了。最大的坑是 v2-ADR-007（RuntimeABI + CompatMatrix + FEC wire）把三个独立技术决策合在一个 ADR 里，任一子主题修订都要整个 ADR 重评——这是治理设计的技术债。
+
+### 今天最大的决策
+提出三条 CTO 级建议：① 推进 v2-ADR-001~004 正式冻结（已通过 G1-G18 验证门，继续"评审中"不带来额外谨慎）；② 拆分 v2-ADR-007 为三个独立 ADR（RuntimeABI / CompatMatrix / FEC wire）；③ 在每个 ADR 中增加 implementation_status 字段（draft/partial/implemented/verified），让"ADR 定义了但代码不存在"这个最大风险可见化。
