@@ -186,3 +186,17 @@ WorkflowSpec binding（W01-W09）当前是 SkillRelease 底层执行态，但目
 
 ### 今天最大的决策
 提出三条 CTO 级建议：① 推进 v2-ADR-001~004 正式冻结（已通过 G1-G18 验证门，继续"评审中"不带来额外谨慎）；② 拆分 v2-ADR-007 为三个独立 ADR（RuntimeABI / CompatMatrix / FEC wire）；③ 在每个 ADR 中增加 implementation_status 字段（draft/partial/implemented/verified），让"ADR 定义了但代码不存在"这个最大风险可见化。
+
+---
+
+## 2026-08-03（Week10-Day1：Permission & Policy — 谁允许谁做什么）
+
+### 今天最大的认知
+以前以为权限就是 RBAC——定义角色、分配权限、代码里 if-hasPermission 检查。
+现在知道在企业 AI 平台里，权限不是功能模块，而是**横切四层的治理制品链**：Policy（单条规则）→ PolicyBundle（不可变策略束，Pydantic frozen+strict）→ SkillRelease（打包）→ DeploymentRevision（digest-pin）→ FEC（冻结）→ Runtime 只读 → Dual-Gate 9步算法验证。三个维度同时生效：静态维度（角色权限映射表）、制品维度（conditional_write 必须配 review_gate 的跨字段不变量）、执行维度（Step 7 审批后用冻结快照重跑 Step 0-4）。传统 RBAC 的"检查"只是这条链的最后一环。
+
+### 今天最大的坑
+Dual-Gate 的 9步算法看起来极其复杂，但深入后发现它的核心洞察只有一个：**审批覆盖的是字节级快照**。Step 7 不只是"审批通过了就执行"，而是用冻结的 invocation_context_canonical_json 重跑 Step 0-4，对比 digest。这意味着如果审批者批准了 amount=5000，调用方在恢复时改成 amount=100（试图绕过 cannot max_amount=1000），系统会用冻结的 5000 做验证——篡改被拒绝。这个设计的复杂度是"AI 时代安全"的必要代价，不是过度设计。
+
+### 今天最大的决策
+Permission 不放 Runtime 里的根本原因不是"关注点分离"这种架构审美，而是**安全必要性**：LLM 可以通过 Prompt Injection 影响运行时行为，如果权限检查也在运行时，就被攻击面覆盖了。权限必须在外部冻结好，Runtime 只是一个无法篡改的执行者。这条原则对 MI 的启示是：合同审批数字员工的权限策略必须在部署前定义，不能"运行时根据情况灵活调整"——"灵活"在 AI 平台中等同于"可被攻击"。
