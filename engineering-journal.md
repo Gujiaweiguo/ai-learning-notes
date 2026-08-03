@@ -200,3 +200,17 @@ Dual-Gate 的 9步算法看起来极其复杂，但深入后发现它的核心�
 
 ### 今天最大的决策
 Permission 不放 Runtime 里的根本原因不是"关注点分离"这种架构审美，而是**安全必要性**：LLM 可以通过 Prompt Injection 影响运行时行为，如果权限检查也在运行时，就被攻击面覆盖了。权限必须在外部冻结好，Runtime 只是一个无法篡改的执行者。这条原则对 MI 的启示是：合同审批数字员工的权限策略必须在部署前定义，不能"运行时根据情况灵活调整"——"灵活"在 AI 平台中等同于"可被攻击"。
+
+---
+
+## 2026-08-04（Week10-Day2：Audit & Trace）
+
+### 今天最大的认知
+以前以为 Trace 就是高级日志——把 `logger.info()` 换成 `span.record()`，本质没区别。
+现在知道 Trace 和日志是两个物种。日志是叙述（面向人类阅读），Trace 是证据（面向系统查询）。日志没有结构，Trace 有严格的 Span Tree（trace_id / span_id / parent_span_id）。更关键的是：Trace 是 Governance 的基础设施——没有 Trace，Permission 效果无法验证、Approval 决策无法追溯、PII 泄漏无法定位。Trace 不是排障工具，是治理证据链。
+
+### 今天最大的坑
+LangChat 的 ExecutionSpan 有 10 种 SpanKind，覆盖所有执行路径（workflow_run / llm / rag_retrieval / channel_dispatch / capability_invoke / mcp_tool 等）。这不是日志级别（DEBUG/INFO/WARN），而是业务语义类型。坑在于：如果你用传统日志思维去理解 Trace，你会忽略 SpanKind 的语义价值——你不会想到可以 SQL 查询"所有租户 A 的失败 LLM 调用"，也不会想到可以按 kind 聚合分析"RAG 和 LLM 哪个更慢"。
+
+### 今天最大的决策
+LangChat 选择"OTel 形状 + 自实现"而不是直接用 OpenTelemetry SDK，这个决策的核心逻辑是：获得 OTel 的兼容形状（未来可以插入 OTel/Langfuse exporter），但不背负 OTel SDK 的重量级依赖。DbSpanEmitter 异步批量写入、CompositeEmitter 支持多写、contextvars 保证 async-safe 传播——这些都是自实现才能精确控制的。对 MI 的启示是：当数据量到 70 万 Span/天时，自实现的控制力（保留策略 CLI、租户隔离查询、预聚合）比依赖外部平台更重要。
