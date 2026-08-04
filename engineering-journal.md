@@ -214,3 +214,17 @@ LangChat 的 ExecutionSpan 有 10 种 SpanKind，覆盖所有执行路径（work
 
 ### 今天最大的决策
 LangChat 选择"OTel 形状 + 自实现"而不是直接用 OpenTelemetry SDK，这个决策的核心逻辑是：获得 OTel 的兼容形状（未来可以插入 OTel/Langfuse exporter），但不背负 OTel SDK 的重量级依赖。DbSpanEmitter 异步批量写入、CompositeEmitter 支持多写、contextvars 保证 async-safe 传播——这些都是自实现才能精确控制的。对 MI 的启示是：当数据量到 70 万 Span/天时，自实现的控制力（保留策略 CLI、租户隔离查询、预聚合）比依赖外部平台更重要。
+
+---
+
+## 2026-08-05（Week10-Day3：Approval — 人审）
+
+### 今天最大的认知
+以前以为人审就是一个审批按钮——AI 生成建议，人点"通过"，就这么简单。
+现在知道 LangChat 的人审是一个**三层治理结构**：① 制品层（Release Gate 的 Approval attestation，digest-pin 到技能制品上，不审批不发布）；② 运行时层（HITL Gate，conditional_write 触发 `pending_human_review` 状态机强制暂停，6 步验证 + 4 写原子 CAS）；③ 部署层（DeploymentRevision 的 `ApprovedDeploymentRevision` 类型级边界）。三层各有各的强制机制：制品层用 Gate 序列 monotonic 约束、运行时层用六状态原子状态机、部署层用 frozen dataclass 类型系统。Approval 和 Signature 的分离是精妙设计——治理决定（人）和密码学证明（机器）分离验证。
+
+### 今天最大的坑
+`register_revision_from_envelope` 的设计让我踩了一个认知坑：它从 DB 行实际状态派生 approval，而不是从请求参数 `auto_approve` 派生。最初我以为 `auto_approve=True` 会自动批准——但它不会，因为 idempotent re-insert 返回已有的 pending 行，approval 从 DB 实际状态读取。这是防"重新注册时绕过审批"的安全设计。另一个坑：HITL 的 SameTransaction CAS 做了 4 个写操作（GateChallenge 锁 → Execution 锁 → token 消费 → event insert + CAS），全在一个事务里——两个并发审批会在 SELECT FOR UPDATE 上串行化，失败方收到 ChallengeAlreadyDecidedError。这比传统 ERP 的"审批后写日志"复杂得多，但这是 AI 时代的必要安全代价。
+
+### 今天最大的决策
+理解了"为什么 AI 不能全自动发布"的核心论点：不是不信任 AI 的能力，而是企业治理需要**可追溯的责任链**。传统 ERP 的审批可以被管理员配置跳过，但 LangChat 的审批由类型系统（ApprovedDeploymentRevision）+ 状态机（pending_human_review 不可跳过）+ Descriptor 验证器（conditional_write 强制 review_gate）三层强制执行。对 MI 的启示是：合同审批数字员工的技能发布、租金变更建议的执行，都必须经过人审——这不是降低效率，是建立企业信任边界。没有这个边界，AI 永远只能做 Demo，不能进生产。
