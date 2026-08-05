@@ -228,3 +228,17 @@ LangChat 选择"OTel 形状 + 自实现"而不是直接用 OpenTelemetry SDK，�
 
 ### 今天最大的决策
 理解了"为什么 AI 不能全自动发布"的核心论点：不是不信任 AI 的能力，而是企业治理需要**可追溯的责任链**。传统 ERP 的审批可以被管理员配置跳过，但 LangChat 的审批由类型系统（ApprovedDeploymentRevision）+ 状态机（pending_human_review 不可跳过）+ Descriptor 验证器（conditional_write 强制 review_gate）三层强制执行。对 MI 的启示是：合同审批数字员工的技能发布、租金变更建议的执行，都必须经过人审——这不是降低效率，是建立企业信任边界。没有这个边界，AI 永远只能做 Demo，不能进生产。
+
+---
+
+## 2026-08-06（Week10-Day4：Fail-closed vs Fail-open + Approval）
+
+### 今天最大的认知
+以前以为 fail-closed 就是"出错就报错"，fail-open 就是"出错就跳过"，是个二元选择。
+现在知道 LangChat 的 fail-closed 是**四层分层设计**：① 安全边界层（认证/授权/hash/scope）绝对 raise；② 制品治理层（审批/类型边界/状态机）结构性不可绕过；③ 执行层（LLM/KB/工作流）优雅降级返回兜底结果；④ 风险保留层（兜底结果中的敏感关键词检测）即使降级也不丢失风险信号。最精妙的设计是 `_fallback_result()`——`execute() MUST NEVER raise to the caller`，但这不是 fail-open，而是 API 契约：执行失败是结果不是异常，风险通过 `human_review_required` + `risk_flags` 保留。
+
+### 今天最大的坑
+`auto_approve_on_timeout=False` 看起来只是一个默认值，改 True 就行——但**默认值就是架构决策**。传统 ERP 审批超时自动转交或自动通过很常见；在 AI 平台里，这是不可接受的。AI 生成的建议可能看起来合理但实际有害，所以超时 = 保持 pending = 需要人工处理。另一个坑：`register_revision_from_envelope` 从 DB 行实际状态派生 approval，不信任请求参数 `auto_approve=True`——因为 idempotent re-insert 返回已有的 pending 行，approval 从 DB 实际读取。这是防"重新注册时绕过审批"的安全设计。
+
+### 今天最大的决策
+Fail-closed 在 MI 商业地产场景的具体映射：① 合同审核技能上线前必须法务审批（DeploymentRevision Approval Gate）；② 租金调整建议必须人工确认后才写入 ERP（HITL Gate + conditional_write）；③ 跨商场数据访问必须被拒绝（Capability scope 校验 → GatewayError）；④ LLM 挂了但输入含"退款/解约/减免"等敏感词 → 返回兜底结果但 `human_review_required=True`。MI 的架构原则应该是：**安全问题绝不妥协，执行问题优雅降级，但风险信息不丢失。**
