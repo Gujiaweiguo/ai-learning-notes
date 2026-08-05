@@ -241,13 +241,18 @@ LangChat（平台层）→ MallSenseAI（行业层）→ 商管系统（应用�
 |---|---|---|---|
 | D1 周一 | 8/3 | **Permission & Policy**：谁允许谁做什么？ | 为什么 Permission 不放 Runtime 里？ |
 | D2 周二 | 8/4 | **Audit & Trace**：怎么知道发生了什么？ | 为什么 Trace 不是日志？ |
-| D3 周三 | 8/5 | **Approval（人审）**：哪些操作需要人审？ | 为什么 AI 不能全自动发布？ |
-| D4 周四 | 8/6 | **PII & Compliance**：敏感数据怎么管？ | 为什么 Governance 不能最后做？ |
-| D5 周五 | 8/7 | **FrozenExecutionContext**：身份和委托怎么传递？ | 为什么 Context 必须冻结？ |
-| D6 周六 | 8/8 | ⚡ **画 Governance 覆盖图**：哪些模块已有治理，哪些没有 | 最大的治理 Gap 在哪？ |
+| D3 周三 | 8/5 | **Prompt Runtime Resolution**：读 `prompt_runtime/resolver.py` + `errors.py`（~500行），理解 custody → evidence → verify 链路 | 为什么 prompt 必须经过 custody→evidence→verify？ |
+| D4 周四 | 8/6 | **Fail-closed vs Fail-open** + **Approval（人审）**：LangChat 为什么选 fail-closed？哪些操作还需要人审？ | 为什么不 fallback？ |
+| D5 周五 | 8/7 | **Realization Rollback** + **FrozenExecutionContext**：编译产物回滚机制 + 身份委托传递 | 回滚时 Context 怎么处理？ |
+| D6 周六 | 8/8 | ⚡ **画 Governance 覆盖图**：哪些模块已有治理，哪些没有 + PII & Compliance 现状 | 最大的治理 Gap 在哪？ |
 | D7 周日 | 8/9 | 🔄 **Virtual CTO**：如果只能修一个治理问题，先修哪个？ | — |
 
 **Week 10 结束后：理解 Governance 不是模块，而是横切所有模块的约束。**
+
+> **W10 调整说明（8/5 Jason 批准）**：
+> - D3-D5 根据代码实际重点调整，新增 Prompt Runtime Resolution（custody→evidence→verify）、Fail-closed 模式、Realization Rollback
+> - PII & Compliance 合并到 D6 实战环节
+> - KB Realization 自动化 → **延后到 W11 Code Reality**（有用但不是当前重点）
 
 ---
 
