@@ -1,0 +1,331 @@
+# 🧱 LangChat 心智模型 | Week10-Day5
+## 📌 Realization Rollback + FrozenExecutionContext：编译产物回滚机制 + 身份委托传递
+
+> **日期**：2026-08-07（周五）
+> **本周主题**：Governance（横切关注点）
+> **今日核心**：编译产物不是「装上就行」——它必须能安全回滚，且执行时的身份上下文必须冻结不可变
+
+---
+
+## ━━━ 1. 今日核心问题 ━━━
+
+### 为什么回滚不是「DELETE FROM」？
+
+传统 ERP 里「回滚」就是删数据：合同录错了，删掉重录。但 LangChat 的 Realization Rollback **不删一行数据**。
+
+更根本的问题：**为什么 FrozenExecutionContext 一旦构造就不能改？** 传统系统里 context 就是几个变量，传进函数就行，为什么要搞 frozen dataclass + 13 个 digest 绑定？
+
+这两个问题背后是同一个架构信念：**企业级 AI 系统中，"发生过的事情"必须留痕，"正在执行的身份"必须不可变。**
+
+---
+
+## ━━━ 2. 人话解释 ━━━
+
+Jason，想象你在管一个 ERP 项目上线：
+
+**传统方式**：配置错了 → DBA 改数据库 → 删掉错误配置 → 重新写入。问题是：三个月后审计，没人知道中间发生过什么。你只有最终状态，没有历史。
+
+**LangChat 方式**：配置错了 → 触发 Rollback → 四类对象全部「软归档」（lifecycle_state = archived）→ 审计事件记录「谁、什么时候、回滚了什么」→ 原始数据一条不删。
+
+再想象一个场景：你派一个采购员去签合同。出发前你给他：
+- 授权委托书（他能签什么范围的合同）
+- 审批条件（超过 100 万要二次确认）
+- 身份标识（他代表哪个部门）
+
+**这份委托书在出发后能改吗？不能。** 如果能改，他半路被换成更高权限，就绕过了审批。FrozenExecutionContext 就是这份不可修改的委托书。Runtime 执行时，context 被冻结，谁都无法在执行中途放宽权限。
+
+---
+
+## ━━━ 3. LangChat 架构位置 ━━━
+
+```
+用户意图 → ApplicationContract → Blueprint → Compiler → ExecutionPlan
+                                                         ↓
+                                                    [Realization] ← 今天上半场
+                                                         ↓
+                                              workflow_definition
+                                              workflow_version
+                                              skill_release_binding
+                                              assistant_resource
+                                              knowledge_base
+                                              prompt_template_version
+                                                         ↓
+                                                   [Rollback] ← 今天上半场
+                                                    (软归档)
+                                                         ↓
+                                              DeploymentRevision
+                                                         ↓
+                                              [FrozenExecutionContext] ← 今天下半场
+                                                         ↓
+                                                   Runtime.execute()
+```
+
+今天的两个主题正好覆盖了 **制品生命周期的两个关键时刻**：
+1. **Realization**：编译计划落地为运行时对象（正向）
+2. **Rollback**：落地对象安全撤回（反向）
+3. **FrozenExecutionContext**：运行时对象执行时的不可变身份容器（执行）
+
+---
+
+## ━━━ 4. ADR 依据 ━━━
+
+### 4.1 ADR-LC-019（Realization Orchestrator）
+
+Realization 的核心设计：
+- **Savepoint 隔离模型**：一个外层事务 + 一个嵌套 SAVEPOINT。RealizationRecord INSERT 在外层事务（失败也留存），mutation 在 SAVEPOINT 内（失败可回滚但不丢失记录）
+- **幂等性三态合约**：completed + force=false → 返回旧记录（no-op）；completed + force=true → 新建 attempt；failed → 自动新建 attempt
+- **七条不变量**：at-most-one-active、attempt 唯一性、plan 必须 approved+active、attempt 单调递增、plan 行锁、scope 一致性、审计字段写一次
+
+### 4.2 ADR-LC-021（Realization Rollback）
+
+Rollback 的核心约束：
+- 只能从 `completed` 状态触发（`in_progress`/`failed`/`rolled_back` 返回 409）
+- 四类对象软归档，不硬删
+- `rolled_back` 是唯一允许的终态后转换（post-terminal transition）
+- 回滚后可重新 Realize，创建新 attempt
+
+### 4.3 ADR-007（FrozenExecutionContext wire）
+
+FrozenExecutionContext 的硬约束（继承自 Charter §6 + Artifact Spec §14）：
+- **HC-1**：Frozen 后不可修改；任何运行时变更必须生成新 FEC，不原地修改
+- **HC-2**：Runtime 不得放宽 FEC 中的 Policy
+- **HC-13**：所有平台执行 MUST 在 FEC profile 内运行
+- **HC-15**：FEC MUST 承载全部逻辑字段与审计字段
+
+---
+
+## ━━━ 5. 代码验证 ━━━
+
+### 5.1 Realization 核心结构
+
+```python
+# /root/langchat/apps/backend/langchat/compiler/realize.py
+
+CANONICAL_SKILL_ID = "langchat.workflow.execute"
+CANONICAL_SKILL_VERSION = "v1"
+ACCEPTED_COMPILER_VERSION = "0.4.0"
+
+# 关键：所有 repository 调用使用 __wrapped__（绕过 @with_session 的自动 commit）
+create_workflow = getattr(_create_workflow, "__wrapped__", _create_workflow)
+create_version = getattr(_create_version, "__wrapped__", _create_version)
+publish_version = getattr(_publish_version, "__wrapped__", _publish_version)
+```
+
+**为什么用 `__wrapped__`？** 因为 savepoint 隔离要求所有 mutation 在同一个事务内。如果 `@with_session` 自动 commit，savepoint 就被打断了——等于每个对象独立提交，失败时无法一起回滚。
+
+### 5.2 Rollback 核心结构
+
+```python
+# realization_record_repository.py → rollback_realization_attempt()
+
+# 遍历 realized_objects_json，逐个软归档：
+for obj in objects:
+    kind = obj.get("kind")
+    if kind == "workflow_definition":
+        entity.lifecycle_state = "archived"        # 不删
+    elif kind == "workflow_version":
+        entity.is_published = False                 # 下线
+    elif kind == "workflow_skill_release_binding":
+        entity.is_active = False                    # 解绑
+    elif kind == "assistant_resource":
+        entity.lifecycle_state = "archived"         # 归档
+    elif kind == "knowledge_base":
+        # KB 不删不归档，只是标记"不再由 realization 管理"
+        kb_metadata["realized_by_execution_plan"] = False
+    elif kind == "prompt_template_version":
+        # 指针回退 或 逻辑模板退休
+        if prior_current_version_id is None:
+            template.lifecycle_state = "retired"
+        else:
+            template.current_version_id = prior_id
+
+# 最后：RealizationRecord.status = "rolled_back"
+```
+
+**关键发现**：六种对象，六种不同的回滚策略。不是一刀切 `DELETE`，而是根据每种对象的语义设计最合适的归档方式。KB 甚至不归档——因为知识库里的文档可能已经被使用过。
+
+### 5.3 FrozenExecutionContext V2 核心结构
+
+```python
+# /root/langchat/apps/backend/langchat/runtime/frozen_execution_context.py
+
+@dataclass(frozen=True)  # Python frozen dataclass
+class EvaluationFrozenExecutionContext:
+    evaluation_only: bool = True  # 强制为 True，生产级 FEC 是 WP-07
+    # 构造后任何字段修改 → FrozenInstanceError
+
+class FrozenAuthorizationBindings(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid", strict=True)
+    # 13 个 digest 字段，每个都是 sha256:<64-hex>
+    # 任何一个不匹配 → ValidationError
+
+class FrozenExecutionContextV2(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid", strict=True)
+    # 4 个 PolicySnapshot + FrozenAuthorizationBindings
+    # 构造时交叉校验：bindings.tenant_id == fec.tenant_id
+    # 构造时 digest 校验：bindings.xxx_digest == snapshot.xxx.digest
+```
+
+**三道防线**：
+1. Python frozen dataclass → 运行时不可变
+2. Pydantic frozen=True + extra="forbid" → 无法添加字段
+3. model_validator 交叉校验 → digest 不匹配直接报错
+
+### 5.4 OperationFrozenExecutionContext
+
+```python
+# /root/langchat/apps/backend/langchat/supply_chain/operation_context.py
+
+@dataclass(frozen=True)
+class OperationFrozenExecutionContext:
+    operation_kind: OperationKind  # Literal["build"]，只允许 "build"
+    # 构造时强制检查 operation_kind == "build"
+    # → defence-in-depth：防止未来代码误用
+```
+
+Build 操作也有自己的 FEC profile，且只有 `build` 一种 kind。这说明冻结上下文不是只有运行时才用——**构建阶段也需要**。
+
+---
+
+## ━━━ 6. 商业地产映射 ━━━
+
+### Realization → MI CRE 场景
+
+| LangChat 概念 | MI CRE 场景 | 解释 |
+|---|---|---|
+| ExecutionPlan | 商场年度招商方案审批稿 | 经过编译（规划）的方案，等待「落地执行」 |
+| Realization | 方案落地：生成合同模板、工作流、权限配置 | 招商方案通过审批后，实际创建文档和工作流 |
+| RealizationRecord | 方案执行记录（含尝试次数） | 第一次执行失败，第二次执行成功——都有记录 |
+| Rollback | 方案撤回：合同模板归档、工作流下线 | 招商方案有误，所有已生成内容软归档 |
+| FrozenExecutionContext | 每次合同审批的身份快照 | 审批人的权限范围、委托链、策略快照——审批过程中不可变 |
+
+### 具体场景
+
+想象 MI 某商场的「租户续签数字员工」：
+
+1. **Realization**：编译计划落地，创建了「续签审批工作流」+「合同查询 Capability 绑定」+「续签约 Prompt Template v3」
+2. **发现问题**：Prompt Template v3 的条款引用了过期的租金系数表
+3. **Rollback**：工作流归档、绑定解绑、Prompt 指针回退到 v2（v3 行保留可查）
+4. **修复后重新 Realize**：修正计划，重新编译，新 attempt = 3，生成新的工作流和 Prompt v4
+
+全程零数据丢失，完整审计链。
+
+---
+
+## ━━━ 7. 与传统方案比较 ━━━
+
+### 对比：Realization Rollback vs 传统数据库回滚
+
+| 维度 | 传统 ERP 回滚 | LangChat Realization Rollback |
+|---|---|---|
+| **操作方式** | DELETE + 重建 | 软归档（lifecycle_state = archived） |
+| **数据丢失** | 是（中间状态丢失） | 否（所有历史保留） |
+| **审计能力** | 弱（只有最终状态） | 强（每次 attempt 独立可查） |
+| **回滚后重试** | 直接重做（无 attempt 概念） | 创建新 attempt（历史对比） |
+| **事务粒度** | 表级或库级 | 对象级（每种对象不同策略） |
+| **知识库处理** | 通常不区分 | KB 特殊处理（不归档，只解除关联） |
+
+### 对比：FrozenExecutionContext vs 传统 Session/Context
+
+| 维度 | 传统 Session | FrozenExecutionContext |
+|---|---|---|
+| **可变性** | 可随时修改 | 构造后不可变（frozen dataclass） |
+| **权限范围** | 可中途提升 | 构造后不可放宽（HC-2） |
+| **审计绑定** | 无 digest 绑定 | 13 个 digest 绑定源制品 |
+| **跨对象一致性** | 无保证 | bindings tenant/workspace 交叉校验 |
+| **防御层级** | 单层（代码约定） | 三层（frozen + forbid + validator） |
+
+### 为什么选这个设计？
+
+**Rollback 选软归档而非硬删除**：因为企业 AI 平台的审计要求远高于普通 SaaS。金融客户问你「三个月前那个工作流为什么被替换」，你必须能调出完整的执行记录。
+
+**FEC 选不可变而非可变**：因为 AI 执行链路涉及委托（delegation_chain）。如果 context 中途可变，一个被委托的子 Agent 可以把自己的权限提升到父 Agent 级别——这在企业场景中是不可接受的安全漏洞。
+
+---
+
+## ━━━ 8. 架构师思考题 ━━━
+
+### 思考题 1（中级）
+
+如果一个 ExecutionPlan 有 5 个 workflow entries，Realization 在第 3 个 workflow 时 spec 验证失败。此时：
+- RealizationRecord 的 status 是什么？
+- 前 2 个 workflow 是否已创建？
+- 数据库中有哪些新行？
+
+### 思考题 2（CTO 级）
+
+FrozenExecutionContextV2 携带 4 个 PolicySnapshot，每个都有自己的 digest，且 FrozenAuthorizationBindings 中有对应 digest 的交叉校验。但如果 Policy 本身（policy floor + overlay）在 FEC 构造后被更新了怎么办？
+
+具体场景：
+1. FEC 构造时，effect_policy 的 digest 是 `sha256:aaa...`
+2. 管理员在 FEC 存活期间更新了 effect_policy，新 digest 是 `sha256:bbb...`
+3. Runtime 用旧 FEC 执行，但读取了新 policy
+
+**问题**：这会引发什么？Runtime 应该怎么处理？是否需要重新构造 FEC？
+
+### 思考题 3（架构演进级）
+
+当前 Rollback 是手动触发（`POST .../realizations/{attempt}/rollback`），需要 tenant_admin 显式确认。如果将来需要「自动回滚」（比如监控检测到工作流异常），架构上需要增加什么保护机制？自动回滚的触发条件应该由谁定义？
+
+---
+
+## ━━━ 9. 我的理解变化 ━━━
+
+### 以前以为 → 现在知道
+
+**以前以为**：Realization 就是「把编译结果写入数据库」，跟 migrate 差不多。
+
+**现在知道**：Realization 是一个精密的事务编排——savepoint 隔离使得「失败记录留存 + mutation 回滚」可以原子化完成。`__wrapped__` 的使用不是为了绕过审计，而是为了保持事务完整性。每一个设计决策都有明确的 ADR 依据。
+
+**以前以为**：Rollback 就是删除重建。
+
+**现在知道**：六种对象六种策略。KB 不归档只解除关联（因为文档可能已被使用），Prompt 指针回退但不删版本行（因为其他工作流可能引用了该版本），Workflow 归档但保留行（审计需要）。这不是简单的「undo」，而是精心设计的「retire with dignity」。
+
+**以前以为**：FrozenExecutionContext 就是一个不可变的 context 对象。
+
+**现在知道**：它是一个**密码学绑定容器**——13 个 digest 把它和 SkillRelease、DeploymentRevision、PolicyBundle、ApplicationContract 绑死在一起。任何一环被篡改，digest 不匹配，整个 FEC 就作废。这不是「防君子不防小人」的代码约定，而是「数学上不可绕过」的完整性保证。
+
+**以前以为**：v1 和 v2 只是版本号不同。
+
+**现在知道**：v1（Evaluation）只有 7 个字段 + evaluation_only 强制为 True；v2 有 4 个 PolicySnapshot + 13 个 digest 绑定 + 交叉校验。这不是增量改进，而是从「评估玩具」到「生产级身份容器」的质变。
+
+---
+
+## ━━━ 10. 明日连接 + Semantic Layer ━━━
+
+### 明日预告（Day 6 周六 · 动手交付）
+
+⚡ **画 Governance 覆盖图**：哪些模块已有治理，哪些没有 + PII & Compliance 现状
+
+经过 Week 10 前五天，我们已经覆盖了 Permission/Policy、Audit/Trace、Prompt Runtime Resolution、Fail-closed/Approval、Realization Rollback/FEC。明天要把这五块拼成一张完整的 Governance 覆盖图，找出最大的 Gap。
+
+### Semantic Layer 位置
+
+```
+Ontology（企业本体）
+  ↓
+Domain Model（领域对象）
+  ↓
+Capability（能力定义）
+  ↓
+Skill（可部署单元）
+  ↓
+[Realization] ← 制品落地
+  ↓
+[DeploymentRevision + FrozenExecutionContext] ← 身份冻结
+  ↓
+Runtime.execute() ← 执行
+```
+
+Realization 和 FEC 位于 Skill 到 Runtime 之间的**最后两站**：
+- Realization 确保落地正确（可回滚）
+- FEC 确保执行安全（不可变）
+
+**本周 Governance 拼图完成度：5/5** ✅
+- D1 Permission/Policy ✅
+- D2 Audit/Trace ✅
+- D3 Prompt Runtime Resolution ✅
+- D4 Fail-closed/Approval ✅
+- D5 Realization Rollback/FEC ✅
+- D6 明日：覆盖图 + Gap 分析 ⬜
+- D7 周日：Virtual CTO Review ⬜

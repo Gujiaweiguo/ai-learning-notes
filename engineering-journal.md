@@ -242,3 +242,16 @@ LangChat 选择"OTel 形状 + 自实现"而不是直接用 OpenTelemetry SDK，�
 
 ### 今天最大的决策
 Fail-closed 在 MI 商业地产场景的具体映射：① 合同审核技能上线前必须法务审批（DeploymentRevision Approval Gate）；② 租金调整建议必须人工确认后才写入 ERP（HITL Gate + conditional_write）；③ 跨商场数据访问必须被拒绝（Capability scope 校验 → GatewayError）；④ LLM 挂了但输入含"退款/解约/减免"等敏感词 → 返回兜底结果但 `human_review_required=True`。MI 的架构原则应该是：**安全问题绝不妥协，执行问题优雅降级，但风险信息不丢失。**
+
+---
+
+## 2026-08-07（Week10-Day5：Realization Rollback + FrozenExecutionContext）
+
+### 今天最大的认知
+Realization Rollback 不是 DELETE，而是六种对象六种归档策略。Workflow → archived，Version → is_published=False，Binding → is_active=False，Assistant → archived，KB → 只解除关联不删数据，Prompt → 指针回退或模板退休。每一种策略都尊重对象的语义和历史可审计性。FrozenExecutionContext V2 不是一个简单的 immutable object——它是一个密码学容器，13 个 digest 把它跟 SkillRelease、DeploymentRevision、PolicyBundle 绑死，任何篡改都会导致 digest 不匹配。这不是代码层面的「君子协定」，而是数学层面的完整性保证。
+
+### 今天最大的坑
+`__wrapped__` 的使用。Realization Orchestrator 里 `create_workflow`、`create_version`、`publish_version` 都用了 `getattr(_create_workflow, "__wrapped__", _create_workflow)`——第一眼看像是绕过了什么安全机制。实际上是因为 `@with_session` 装饰器会自动 `db.commit()`，而在 savepoint 隔离模型中，任何中间 commit 都会打断事务完整性。所以必须用 `__wrapped__` 绕过装饰器的自动提交，保持所有 mutation 在同一个 savepoint 内。这是事务完整性的需要，不是安全绕过。另一个坑：Rollback 里 KB 的处理是「metadata flag」而非归档，因为 KB 里的文档可能已经被工作流使用过，硬归档会导致历史引用断裂。
+
+### 今天最大的决策
+MI CRE 场景中 Realization Rollback 的应用：当「租户续签数字员工」的 Prompt Template 引用了过期租金系数表时，Rollback 不是删除 v3 模板——而是指针回退到 v2，v3 行保留可查。修正后重新 Realize 生成 v4，attempt 递增。完整审计链零数据丢失。这比传统 ERP「删了重录」强太多。FrozenExecutionContext 对应到 MI 场景就是「合同审批身份快照」：审批人的权限范围、委托链、策略快照在审批过程中不可变——这直接对应企业内控对审批流程的合规要求。
