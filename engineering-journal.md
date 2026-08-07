@@ -255,3 +255,17 @@ Realization Rollback 不是 DELETE，而是六种对象六种归档策略。Work
 
 ### 今天最大的决策
 MI CRE 场景中 Realization Rollback 的应用：当「租户续签数字员工」的 Prompt Template 引用了过期租金系数表时，Rollback 不是删除 v3 模板——而是指针回退到 v2，v3 行保留可查。修正后重新 Realize 生成 v4，attempt 递增。完整审计链零数据丢失。这比传统 ERP「删了重录」强太多。FrozenExecutionContext 对应到 MI 场景就是「合同审批身份快照」：审批人的权限范围、委托链、策略快照在审批过程中不可变——这直接对应企业内控对审批流程的合规要求。
+
+---
+
+## 2026-08-08（Week10-Day6：Governance 覆盖图 + Gap 分析）
+
+### 今天最大的认知
+以前以为 Governance 是一个模块，和 Knowledge Base、Workflow 并列。
+现在知道 Governance 是三个时间轴上的横切约束：Build Time（Custody + Rollback + Plan）→ Deploy Time（PolicyBundle + Release Gate + Compat Matrix）→ Runtime（SixDim + Dual-Gate + ReadOnly + Audit + Trace + PII + Retention）。15 个治理检查点分布在 ADR-007 三段架构链的每一段。这不是"模块化治理"，是"空气化治理"——每一层都呼吸它，但你看不到它独立存在。
+
+### 今天最大的坑
+PII Redaction 默认关闭。代码写得很漂亮——`RedactionStrategy` Protocol → `NoopRedactionStrategy`（默认）→ `RegexRedactionStrategy`（8 种 PII 模式：EMAIL/IP/PHONE/ID_CARD/BANK_CARD/URL_CRED）→ entry point 插件扩展——但 `NoopRedactionStrategy` 是默认值！生产环境如果忘记开启 `PII_REDACTION_ENABLED`，用户敏感数据裸奔到 Trace Payload。这不是代码问题，是架构决策问题：定位为"企业 AI 应用平台"（ADR-001），PII 保护不应该是 opt-in。另外发现 Enterprise Systems 侧出站签名缺失——Tool Use 调用外部系统没有签名，企业系统侧无法验证来源，这在多租户场景下是安全隐患。
+
+### 今天最大的决策
+画出了完整的 Governance Coverage Map，识别了 7 个 Gap。最大的 Gap 优先级判定留给明天 Virtual CTO Review。初步判断：PII 默认关闭 > 出站签名缺失 > 合规报告缺失 > 数据分级保留 > 跨租户测试覆盖。核心原则：Governance 不是"有没有"的问题，是"默认开不开"的问题。安全机制默认关闭 = 没有安全机制。
