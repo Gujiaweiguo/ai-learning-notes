@@ -283,3 +283,17 @@ PII Redaction 默认关闭。代码写得很漂亮——`RedactionStrategy` Prot
 
 ### 今天最大的决策
 PII Redaction 默认开启 — 优先级判定为 P0。判定依据四条：① 不对称风险（调试不便 << 数据泄漏+合规违规）；② 定位一致性（ADR-001 说"企业平台"，PII 不能 opt-in）；③ 修复成本极低（改一个默认值）；④ 行业先例（Azure/AWS/Google 全部默认开启）。修复行动方案四步已定：改默认值 → 启动日志 → 创建 ADR-LC-014 → 增加关闭审批流程。这不是"Week 11 的任务"，这是"今天的任务"。
+
+---
+
+## 2026-08-10（Week11-Day1：Capability Inventory — 能力清查）
+
+### 今天最大的认知
+以前以为 Capability Catalog 是 LangChat 的能力目录，列出了平台所有能力，SkillRelease 是能力的具体实现。
+现在知道代码里有三套"能力注册体系"并行存在：① Capability Catalog（2 条，runtime_binding 全空，纯展示壳）；② SkillRelease Registry（10 条可执行 Skill，各有 executor_fn）；③ Capability Gateway（W01 MCP 独立体系）。三者互不引用，平行存在。Capability Catalog 的 2 个条目在 E6 迁移后变成了被掏空的元数据——OpenSpec 明确写 "runtime_binding SHALL be the empty object {}"。真正的执行入口是 SkillRelease 的 POST /v1/skill-releases/{skill_id}/invoke。Capability API 默认关闭（CAPABILITY_API_ENABLED = False），因为 Catalog 还没准备好面对外部。
+
+### 今天最大的坑
+W01-W09 的 Skill ID 看似遵守了 ADR-003 正交约束——没有行业词（ops.anomaly、customer.escalation、brand.research）。但 workflow_binding 里全是 mall-* 前缀，display_name 全是 "Mall Ops / Mall Customer / Mall Brand"。**Skill ID 遵守了正交约束的字母，但违反了精神。** 这些不是 Capability（跨行业原子能力），它们是 Application 级别的打包——9/10 个 Skill 是商业地产专属，只有 workflow.execute 一个是真正平台级的。ADR-003 说 Application = Capability 子集 × Industry 标签，但代码里这个矩阵没有被显式表达。
+
+### 今天最大的决策
+Week 11 的打开方式不是"继续学新东西"，而是"面对代码事实"。前三周建立了漂亮的心智模型——四层架构、25+ 个目标态对象、ADR 正交模型。今天开始把这些模型和代码对照，发现 Gap 不是"目标态对象没实现"（这在意料之中），而是"当前态有三套平行体系谁也不认谁"。Capability Catalog 不投影 SkillRelease，SkillRelease 不查 Catalog，Gateway 自成一套。这才是最危险的 Gap——不是缺什么，而是现有的东西彼此不连接。

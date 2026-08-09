@@ -1,0 +1,301 @@
+# PT-W3 Day 1：Agent 如何利用 Ontology
+
+> 📅 Week 3 - Day 1 | 2026-08-10 周一
+>
+> **并行轨道：Business Semantic Architecture**
+>
+> 本周主题：**Ontology → Agent Architecture**（Ontology 在 AI Agent 架构中的角色）
+
+---
+
+## 今日主题：Agent 规划任务时，Ontology 在起什么作用？
+
+昨天（W2 结束）你完成了 **MI CRE Ontology Graph v0.1** — 把已有材料中的 Entity、Relationship、Lifecycle、Event、Rule、Capability、Policy 全部抽取出来。
+
+现在问题来了：**这张图，AI Agent 怎么用？**
+
+一个没有 Ontology 的 Agent，就像一个新员工拿到了数据库账号但没有人告诉他业务规则——他能查到数据，但他不知道这些数据之间是什么关系、为什么是这个状态、下一步能做什么。
+
+Ontology 就是 Agent 的"企业业务世界认知层"。
+
+---
+
+## 一、先看你的 Agent 架构现状
+
+根据 LangChat ADR-001 和 ADR-006，你的 Agent 架构已经有一套完整的制品链：
+
+```
+External Authoring Client（编写工具）
+        ↓ 产出
+BlueprintCandidate（候选蓝图）
+        ↓ 评审
+BlueprintVersion（冻结蓝图，引用 ApplicationContractVersion）
+        ↓ 确定性构建（Compiler）
+ExecutionPlanIR（执行计划中间表示）
+        ↓ 打包
+SkillRelease v2（唯一可部署制品）
+        ↓ 部署
+DeploymentRevision（运行时闭包）
+        ↓ 在 FrozenExecutionContext 中执行
+数字员工运行实例
+```
+
+这条链路回答的是"**怎么从业务语义编译出可执行制品**"。
+
+但有一个关键的隐含问题：**Agent 在执行任务时，凭什么知道企业业务的上下文？**
+
+答案就是：**Ontology 是这条链路每一层的语义基础设施。**
+
+---
+
+## 二、Ontology 在 Agent 任务执行的五个阶段各自起什么作用
+
+用一个真实场景串起来。假设用户问数字员工：
+
+> "A101 铺位为什么不能出租？"
+
+### 阶段 1：意图理解 — Ontology 提供 Concept 词汇表
+
+Agent 收到自然语言，需要把"A101 铺位"映射到系统中的实体。
+
+- **没有 Ontology**：Agent 只能做关键词匹配，搜索"A101"在哪些表出现过。它不知道"铺位"是一个 Space，Space 属于 Building → Floor → Unit → Shop 的身份层级。
+- **有 Ontology**：Agent 从 Ontology 中知道"A101 铺位"= Space Entity，身份路径 = `项目X → 楼宇Y → 楼层1F → 铺位A101`。它知道"不能出租"涉及的是 Space 的可用性状态。
+
+> **Ontology 的作用**：提供 Concept 定义和 Identity 层级，让 Agent 具备"实体识别"能力。
+
+### 阶段 2：关系导航 — Ontology 提供 Relationship 语义
+
+Agent 需要知道 A101 关联了哪些东西。
+
+- **没有 Ontology**：Agent 只能通过外键 `lease.space_id` 去查 Lease 表，它不知道这个外键的语义是什么——是"占用"还是"曾经占用"还是"将要占用"。
+- **有 Ontology**：Agent 从 ADR-006 四类关系知道：
+  - **Identity Reference**：A101 的身份由 Building/Floor/Unit 层级确定
+  - **Structural Composition**：A101 是 Floor 1F 的组成部分
+  - **Hierarchical Containment**：A101 归属项目 X
+  - **Lifecycle Transition Effect**：A101 上如果有活跃 Lease，Lease 终止后触发 Space 释放
+
+Agent 知道去查："A101 当前有哪些 Lease？这些 Lease 处于什么状态？"
+
+> **Ontology 的作用**：提供 Relationship 类型，让 Agent 具备"关系导航"能力——知道从 A 出发该去查 B，以及 A 和 B 之间是什么语义关系。
+
+### 阶段 3：状态推理 — Ontology 提供 Lifecycle 状态机
+
+Agent 查到 A101 上有一份 Lease，状态是 `terminating`（终止中）。
+
+- **没有 Ontology**：Agent 看到 `status=terminating`，但不知道这意味着什么——Space 算可用了还是不可用？终止流程走到哪一步了？
+- **有 Ontology**：Agent 从 effect-registry 知道完整的 Lifecycle：
+
+```
+Lease: Active → Terminating → Terminated
+    effect: release Space (但需 Inspection 完成后 Space 才可用)
+    effect: stop Billing
+    effect: 退还保证金（清算完成后）
+```
+
+Agent 推理出："Lease 正在终止中，但 Inspection 还没完成，所以 Space 尚未释放，不能出租。"
+
+> **Ontology 的作用**：提供 Lifecycle 状态机和 Event Effect，让 Agent 具备"状态推理"能力——从当前状态推断出业务结论。
+
+### 阶段 4：规则判断 — Ontology 提供 Rule
+
+Agent 需要判断"Inspection 未完成时，Space 能不能出租"。
+
+- **没有 Ontology**：这条规则藏在代码的 if-else 里，Agent 看不到。
+- **有 Ontology**：Agent 从 Rule 模型知道明确的业务规则：
+
+> **Rule #003**：存在未完成退租流程（含 Inspection）的 Space，状态为 `locked`，不可发起招商。
+
+Agent 的回答变成："根据退租规则 #003，A101 存在未完成的退租流程（Inspection 待完成），状态为锁定，不可出租。"
+
+> **Ontology 的作用**：把隐式代码规则显式化为 AI 可读的声明式规则，让 Agent 具备"规则判断"能力。
+
+### 阶段 5：行动建议 — Ontology 提供 Capability 映射
+
+Agent 应该建议什么下一步动作？
+
+- **没有 Ontology**：Agent 只能泛泛建议"联系相关部门处理"。
+- **有 Ontology**：Agent 从 Capability Model 知道：
+  - `exit-management`（退场管理）能力包含 Inspection Task 创建
+  - 该能力的前置条件：Lease 状态 = Terminating
+  该能力的执行者：运营部门
+
+Agent 的建议变成："建议创建 Inspection Task（退场检查），完成后 Space 自动释放，预计 3 个工作日。"
+
+> **Ontology 的作用**：提供 Capability 清单和前置条件，让 Agent 具备"行动建议"能力。
+
+---
+
+## 三、Ontology 在你的 LangChat 架构中放在哪里？
+
+这是今天最关键的架构判断。
+
+回看 ADR-001 的拓扑：
+
+```
+Agent Host（OpenClaw / 渠道 Agent）
+        ↓ 受控调用
+LangChat（企业能力平台）
+  ├─ 控制面：能力发现、授权、版本、人审策略
+  └─ 执行面：RAG、Workflow 执行、人审状态机
+        ↓ 受控调用
+专项能力 Provider（MI / LnkChatBI / CRM）
+```
+
+Ontology 在这条链路中的位置：
+
+```
+Agent Host
+    ↑ 提供认知上下文（Entity/Relationship/Rule）
+    │
+┌───┴───────────────────────────────┐
+│  Ontology Layer（语义认知层）       │
+│  ┌─────────────────────────────┐  │
+│  │ Entity + Identity           │  │ ← Agent 知道"有什么"
+│  │ Relationship                │  │ ← Agent 知道"怎么连"
+│  │ Lifecycle + Event           │  │ ← Agent 知道"怎么变"
+│  │ Rule                        │  │ ← Agent 知道"为什么"
+│  │ Capability + Policy         │  │ ← Agent 知道"能做什么"
+│  └─────────────────────────────┘  │
+│                                   │
+│  这不是一个新的系统组件，           │
+│  而是渗透在每一层的基础设施         │
+└───────────────────────────────────┘
+    ↓ 为编译提供语义输入
+LangChat 制品链
+    ↓ 为执行提供约束
+Runtime
+```
+
+关键认知：**Ontology 不是 LangChat 架构图中新增的一个"盒子"，它是让现有盒子更聪明的语义基础设施。**
+
+具体渗透方式：
+
+| LangChat 层 | Ontology 渗透方式 | 你的已有资产 |
+|---|---|---|
+| Business Domain Layer（ApplicationContract） | Contract 的输入输出 schema 来自 Ontology Entity 定义 | MI Domain Model §3 Object Ownership |
+| Supply Chain Layer（Blueprint → Build） | Compiler 的编译规则来自 Ontology Rule + Capability | CRE BCM ADR-001 业务组合编译器 |
+| Runtime Layer（SkillRelease 执行） | 执行时的认知上下文来自 Ontology Relationship + Lifecycle | effect-registry.yaml |
+| Operations Layer（Policy/授权） | 访问控制规则来自 Ontology Policy Model | MI 审批流 + LangChat required_scopes |
+
+---
+
+## 四、对比：没有 Ontology 的 Agent vs 有 Ontology 的 Agent
+
+| 维度 | 没有 Ontology | 有 Ontology |
+|---|---|---|
+| 实体识别 | 关键词匹配，无法处理同义词（"铺位"="商铺"="位置"？） | Concept 别名表让 Agent 统一识别 |
+| 关系导航 | 只会查外键，不理解语义含义 | 知道关系类型，选择正确的导航路径 |
+| 状态推理 | 看到状态字段但不知道含义 | 有完整状态机，能推断当前阶段和下一步 |
+| 规则判断 | 规则藏在代码里，Agent 看不到 | 规则显式声明，Agent 可以引用和解释 |
+| 行动建议 | 泛泛建议，不能关联到具体能力 | Capability 映射让建议可执行 |
+| 跨域理解 | 每个系统各自解释，可能矛盾 | 统一语义层确保跨域一致性 |
+| 可解释性 | "系统显示不能出租" | "因为 Lease #12345 处于终止中，Inspection 未完成，根据 Rule #003，Space 处于锁定状态" |
+
+---
+
+## 五、对照你的真实资产
+
+今天的核心练习：用 LangChat ADR-006 的 DigitalEmployeeDefinition 对照 Ontology 的六个维度。
+
+根据 ADR-006 §4.1，DigitalEmployeeDefinition 是"引用语义锚点"：
+
+```
+DigitalEmployeeDefinition
+    ├─ 引用 ApplicationContractVersion（业务契约）
+    ├─ 引用 BlueprintVersion（执行蓝图）
+    ├─ 声明发布策略 scope
+    └─ 提供发现元数据
+```
+
+用 Ontology 视角看：
+
+| Ontology 维度 | DigitalEmployeeDefinition 中对应 | 缺口 |
+|---|---|---|
+| Entity | 数字员工本身是一个 Entity | ✅ 已有 |
+| Identity | `(tenant, workspace, digital_employee_id, definition_version)` | ✅ 已有 |
+| Relationship | 引用 Contract + Blueprint（但不是语义关系命名） | ⚠️ 缺少"这个数字员工管哪些业务域"的映射 |
+| Lifecycle | `Draft → Published → Deprecated → Retired` | ✅ 已有，但缺少"激活后能做什么"的语义 |
+| Rule | ApplicationContract 的 effect_policy + required_scopes | ✅ 已有控制规则，但缺少业务规则 |
+| Capability | 通过 Blueprint → ExecutionPlanIR → SkillRelease 间接定义 | ⚠️ 缺少直接的"数字员工 = 哪些 Capability 集合"映射 |
+
+**关键发现**：你的 DigitalEmployeeDefinition 在"平台语义"层面很完整（身份、版本、部署策略），但在"业务语义"层面还有缺口——一个数字员工定义没有显式声明"我负责哪些 Bounded Context、我能理解哪些 Entity、我能执行哪些 Capability"。
+
+这正是 Ontology 要补充的。
+
+---
+
+## 六、今天回答的核心问题
+
+> **"Agent 规划任务时，Ontology 在起什么作用？"**
+
+答案是：Ontology 是 Agent 的**企业业务世界认知层**。没有它，Agent 是一个"能调 API 但不理解业务的执行器"；有了它，Agent 是一个"理解实体关系、能做状态推理、能引用规则解释、能建议可执行动作"的数字员工。
+
+用一句话总结：
+
+> **Ontology 不是给 Agent 新增一个"知识库"，而是给 Agent 的每一次推理、每一次决策、每一次行动提供语义基础。**
+
+---
+
+## 架构师视角
+
+**以前的理解**：Ontology 是一个描述企业的模型，类似于一份文档。
+
+**现在的理解**：Ontology 是 Agent 运行时的认知基础设施。Agent 的每一步——理解意图、导航关系、推理状态、判断规则、建议行动——都依赖 Ontology 提供的语义。没有 Ontology 的 Agent 只是一个 API 调用器；有 Ontology 的 Agent 才是真正的数字员工。
+
+**对设计判断的影响**：
+
+- 以前：先做 Agent 平台，再考虑业务语义
+- 现在：Ontology 必须和 Agent 平台同步设计，因为 Agent 的每个能力都依赖 Ontology 的对应维度
+
+---
+
+## 练习（5 分钟）
+
+对照 ADR-006 DigitalEmployeeDefinition 的结构，写一个"招商运营数字员工"的业务语义定义草案：
+
+```
+DigitalEmployee: 招商运营数字员工
+
+负责的 Bounded Context：
+  - 招商管理（CRE-SAL）
+  - 租赁管理（CRE-LEA）
+  - 合同管理（CRE-CON，只读）
+
+能理解的 Entity：
+  - Space（铺位/位置）
+  - Lease（租约）
+  - Tenant（租户/商户）
+  - Brand（品牌）
+
+能导航的 Relationship：
+  - Space occupies Building（空间属于楼宇）
+  - Lease occupies Space（租约占用空间）
+  - Tenant signs Lease（租户签署租约）
+
+能推理的 Lifecycle：
+  - Space: 空置 → 锁定 → 已租 → 退出 → 空置
+  - Lease: 草案 → 签署 → 生效 → 即将到期 → 到期 → 终止
+
+能引用的 Rule：
+  - Rule #003: 未完成退租的 Space 不可出租
+  - Rule #007: 锁定铺位需招商审批后解锁
+
+能执行的 Capability：
+  - 查询铺位可用性（read_only）
+  - 创建招商意向（conditional_write，需审批）
+  - 创建 Inspection Task（conditional_write，需授权）
+```
+
+思考：这个定义和 ADR-006 现有的 DigitalEmployeeDefinition 结构相比，多了什么、少了什么？
+
+---
+
+## 明日预告
+
+**PT-W3 Day 2：Ontology Compiler（语义编译器）**
+
+你的 CRE BCM ADR-001 就是一个 Semantic Compiler 的雏形。明天我们来看：Ontology 如何成为 Compiler 的输入，把业务语义编译成 Agent 可执行的 Capability + Skill。
+
+---
+
+*Business Semantic Architecture · Week 3 Day 1 · 2026-08-10*
