@@ -1,0 +1,397 @@
+# PT-W3-D4：Policy 如何约束 Agent 执行 — "知道怎么做，不代表你有权做"
+
+> 📅 Week 3 - Day 4 | 2026-08-13 周三
+>
+> **并行轨道：Business Semantic Architecture**
+>
+> **今日主题：Policy 作为 Agent 的执行围栏**
+
+---
+
+## 一句话开篇
+
+> **Agent 的能力（Capability）回答"能不能做"，Agent 的认知（Bounded Context）回答"懂不懂这件事"，Agent 的策略（Policy）回答"现在允不允许做"。三者缺一不可。**
+
+昨天讲了 Bounded Context = Agent 的认知围栏。今天进入更细的一层：**即使 Agent 懂了、也会做，但在具体场景下，它有没有权限执行？**
+
+这个答案在你的两套系统里已经存在——LangChat 的 `effect_policy` / `required_scopes` / `human_review_gate` 和 MI 的审批流。
+
+---
+
+## 二、先看一个真实场景
+
+### 招商运营数字员工遇到的"权限墙"
+
+假设你的数字员工正在处理一个常见请求：
+
+> "客户想提前退租 A101 铺位，帮我办一下。"
+
+Agent 的推理链条：
+
+```
+1. 查 Entity → A101 铺位，当前 Lease 处于 Active 状态 ✓
+2. 查 Lifecycle → Lease: Active → Terminated 是合法迁移 ✓
+3. 查 Rule → "提前退租需扣违约金，且需招商总监审批" ✓
+4. 准备执行 → 创建退租申请……
+```
+
+**等一下。** 这一步该不该 Agent 自己做？
+
+答案取决于 **Policy**：
+
+| Policy 问题 | 判断 |
+|------------|------|
+| 退租操作是读还是写？ | **写操作** → `effect_policy` 检查 |
+| 这个 Agent 有没有写权限？ | P0 期所有 SkillRelease 的 `effect_policy = read_only` → **不能直接执行写操作** |
+| 需不需要人审？ | 退租属于高风险操作 → `human_review_gate = mandatory` |
+| 谁有权审批？ | 招商总监 → `required_scopes` 检查 |
+
+**结论：Agent 可以推理出"应该怎么做"，但执行退租这个写操作，必须走人审通道。**
+
+这就是 Policy 的作用——**它在 Capability 和 Execution 之间插入了一道授权检查**。
+
+---
+
+## 三、你的 LangChat 里已经有完整的 Policy 模型
+
+### 3.1 effect_policy：副作用分级
+
+读 ADR-002 §7.3（SkillRelease `effect_policy`）：
+
+```
+SkillRelease 发布时绑定不可变的 effect_policy，
+由执行面在执行期间强制。
+```
+
+| effect_policy 值 | 含义 | P0 状态 |
+|-----------------|------|---------|
+| `read_only` | 执行面强制无写副作用路径可达；禁止任何外部写入调用 | **P0 所有 SkillRelease 必须** |
+| `conditional_write` | 允许有条件写入（需人审 + 幂等键 + Provider 二次校验） | P0 不签发 |
+
+用 Ontology 视角翻译：
+
+```
+effect_policy 不是"技术配置"，而是"业务操作的副作用等级声明"。
+
+read_only = 这个能力只会"看"，不会"改"
+conditional_write = 这个能力会"改"，但必须满足条件才能执行
+
+Agent 在执行前，必须先检查自己调用的 Capability 的 effect_policy。
+如果是 read_only，Agent 就知道：我只能查询和推理，不能直接修改企业数据。
+```
+
+**关键洞察**：P0 期全部 `read_only` 意味着——你的数字员工在第一阶段是"顾问"而不是"操盘手"。它能告诉你"应该怎么做"，但不会直接动手。
+
+### 3.2 required_scopes：能力级授权
+
+读 ADR-002 §7.2：
+
+```
+effective_scope = ∩(key.scope_grants, skill_release.required_scopes)
+
+任一方不覆盖则拒绝。
+```
+
+这不是简单的"有没有权限"——它是**二方交集**：
+
+```
+调用方持有的 scope:  {skill_release:invoke, report:read}
+SkillRelease 要求的 scope: {skill_release:invoke, contract:read}
+
+交集 = {skill_release:invoke}  → 通过
+
+但如果 required_scopes 包含 {contract:write}：
+交集 = {}  → 拒绝
+```
+
+用 Ontology 视角翻译：
+
+```
+required_scopes 是 Capability 的"门禁卡等级"。
+
+Agent 要调用某个 Capability，
+不仅需要"知道这个 Capability 存在"（认知层），
+还需要"持有正确的门禁卡"（授权层）。
+
+门禁卡 = scope。
+两张卡（调用方的 + SkillRelease 要求的）取交集，
+交集覆盖所有必需权限才能放行。
+```
+
+### 3.3 human_review_gate：人审门
+
+读 ADR-002 §7.3：
+
+```
+human_review_gate 的取值：
+
+none        → 无人审，直接执行
+conditional → 有条件人审（取决于触发规则）
+mandatory   → 必须人审
+```
+
+P0-7（W09 SkillRelease 绑定）的配置：
+
+```
+effect_policy = read_only
+required_scopes = {skill_release:invoke}
+human_review_gate = conditional
+```
+
+用 Ontology 视角翻译：
+
+```
+human_review_gate 是"是否需要人类点头"的声明。
+
+它回答的问题是：
+"这个操作的风险等级，是否高到需要人类显式批准？"
+
+none = 自动化执行（如查询铺位信息）
+conditional = 看情况（如查看合同细节可以自动，但导出合同需要审批）
+mandatory = 每次都要人审（如退租、减免、大额退款）
+```
+
+---
+
+## 四、三层 Policy 的协作模型
+
+把三个 Policy 维度拉到一起：
+
+```
+Agent 要执行一个 Capability，需要过三道关卡：
+
+关卡 1: effect_policy（副作用等级）
+  "这个 Capability 会不会改数据？"
+  read_only → 放行
+  conditional_write → 进入关卡 2
+
+关卡 2: required_scopes（授权范围）
+  "Agent 有没有正确的门禁卡？"
+  effective_scope = ∩(Agent 持有的, Capability 要求的)
+  覆盖 → 放行
+  不覆盖 → 拒绝
+
+关卡 3: human_review_gate（人审门）
+  "需不需要人类点头？"
+  none → 直接执行
+  conditional → 检查触发规则
+  mandatory → 挂起，等待人类审批
+```
+
+**这三道关卡不是串行的可选检查，而是必须全部通过的强制约束。**
+
+任何一个关卡不通过，Agent 都不能执行。
+
+---
+
+## 五、MI 审批流 = Policy 的业务实现
+
+### 5.1 读 MI 审批代码
+
+读 `/root/mi/backend-mobile/internal/approval/handler.go`：
+
+```go
+func (h *Handler) Approve(c *gin.Context) {
+    uid := middleware.CurrentStaffUserID(c)
+    id := c.Param("id")
+    var req actionRequest
+    // ...
+    // 通过 idempotency_key 保证幂等
+    // 通过 middleware.CurrentStaffUserID 获取当前操作人
+    // 调用 MI 内部 workflow API 执行审批
+}
+```
+
+读 `bulk_delegate.go`：批量委托审批。
+
+这些代码做的事情：
+
+```
+1. 验证操作人身份（Authentication）
+2. 检查操作人是否有审批权限（Authorization）
+3. 记录审批轨迹（Audit Trail）
+4. 通过幂等键防止重复操作（Idempotency）
+```
+
+**这就是 MI 的 Policy 执行面。** 它和 LangChat 的三层 Policy 是同一类问题，只是实现方式不同。
+
+### 5.2 MI 审批流 vs LangChat Policy 模型
+
+| MI 审批流 | LangChat Policy | 对应关系 |
+|---------|----------------|---------|
+| `document_type` + `document_id` | Capability 调用目标 | 操作对象 |
+| `status: pending` | `human_review_gate = mandatory` | 等待人审 |
+| `current_node_id` | `required_scopes` 分级 | 审批节点 = 授权层级 |
+| `audit_history` | 审计日志（六维完整） | 操作轨迹 |
+| `idempotency_key` | 幂等键（conditional_write 要求） | 防重复 |
+| 审批人 `uid` | `actor_id`（strict 绑定） | 操作人身份 |
+
+**你的 MI 审批流和 LangChat Policy 模型，本质上在做同一件事：确保"知道怎么做"不等于"有权做"。**
+
+区别在于：
+
+```
+MI 审批流：面向人类员工的审批流程
+  → 人提交 → 人审批 → 人执行
+
+LangChat Policy：面向 Agent 的执行约束
+  → Agent 推理 → Policy 检查 → （如有必要）人审批 → Agent 执行
+```
+
+---
+
+## 六、Ontology 中的 Policy 层
+
+### 6.1 Policy 在 Semantic Model 中的位置
+
+```
+Enterprise Semantic Model
+
+├── Entity          — 有什么东西
+├── Identity        — 怎么识别
+├── Relationship    — 怎么关联
+├── Lifecycle       — 怎么变化
+├── Rule            — 为什么这样变化
+├── Capability      — 可以做什么
+└── Policy          ← 今天的主角：什么条件下允许做
+    ├── effect_policy      → 副作用分级
+    ├── required_scopes    → 能力级授权
+    ├── human_review_gate  → 人审等级
+    └── approval_flow      → 审批路径（MI 审批流的语义化）
+```
+
+### 6.2 Policy 回答的问题
+
+| 问题 | Policy 维度 | 你的系统里 |
+|------|-----------|----------|
+| 这个操作会不会改数据？ | effect_policy | LangChat `read_only` / `conditional_write` |
+| 谁有权做这个操作？ | required_scopes | LangChat scope 交集 + MI 审批权限 |
+| 需不需要人审？ | human_review_gate | LangChat `none` / `conditional` / `mandatory` |
+| 审批流程是什么？ | approval_flow | MI 审批流（提交→初审→终审→执行） |
+| 审批条件是什么？ | condition | MI 审批规则（金额阈值、类型限制等） |
+
+### 6.3 Policy 的 AI 含义
+
+**Policy 的存在，确保了 Agent 永远不会"越权操作"。**
+
+没有 Policy 的 Agent 架构：
+
+```
+Agent 推理出方案 → 直接执行 → 可能造成不可逆的业务损失
+```
+
+有 Policy 的 Agent 架构：
+
+```
+Agent 推理出方案 → Policy 检查 →
+  ├── 全部通过 → 执行
+  ├── effect_policy 阻止 → "我只能查询，不能直接修改"
+  ├── scope 阻止 → "您没有这个操作的权限"
+  └── human_review_gate 阻止 → "已提交审批申请，请等待审批结果"
+```
+
+**Policy 把 Agent 从"能做就做"变成"做了该做的，等该等的"。**
+
+---
+
+## 七、破坏性变更 = Policy 演进的保护机制
+
+读 ADR-005 §4.2（破坏性变更分类）：
+
+| 变更 | 分类 | 为什么 |
+|------|------|--------|
+| `effect_policy` 从 `read_only` → `conditional_write` | **破坏性（MAJOR）** | 写能力扩展了 Agent 的操作边界 |
+| `effect_policy` 从 `conditional_write` → `read_only` | 兼容（MINOR） | 收紧边界不影响存量调用 |
+| `required_scopes` 新增必需 scope | **破坏性（MAJOR）** | 收紧了授权 |
+| `required_scopes` 删除必需 scope | 兼容（MINOR） | 放宽授权 |
+| `human_review_gate` 从 `mandatory` → `none` | **破坏性（MAJOR）** | 移除了人审保护 |
+
+**规则总结**：**放宽 Agent 约束 = 破坏性变更，收紧 Agent 约束 = 兼容变更。**
+
+为什么？因为放宽约束意味着 Agent 获得了更多权力——这需要重新评估安全性。而收紧约束只会让 Agent "少做一点"，不会引入新风险。
+
+这跟人类组织的管理原则完全一致：**给员工扩大权限需要审批备案，收紧权限通知即可。**
+
+---
+
+## 八、连接思考：Policy 与前三天内容的串联
+
+```
+Day 1: Agent 如何利用 Ontology
+  "Ontology 给 Agent 提供了理解企业的语义地图"
+  → 地图上有什么？→ Entity / Relationship / Lifecycle / Rule / Capability
+
+Day 2: Ontology Compiler
+  "把语义地图编译成 Agent 可消费的能力组合"
+  → 编译产出是什么？→ Capability + SkillRelease
+
+Day 3: Bounded Context 约束 Agent 认知
+  "Agent 只在自己的工位上工作"
+  → 工位的边界在哪？→ Bounded Context + Context Map + D-014
+
+Day 4: Policy 约束 Agent 执行 ← 今天
+  "即使在自己的工位上，也要检查权限"
+  → 权限规则是什么？→ effect_policy + required_scopes + human_review_gate
+```
+
+**四天的全景**：
+
+```
+Agent 在企业中工作，需要四层约束：
+
+1. 语义理解层（Ontology）：Agent 能理解企业业务世界
+2. 能力编译层（Compiler）：把理解转化为可执行的能力
+3. 认知边界层（Bounded Context）：限制 Agent 的理解范围
+4. 执行约束层（Policy）：限制 Agent 的执行权限 ← 今天
+```
+
+---
+
+## 九、架构师视角
+
+**以前**：审批流是人类员工的业务流程，和 Agent 架构没什么关系。
+
+**现在**：审批流就是 Policy Model 的业务实现。未来设计 Digital Employee 时，**每个 Capability 都必须绑定 Policy 声明**：
+
+```
+Capability: 创建退租申请
+  ├── effect_policy: conditional_write
+  ├── required_scopes: {lease:terminate}
+  ├── human_review_gate: mandatory
+  └── approval_flow: 招商总监审批
+```
+
+这意味着 Policy 不是"审批流代码里的 if-else"，而是 **Semantic Model 中的一等公民**。Agent 在调用任何 Capability 之前，Policy 层会自动拦截并检查——就像 MI 的 `middleware.CurrentStaffUserID(c)` 自动验证操作人身份一样。
+
+---
+
+## 十、练习（5 分钟）
+
+拿出你的 ADR-002 §7.3（effect_policy）和 MI 审批流代码，回答：
+
+1. **如果你的"招商运营数字员工"要处理以下三个请求，分别需要什么 Policy 配置？**
+   - "查询 A101 铺位的合同信息" → effect_policy = ? , human_review_gate = ?
+   - "导出本月到期合同清单" → effect_policy = ? , human_review_gate = ?
+   - "提交 A101 退租申请" → effect_policy = ? , human_review_gate = ?
+
+2. **MI 审批流的 `audit_history`（审计轨迹）和 LangChat 的审计日志（六维完整），在 Ontology 语义层是否等价？如果未来要统一，统一后的语义定义应该怎么写？**
+
+3. **P0 期所有 SkillRelease 的 effect_policy 都是 read_only。这意味着数字员工在 P0 期不能"提交退租申请"——它只能告诉用户"应该提交退租申请"。这个设计选择的好处是什么？风险是什么？**
+
+> 思考这些问题的目的：**让 Policy 从"代码里的 if-else"升级为"Semantic Model 的一等公民"，为未来 Agent 自主执行建立完整的约束体系。**
+
+---
+
+## 本日小结
+
+| Policy 维度 | LangChat 实现 | MI 实现 | Ontology 含义 |
+|------------|-------------|--------|-------------|
+| effect_policy | `read_only` / `conditional_write` | N/A（MI 全是直接写） | 副作用等级声明 |
+| required_scopes | scope 二方交集 | 审批权限校验 | 能力级门禁卡 |
+| human_review_gate | `none` / `conditional` / `mandatory` | 审批流节点配置 | 人审等级 |
+| approval_flow | 未来由 ApplicationContract 声明 | MI workflow 审批流 | 审批路径定义 |
+| 破坏性变更保护 | ADR-005 §4.2 MAJOR 升级 | N/A | 放宽约束 = 需重评安全 |
+
+**一句话总结**：
+
+> **Policy 不是"审批流代码"，而是 Ontology 中"什么条件下允许做"的语义声明。effect_policy 管副作用等级，required_scopes 管能力级授权，human_review_gate 管人审等级——三者共同构成 Agent 的执行围栏。你的 LangChat ADR-002 和 MI 审批流，本质上在做同一件事：让"知道怎么做"不等于"有权做"。**
