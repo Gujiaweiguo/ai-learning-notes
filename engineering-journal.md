@@ -336,3 +336,16 @@ Knowledge Gap 的优先级排第一（高于 RuntimeABI 和 CapabilityRelease）
 
 ### 今天最大的决策
 LangChat 最独特的设计可以用一句话概括：把软件工程的最佳实践（制品链、确定性构建、不可变部署）引入 AI 应用治理。这不是功能创新，是范式创新。这决定了 LangChat 的竞品不是 Dify/LangGraph，而是"企业用传统方式自建 AI 应用"这个现状。真正的竞争不是功能对比表，是"有没有制品链治理"——这是企业 CIO 能理解的语言。
+
+---
+
+## 2026-08-15（Week11-Day6：⚡ 实战交付 — LangChat v2 实施路线图 v1.0）
+
+### 今天最大的认知
+以前以为实施路线图就是把 Gap Matrix 里的红色项按优先级排序、估工作量。现在知道路线图的第一行不是任何 Gap，而是术语清理——"SkillRelease" 在 v1/v2 指不同的东西，这种术语重叠陷阱会让所有后续工作沟通失真，两个工程师讨论的是不同的东西还以为在讨论同一个。其次，排序依据是"运行时爆炸概率×合规影响"，不是"代码量大小"——3710 行的 v1 canonical execution 是最大代码资产但不是最危险处，最危险的是 DeploymentRevision"以为闭包完整实际不完整"的虚假安全感。
+
+### 今天最大的坑
+差点把 Connector（Day 3 结论的最薄弱环节）排进前 3 个 Sprint。但仔细想：tools-call-external-provider-guard spec 已经挡住了不安全的外部调用路径，段 3 空白是"能力缺失"不是"运行时爆炸"；而 Outbound System Bridge 的 Phase-0 Gate 只关 2/10、设计还在 review-blocked，抢跑等于在没有地基的地方盖楼。**"最薄弱"和"最紧急"是两个维度**——路线图排的是紧急度+依赖链，不是薄弱度排名。
+
+### 今天最大的决策
+前 3 个 Sprint 排序定为：Sprint 0（1周）术语清理+基线冻结 → Sprint 1（2周）KnowledgeSnapshot 补全部署闭包 → Sprint 2（2周）RuntimeABI+OCI 打通 → Sprint 3（2周）CapabilityRelease+发布流；Connector 留 Sprint 4+ 并行推 OSB Phase-0 Gate 证据（8/22 deadline）。7 周后达到「最小可治理制品链」。元规则：验收标准必须用代码事实定义，不用文档说法定义——否则路线图变成又一份自我安慰文档（Target Domain Model §1.2 的警告同样适用于路线图自己）。

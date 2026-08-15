@@ -1,0 +1,184 @@
+# PT-W3-D6：三套 ADR 在 Ontology 层统一 — "一个企业，一套语义，三份文档"
+
+> 📅 Week 3 - Day 6 | 2026-08-15
+>
+> **并行轨道：Business Semantic Architecture**
+>
+> **今日主题：LangChat ADR × CRE BCM ADR × MI Domain Model，如何在 Ontology 层形成统一视图**
+
+---
+
+## 一句话开篇
+
+> **三套 ADR 不是三个平行宇宙，而是同一个企业 Ontology 在三个层面的投影：MI Domain Model 描述"业务世界是什么"，CRE BCM ADR 治理"业务语义怎么管"，LangChat ADR 定义"AI Agent 怎么执行"。Ontology 层就是让三者对齐的那张底图。**
+
+---
+
+## 二、先看清问题：三套体系为什么会漂移
+
+你手上现在有三套并行 ADR：
+
+| 体系 | 位置 | 关注点 |
+|------|------|--------|
+| LangChat ADR-001~009 | `out/prd/langchat/output/review/` | AI 平台：SkillRelease / ApplicationContract / Blueprint / DigitalEmployeeDefinition |
+| CRE BCM ADR-001~006 | `config/ontology/cre-business-capability-matrix/` | 业务语义：Meta Object / Ownership / Binding / Lifecycle Effect |
+| MI Domain Model（含 D-001/D-014 等架构决策） | `out/prd/商管系统/output/domain-model/` | 产品领域：17 个 Bounded Context / Object Ownership / Lifecycle |
+
+三套体系各自演进的风险：
+
+```
+风险 1：词汇碎片化
+  LangChat 说 "Capability"
+  BCM 说 "capability 行（CRE-*）"
+  MI 说 "Capability Crosswalk（§7）"
+  → 三个词是否指同一个东西？没有显式对齐就会漂移
+
+风险 2：决策冲突无裁判
+  BCM ADR-004 冻结 binding_type 四值
+  LangChat ADR-005 定义 ApplicationContract effect_policy
+  → 两者都管"能力与约束的绑定"，边界谁说了算？
+
+风险 3：AI 无所适从
+  Agent 读到三套文档，不知道哪一套是权威
+  → 语义操作系统出现三个内核
+```
+
+**这正是 D-014（商业事实唯一来源原则）在跨体系层面的再现：一个语义概念，只能有一个权威定义处。**
+
+---
+
+## 三、Ontology 层的统一视图
+
+### 3.1 三套体系 = 一个 Ontology 栈的三层
+
+```
+┌─────────────────────────────────────────────┐
+│  LangChat ADR（执行层）                       │
+│  "AI Agent 怎么执行"                          │
+│  SkillRelease / Blueprint / ExecutionPlanIR  │
+│  DigitalEmployeeDefinition / Deployment      │
+├─────────────────────────────────────────────┤
+│  CRE BCM ADR（语义治理层）                    │
+│  "业务语义怎么管"                              │
+│  Meta Object（ADR-002）/ Ownership（ADR-003） │
+│  Binding（ADR-004）/ Lifecycle Effect（ADR-006）│
+│  Compiler 职责（ADR-001/005）                 │
+├─────────────────────────────────────────────┤
+│  MI Domain Model（世界模型层）                 │
+│  "业务世界是什么"                              │
+│  17 Context / Entity / Identity / Lifecycle  │
+│  D-014 事实唯一 Owner                         │
+└─────────────────────────────────────────────┘
+```
+
+三层的关系不是"谁包含谁"，而是**自下而上供给语义**：
+
+- MI 提供业务实体与事实（世界模型）
+- BCM 治理这些实体如何组合成能力、关系如何归类、生命周期如何传播（语义规则）
+- LangChat 消费治理后的语义，编译成 Agent 可执行的制品（AI 执行）
+
+### 3.2 五个语义锚点的对齐表
+
+真正的统一发生在**共享语义锚点**上——同一个概念在三套体系中的对应：
+
+| Ontology 概念 | MI Domain Model | CRE BCM ADR | LangChat ADR |
+|--------------|-----------------|-------------|--------------|
+| **Capability（能力）** | §7 Capability Crosswalk（P0 种子） | capability 行 `CRE-*`（14 域） | ADR-001 Capability 分类法 / ADR-005 §4.5-4.7 |
+| **Entity + Ownership（实体归属）** | §3 Object Ownership Matrix | ADR-003 Ownership Model / ADR-002 Meta Object | Agent 认知边界（Context scope） |
+| **Relationship（关系）** | §3 跨 Context 引用 | ADR-006 四类对象关系（含 effect_type 5 类冻结） | MCP Tool / Connector 的调用拓扑 |
+| **Policy（策略）** | 审批流（合同/减免） | ADR-006 effect 治理（ORE-1 流程） | ADR-005 ApplicationContract `effect_policy` / `required_scopes` |
+| **Digital Employee（数字员工）** | — （尚无对应） | — （尚无对应） | ADR-006 DigitalEmployeeDefinition（语义锚点） |
+
+> **注意最后一行**：数字员工在 MI 和 BCM 中没有对应锚点——这是下周（W4）Agent Mapping 要补的缺口，不是今天的失误。三套体系不必处处对齐，但**必须显式知道哪里没对齐**。
+
+### 3.3 已有的统一机制：你其实已经动手了
+
+这不是凭空设想——统一机制已有雏形：
+
+1. **D-001 双层模型**（MI Domain Model §0）：CRE BCM 保持 14 域权威，MI 通过 **Crosswalk** 显式关联，"不替换、不重排"。这就是语义锚点对齐的制度化。
+2. **`MI-CRE-Capability-Context-Crosswalk-v1.0.md`**：Capability 锚点的第一份对齐表。
+3. **ADR-006 Published condition v5**：5 个 effect_type 经 6 域验证冻结，"新域验证不重新打开本 ADR"——治理词汇表稳定性的保障。
+4. **LangChat ADR-005 明确的写作红线**：目标态对象不得写成已实施——三套体系共享同一套决策状态语义（文档事实 / 已确认方向 / 待决策 / 待验证）。
+
+---
+
+## 四、为什么"合并成一份大文档"是错的
+
+看到三套体系，第一直觉往往是"合并成一份 Enterprise Ontology 文档"。错。原因与 ADR-006 拒绝"通用无类型关系表"（ADR-001 §7.2）同构：
+
+| 方案 | 后果 |
+|------|------|
+| 合并成一份大文档 | 三个演进节奏强行同步：MI 随产品迭代、BCM 随治理评审、LangChat 随平台研发——任何一处变动都牵动全局 |
+| 三份文档 + 共享语义锚点 | 各自独立演进，通过对齐表（Crosswalk）+ 受控词表（`CRE-*` / effect_type / binding_type）保持一致 |
+
+**Ontology 统一 = 统一语义锚点，不是统一文档。**
+
+这对应 Ontology 的基本原则：Entity 有唯一身份，通过 Relationship **引用**其他 Entity，而不是把它们**包含**进来——和 D5 讲的 DigitalEmployeeDefinition"指向前而非包含"是同一条原则。
+
+---
+
+## 五、对 AI Agent 的意义
+
+回到根本问题：**这个东西如何帮助 AI Agent 理解企业？**
+
+Agent 执行一个任务时，三套体系各供给一段语义：
+
+```
+用户："A101 铺位为什么不能出租？"
+
+MI Domain Model（世界模型）
+  → 告诉 Agent：Space A101 是什么、归 Asset Foundation 管、
+    "可出租"是 Domain Rule 而非字段（D-001 Amendment A）
+
+CRE BCM ADR（语义治理）
+  → 告诉 Agent：Space↔Lease 是哪类关系（ADR-006 四类之一）、
+    Lease 终止会触发什么 effect（release Space 需 inspection 完成）
+
+LangChat ADR（执行架构）
+  → 告诉 Agent：查这个事实要调哪个 Capability、
+    受哪个 ApplicationContract 的 effect_policy 约束、
+    创建 Inspection Task 是否在 scope 内
+```
+
+**没有统一视图的 Agent = 只会查数据库的报表工具；有统一视图的 Agent = 知道"世界是什么、规则允许什么、自己能做什么"的数字员工。**
+
+三套 ADR 的 Ontology 层统一，就是把这三个问题的答案放进同一个语义坐标系。
+
+---
+
+## 六、连接前五天
+
+```
+Day 1: Agent 如何利用 Ontology     → 认知地图
+Day 2: Ontology Compiler           → 语义→能力的编译器（BCM ADR-001 雏形）
+Day 3: Bounded Context 约束认知     → 认知边界 = Context 边界
+Day 4: Policy 约束执行              → effect_policy / required_scopes
+Day 5: Digital Employee 语义定义    → 语义锚点收束
+Day 6: 三套 ADR 统一 ← 今天
+  → 把"一个平台、一套治理、一个领域模型"放进同一个 Ontology 坐标系
+Day 7（明天）: 输出 LangChat × Ontology × Compiler 集成方案
+```
+
+---
+
+## 七、架构师视角
+
+**以前**：三套 ADR 是三个项目的产物，各自服务各自的产品（LangChat 平台 / CRE 治理 / MI ERP），靠个人脑力保持一致。
+
+**现在**：三套 ADR 是**一个企业 Ontology 的三层投影**——世界模型层（MI）、语义治理层（BCM）、执行架构层（LangChat）。一致性不靠脑力，靠**共享语义锚点**（`CRE-*` 行 ID / effect_type / Crosswalk 表）+ **受控词表冻结机制**（ORE-1 / binding_type 四值 / D-001 不替换原则）。架构师的工作不是合并它们，而是维护锚点对齐表、并在缺口处（如 Digital Employee 在 MI 侧无锚点）显式登记。
+
+---
+
+## 八、练习（5 分钟）
+
+打开 `MI-CRE-Capability-Context-Crosswalk-v1.0.md`，任选一个 Capability 锚点，沿着对齐表回答：
+
+1. 这个能力在 MI 哪个 Context 落地？Owner 是谁（D-014）？
+2. 它在 BCM 的 `CRE-*` 行 ID 是什么？涉及哪些 effect_type？
+3. 它在 LangChat 侧对应哪个 ApplicationContract / SkillRelease 约束？
+
+如果第 3 问答不上来——恭喜，你找到了集成方案（明天 D7）要解决的第一批缺口。
+
+---
+
+*明日 D7：输出《LangChat × Ontology × Compiler 集成方案》。*
