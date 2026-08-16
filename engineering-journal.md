@@ -360,3 +360,14 @@ Review 建议积压。复盘四周的 ADR Health Check：W9 建议 6 条（v2-AD
 
 ### 今天最大的决策
 宣布"架构导师模式"收官，切换"开发搭档模式"。学习线继续（W12-13 Vision Intelligence），开发线启动 Sprint 0（术语清理 + PII 默认值修复一起提交，让建议落地率从 0/6 变成 2/6）。同时把五维评分改造为工程仪表盘：Sprint 1 验收绑定 Code Health 回升至 6.5+，Sprint 2 绑定 Technical Debt 回升至 6.0+，Sprint 3 绑定 ADR Consistency 回升至 7.0+——评分不再只是认知记录。留给 Week 15 的判据：如果那时评分还在下行，说明路线图没有被执行，那才是真正的问题。
+
+## 2026-08-17（Week12-Day1 · Vision Intelligence 全景）
+
+### 今天最大的认知
+MallSenseAI 不是 CV 项目：CV 只占价值链前 1/5（Detection），核心资产是检测之后的业务闭环（规则→告警→工单→通知）。代码验证证实 PRD 判断——当前是封闭系统，无任何 capability 暴露，无法被上层编排。
+
+### 今天最大的坑
+发现 MallSenseAI 对外已更名为 LangChat AI Vision（ADR-004），但仓库代码模块名未动（保护契约）。读文档和读代码会看到两个名字，必须知道这是同一个东西，且重命名只覆盖对外品牌。
+
+### 今天最大的决策
+Capability 粒度倾向：业务级（safety.alert.query/subscribe）为主 + 少量原子级（vision.detect）。待周六画五层图时结合制造业场景验证配置类能力（vision.rule.configure）是否必要。
