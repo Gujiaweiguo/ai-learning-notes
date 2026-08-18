@@ -40,7 +40,7 @@ node_modules/
 .mypy_cache/
 .pytest_cache/
 unsloth_compiled_cache/
-# IMA source directories are retained and tracked as original submissions.
+第*周/ima/
 
 # Python bytecode
 __pycache__/
