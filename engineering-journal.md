@@ -459,3 +459,19 @@ ADR-004（MallSenseAI → LangChat AI Vision）声明的三项能力——客流
 
 ### 今天最大的决策
 ① 判定 Retail Analytics 是 MallSenseAI 打开封闭系统的首选切口：域知识设计决策 #2 封闭的理由是"安防秒级实时性不容编排中转"，反读即"分钟级容忍场景无理由封闭"——零售 KPI 恰好分钟/日级容忍，`retail.kpi.query` 应排在 `safety.alert.query` 之前成为第一个暴露的 capability（用旧 ADR 的边界条件论证新方向，零新增证据）。② 硬 Gap 定位：全仓库无 Metric/TimeSeries 领域对象（entities.py 全是事件型 Alert 状态机），"平均等待"在这套领域模型里无处安放——需要 MetricSample/KPIDefinition/CalibrationRecord 新对象，ADR 级决策不是加张表；检测层反而 60% 现成（yolo_world 换 prompt 即 person/empty shelf，OpenSpec 已有词表热配置场景）。③ 场景级质量策略应进 capability 元数据：安全误报=信任死刑（多层漏斗压制）、零售偏差=慢性毒（一次性校准+大数定律），同一套检测基础设施配不同质量工程——Day2 的"错误经济学分场景"升级为显式建模要求。
+
+## 2026-08-27（W13-D4）Vision Agent vs LangChat Agent
+
+### 今天最大的认知
+"Agent"的自治有三种时钟——意图驱动（用户请求）、时间驱动（班次/跑批）、事件驱动（告警），时钟不改变物种。当前 MallSenseAI pipeline 是 automation 不是 agent（规则触发 vs 证据推理的分界）；Vision Agent 不是第三个物种，= L1-L4 感知系统 + LnkChat 数字员工的组合体。真正的结构差异在三件事：**时钟（谁触发）、证据（凭什么推理——LangChat Agent 推理结构化事实，Vision Agent 推理统计量，必须携带置信度说话）、失败模式（fail-closed 拒绝 vs 永不停机降级）**。
+
+### 今天最大的坑
+容易把 Vision Agent 想成"CV 领域的另一套 agent 框架"（perception-action loop 自治体），然后陷入选型思维。实际上框架问题平台层已经解决（SkillRelease + DigitalEmployee，ADR-LC-013 的 dispatch guard 代码已落地），剩下的是证据学问题：置信度传播、口径责任、日报公信力。域知识.md 的封闭系统边界在日报场景（分钟/日级容忍）再次失效——和 D3 一样的论证路径。
+
+### 今天最大的决策
+L5 推理层选址三案裁决：A 封闭系统内自建 LLM 调用（治理全缺）❌ / B 独立 Vision Agent 产品（双份 runtime 双份治理）❌ / **C 平台 Skill + 视觉 Capability**（MallSenseAI 到 L4 为止，推理住 LnkChat Skill 层）✅。核心理由：变化率分层——检测模型按周变、prompt 按天变，capability 接口把两种变化率切开。前置件：capability 注册表（P0）、日级调度触发源、证据 digest 对齐。
+
+### 遗留 / 下一步
+- D5（明天）：MallSenseAI 进入 LnkChat 的身份裁决（Connector / Capability 提供方 / Agent Host，今天思考题①即开场题）+ 集成路径
+- 四个不存在的 gap 待 D5 排序：日级聚合层、指标口径层、LLM 推理层、capability 出口
+- ADR Health Check 候选：域知识.md「不做客流统计」边界声明（D3 已登记，集成时必须重新裁决）
