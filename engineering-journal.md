@@ -475,3 +475,18 @@ L5 推理层选址三案裁决：A 封闭系统内自建 LLM 调用（治理全�
 - D5（明天）：MallSenseAI 进入 LnkChat 的身份裁决（Connector / Capability 提供方 / Agent Host，今天思考题①即开场题）+ 集成路径
 - 四个不存在的 gap 待 D5 排序：日级聚合层、指标口径层、LLM 推理层、capability 出口
 - ADR Health Check 候选：域知识.md「不做客流统计」边界声明（D3 已登记，集成时必须重新裁决）
+
+## 2026-08-28（W13-D5）Vision Capability Architecture：行业能力包 = 契约打包
+
+### 今天最大的认知
+"行业能力包"包的是元数据，不是代码。MallSenseAI 进 LnkChat = 三份纸：① Application 元数据（capabilities 子集 × industries 标签，ADR-004 已冻结为 LangChat AI Vision）；② Capability 描述符注册进段2 catalog（lnkchat.vision.*，行业词禁入 ID，ADR-003 正交 facet）；③ Connector 配置（Vision Runtime 留段3 当企业系统，代码/模型/凭证全不动）。MallSenseAI 同时持有三个身份（段1 产品 / 段2 能力提供方 / 段3 企业系统）且不冲突——因为段位不同。三段式链（ADR-007）的价值就是让多身份各就各位。Plugin 是"请人进自己家"（共享依赖与故障域），Capability 是"签互访协议"（独立部署独立发版）。
+
+### 今天最大的坑
+集成债全在平台侧，不在 MallSenseAI 侧。catalog.py 证据：① `_register_p0_capabilities()` 只有 2 个能力（knowledge.query/workflow.execute），无任何 vision.*；② registry 是 import 时静态注册的内存 dict——加能力=改平台代码发版，注册表是代码不是数据；③ `runtime_binding={}` 空 dict——capability→段3 路由未建模；④ Connector 子系统缺位（W11-D3 结论重申）；⑤ 词汇分裂：catalog 用 effects(read/write/destructive)，skill_release 用 effect_policy(read_only/conditional_write)，两套词表未对齐；⑥ ADR-004 的 application.yaml 示例还是 langchat.vision.* 前缀，没跟上 ADR-008 硬切换——文档示例与改名不同步。
+
+### 今天最大的决策
+effects 语义裁决悬而未决但已定位：lnkchat.vision.detect 触发抓拍+GPU 推理，不写业务数据但产生算力成本——"业务副作用"与"平台成本"是两个维度，catalog 只有一个字段，考虑拆 effects + cost_class（留作 D6 Inventory 的字段建议）。另确认能力粒度公式沿用 ADR-003 命名 `lnkchat.<domain>.<verb>`，domain 拆 vision/safety 两个域待明天裁决。
+
+### 下一步
+D6（周六）：Vision Capability Inventory——按今天架构图盘点段3 全部 API/detector/规则/dashboard，产出能力清单+技术雷达+演进路线图（前3 Sprint）。注册表数据化（DB-backed catalog + provider 自注册）应进路线图 P0。
+
