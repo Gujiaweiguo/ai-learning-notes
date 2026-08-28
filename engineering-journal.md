@@ -490,3 +490,19 @@ effects 语义裁决悬而未决但已定位：lnkchat.vision.detect 触发抓�
 ### 下一步
 D6（周六）：Vision Capability Inventory——按今天架构图盘点段3 全部 API/detector/规则/dashboard，产出能力清单+技术雷达+演进路线图（前3 Sprint）。注册表数据化（DB-backed catalog + provider 自注册）应进路线图 P0。
 
+
+## 2026-08-29（W13-D6）Vision Capability Inventory + Technology Radar + 演进路线图（周六交付）
+
+### 今天最大的认知
+盘点的主产品不是清单，是三个发现：① 最大 Gap 不在五层模型任何一层，在平台工程栏——"误报率度量"是零资产且全系统依赖的能力（15 项能力里唯一 ❌ 且被域知识.md 点名为推广卡点的）；② 技术雷达 Trial 环全空——不是没有值得试的技术，是评估→采纳之间的验证管道断了；③ 负资产栏决定路线图第一步（火灾漏报未量化+PIPL+LICENSE 三笔债），资产栏决定第三步（L1 满格+平台工程强，才有资格开 capability 接口）。清单是静态账本，盘点是动态裁决的输入。
+
+### 今天最大的坑
+差点掉进"ROI 驱动排序"：W12-D5 商业场景矩阵的冠军是客流（L2 Tracking），直觉上该排第一。但拆开看：客流在商业上是新开产品线（要重新卖、摄像头改造成本+付费意愿都是域知识.md 点名的落地难度），在技术上是架构换代（截图→视频流），在度量上依赖还没立起来的尺子。已部署商场的告警增值是口袋里的钱，新商业线是地平线上的钱——ERP 老兵的排序从来是对账→报表→开接口，不是哪块地值钱先扑哪块。
+
+### 今天最大的决策
+前3 Sprint 裁决：S1「立尺子」（PPV/漏报度量管线——关键洞察是 alert lifecycle 的 false_positive/confirmed 标签是运维免费打的 ground truth，量化不需要新采集只需要聚合）→ S2「出报表」（detection_events 日级聚合+指标口径层，同时是 S1 度量的持久化形态和 S3 契约的数据准备）→ S3「开接口」（第一个 capability=lnkchat.safety.alert.query@v1，选拉模式不破坏域知识.md 的秒级告警直发边界；平台侧同步做注册表数据化）。依赖链排序压过技术驱动和 ROI 驱动两种直觉。
+
+### 遗留 / 下一步
+- D7（明天）：最终 Virtual CTO Review——两周总复盘+五维评分+ADR Health Check+今天三件套送审
+- ADR Health Check 重点：ADR-004 示例前缀未同步 ADR-008；域知识.md「不做客流统计」vs W12-D5 ROI 冠军的冲突裁决
+- S1 度量口径的自证偏差（未打标告警系统性低估误报率）进 Sprint 1 任务设计
