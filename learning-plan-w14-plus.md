@@ -1,0 +1,116 @@
+# 学习计划 W14+：MI CRE ERP 开发期（W14 起步方案 v1）
+
+> **定位**：主计划（learning-plan.md）W8-W13 于 8/30 结束后的接续阶段文件，不修改主文件。
+>
+> **创建日期**：2026-08-29
+>
+> **命名约定**：2026-08-22 起统一使用 LnkChat / LnkVision（旧材料保留旧名）。
+
+---
+
+## W14+ 阶段定位
+
+**从学习期转入开发期。** W8-W11 建立 LnkChat 心智模型，W12-W13 建立 LnkVision 能力地图，并行轨道 PT-W1~W4 产出毕业作品 **MI CRE Enterprise Semantic Model v0.1**。到这里，"学"的部分完成了闭环；W14 开始，学习方式从**「跟着链路学」**变为**「带着 Semantic Model 做开发」**：
+
+```
+W8-W13（学习期）:  每天读仓库/读 ADR → 回答为什么 → 形成心智模型
+W14+（开发期）:    每天 Semantic Model 是输入 → 在 /root/lnkcre 上找落点 → 产出可校验的工程资产
+```
+
+两条轨道在 W14 合流：主线（MI CRE ERP 开发）的第一次开发冲刺，主题就是**把 PT-W4 的 Semantic Model v0.1 从"文档"升级为"机器可校验、可被消费的开发资产"**，并让它产生第一个真实消费方（招商运营数字员工问答场景）。OpenClaw 的角色从"架构导师"切换为"开发搭档"：链路讲解让位给结对开发、覆盖率报告和 Demo 评审。
+
+**学习期机制保留三样、砍掉两样：**
+
+| 保留 | 理由 |
+|---|---|
+| Daily Digest 雷达（git pull + 架构变更扫描，P0-P3 评级） | lnkcre 仓库演进极快（本地 checkout 曾落后 origin/main 714 commits，R1-R5 wave、openspec 261+ specs、MCP 写路径加固），开发期更需要雷达 |
+| Today's Question（追问"为什么"） | 架构师判断力训练不因进入开发期而停止 |
+| 周日 Virtual CTO Review + 五维评分 | 开发期唯一的质量闸门 |
+
+砍掉：10 段式推送模板（开发期推送改为「今日开发目标 + 完成事实 + 明日连接」三段）、逐对象精读式安排（对象认知已建立，改为按需查证）。
+
+## 信息源
+
+| 来源 | 路径 | 用途 |
+|---|---|---|
+| MI 代码仓库 | `/root/lnkcre`（Go 模块化单体 + Vue3 ×4 前端 + PG16） | 代码事实、307 表（canonical_tables.txt 已增至 336 行） |
+| LnkChatBI | `/root/LnkChatBI`（LLM+RAG 智能问数，8/25；已含 MI context provider：SSO/表行级权限/context sync） | W15 语义查询对照主对象、未来接入点 |
+| LnkReport BI | `/root/lnkreport`（DataEase 系 BI + 报表，与 lnkcre 配套，8/28 Phase 4 报表渲染中） | W15 取数对照、W16+ 集成方向 |
+| MI Domain Model v1.0 | `/root/docs/lanlnk/20-architecture/mi-cre/domain-model/`（已演进至 v1.0.2 + Gap Analysis v1.1 + 07-30 校准件） | 17 Bounded Context + Object Ownership |
+| CRE BCM | `/root/docs/lanlnk/config/ontology/cre-business-capability-matrix/`（ADR-001~006 + effect-registry.yaml） | 语义层架构决策 + Lifecycle Effect |
+| business-ontology.yaml | `/root/docs/lanlnk/config/ontology/business-ontology.yaml` | 模块→能力→场景结构 |
+| OpenSpec canonical specs | `/root/lnkcre/openspec/specs/`（261+） | 能力规格 source of truth |
+| PT-W1~W4 产出 | `/root/learning-notebooks/第9周~第12周/ PT-*` + Gap Analysis / Ontology Graph / 集成方案 | Semantic Model v0.1 原料 |
+
+---
+
+## Week 14：语义资产工程化 —— Semantic Model v0.1 定稿（8/31 - 9/6）
+
+> 主题：把毕业作品从 Markdown 变成可解析、可校验、可度量的工程资产。
+> 本周结束时，Semantic Model v0.1 有一份机器可读的清单 + 一份覆盖率报告。
+
+| Day | 日期 | 内容 | Today's Question |
+|---|---|---|---|
+| D1 周一 | 8/31 | **开发期启动 + lnkcre 现状对齐**：/root/lnkcre 已 clone 至最新（8/28，openspec 273 specs）；速读近两个月演进主线（R1-R5 wave、lease→cash 验收链 MI-AC-001+、analytics 平台 W0-W16、MCP 写路径加固）；把 PT-W4 产出接入为开发输入 | 为什么 Semantic Model 不是"又一份文档"，而是开发资产？ |
+| D2 周二 | 9/1 | **两套语义结构的对账**：business-ontology.yaml（模块→能力→场景）vs MI Domain Model 17 Context vs openspec specs 目录，三者怎么互相映射、谁是 source of truth | 已经有 business-ontology.yaml 了，为什么还需要 Enterprise Semantic Model？ |
+| D3 周三 | 9/2 | ⚡ **实验 1（ipynb）：business-ontology.yaml 解析与校验** — YAML 结构化解析；模块/能力/场景计数与别名冲突检查；场景 source 分布（明源/华侨城/锦和）；输出模块×Context 映射表 | 语义资产如果机器不可校验，半年后会变成什么？ |
+| D4 周四 | 9/3 | **Lifecycle/Rule/Policy 层盘点**：effect-registry.yaml 5 类冻结 vs mi 代码事实（lease 状态机、condition-approval、amendment matrix）逐条对账 | 语义层声明的规则和代码里的 if-else，谁是 source of truth？ |
+| D5 周五 | 9/4 | ⚡ **实验 2（ipynb）：Domain Model Context 覆盖率检查** — canonical_tables.txt（336 表）按 17 Context 归类（用 backend/internal/ 包名 + 迁移归属做启发式映射）；统计孤儿表、超载 Context；matplotlib（NotoSansCJK）画覆盖率热力图 | 307→336 的表增长和 17 Context 的错位，说明 Domain Model 过时了还是代码越界了？ |
+| D6 周六 | 9/5 | ⚡ **实战日：组装 Semantic Model v0.1 定稿包** — 六构件清单（Entity/Identity/Relationship/Lifecycle/Rule/Capability+Policy）+ 两个实验的度量报告 + 已知缺口列表；存入 `/root/learning-notebooks/semantic-model/`（机器可读 YAML + 人读 MD 双格式） | 这份 Semantic Model 的第一个消费方应该是谁，为什么不是代码生成器？ |
+| D7 周日 | 9/6 | 🔄 **Virtual CTO Review**：Semantic Model v0.1 质检（完整性/一致性/可消费性）+ 五维评分 + W15 落地方案裁决 | — |
+
+**Week 14 结束后：Semantic Model v0.1 是一份带度量报告的机器可读资产，而不是一堆散落文档。**
+
+---
+
+## Week 15：LnkChatBI 精读 × Semantic Model 第一个消费方（9/7 - 9/13）
+
+> 主题：LnkChatBI 架构精读 + 让 Semantic Model 被 LnkChatBI 真实消费一次（2026-08-29 Jason 确认升级）。
+> 双线：① 精读 LnkChatBI——五件套中唯一未进过学习计划的仓库：NL→SQL 组装链路、RAG 三件套（术语库/SQL 示例校准/prompt 组装）、权限下推、MI context provider 集成线；② 验证 PT-W4 场景——招商运营数字员工问答（"A101 铺位为什么不能出租？"）。
+> 本周结束时，有一个 Semantic Model → LnkChatBI 的真实喂入 Demo + 一份 W16+ 开发 brief。
+
+| Day | 日期 | 内容 | Today's Question |
+|---|---|---|---|
+| D1 周一 | 9/7 | **LnkChatBI 架构精读①**：NL→SQL 组装链路（chat streaming 契约 → prompt 组装 → SQL 生成 → 权限下推）；复用 PT-W4 的 L1-L5 验证标准写清 Demo 验收口径 | 为什么第一个消费方选"问答"而不是"生成代码"或"自动审批"？ |
+| D2 周二 | 9/8 | **LnkChatBI 架构精读②**：RAG 三件套（术语库 term-aliases / SQL 示例校准 / custom-prompt）+ MI context provider 集成线（SSO/表行级权限/context sync）；对照 Orchestrator NL→SQL，划清 Semantic Model 与 Text-to-SQL 的分工边界 | Semantic Model 和 Text-to-SQL 的分界线到底在哪？ |
+| D3 周三 | 9/9 | ⚡ **实验 3（ipynb）：Semantic Model → LnkChatBI term-aliases/SQL 示例生成** — 从 v0.1 的 Entity/Relationship/术语表批量生成 LnkChatBI 术语库条目 + SQL 示例校准集（对照 mallcre_pg_init 种子数据验证），验证可消费性；docs 仓 7/19 的 term-aliases 管线是雏形 | 同一份 ontology，喂"术语库"和喂"表结构注释"效果差在哪？ |
+| D4 周四 | 9/10 | **Policy 语义化**：审批流（mi workflow / condition-approval / approval matrix）→ Policy Model 抽取规则；对照 BCM ADR-004 Binding Model，定义 AI 执行约束声明格式 | AI 需要知道"谁审批"，还是需要知道"为什么找他审批"？ |
+| D5 周五 | 9/11 | **开发节奏定轨**：W16+ backlog 按 Semantic Model 依赖排序（哪些 Rule 要先显式化、哪个 Context 先接入）；定下与 lnkcre 主仓的同步机制（每周 digest + R-wave 跟读，避免再落后 714 commits） | 学习期的雷达机制，开发期保留什么、砍掉什么？ |
+| D6 周六 | 9/12 | ⚡ **实战日：双 Demo + W16 brief** — ①实验③产出的 term-aliases/SQL 示例导入 LnkChatBI，在 mallcre 种子数据上问答验证覆盖率提升；②A101 依据链问答走通 L1-L3（L4/L5 可标 TODO）；Demo 录入 engineering-journal；写 W16 开发 brief（目标/范围/验收） | 这个 Demo 距离生产环境还差几层，每层差的是什么？ |
+| D7 周日 | 9/13 | 🔄 **Virtual CTO Review（两周总复盘）**：学习期→开发期切换评估；Semantic Model v0.1 → v0.2 方向裁决；五维评分趋势 | — |
+
+**Week 15 结束后：LnkChatBI 认知补齐 + Semantic Model 有了第一个跑通的真实消费方（LnkChatBI 术语库）+ 一份可执行的开发 brief。**
+
+---
+
+## ipynb 实验清单（≥2，均需过 verify_ipynb.py）
+
+| # | 文件（第14周/第15周目录） | 内容要点 |
+|---|---|---|
+| 1 | `第14周/Day3-OntologyYaml解析与校验.ipynb` | PyYAML 解析 business-ontology.yaml；schema/别名冲突校验；模块-Context 映射统计 |
+| 2 | `第14周/Day5-Context表覆盖率检查.ipynb` | canonical_tables.txt 336 表 → 17 Context 启发式归类；孤儿表清单；NotoSansCJK 热力图 |
+| 3 | `第15周/Day3-TermAliases生成与校准.ipynb` | v0.1 ontology → LnkChatBI term-aliases 条目 + SQL 示例校准集；对照 mallcre 种子数据验证；覆盖率统计（NotoSansCJK 图） |
+
+标准：md=阅读材料，ipynb=可执行小实验（CPU、torch 允许、matplotlib 用 NotoSansCJK 配置），写完跑 `python3 /root/bin/verify_ipynb.py <ipynb>` 通过才算完成。
+
+## W14-W15 交付物
+
+```
+1. Semantic Model v0.1 定稿包（机器可读 YAML + 人读 MD + 度量报告）
+2. business-ontology.yaml 校验报告（结构 + 别名 + source 分布）
+3. 17 Context × 336 表覆盖率报告 + 热力图
+4. LnkChatBI term-aliases/SQL 示例生成 + 导入验证 Demo；A101 依据链问答 Demo（L1-L3 达标）
+5. W16 开发 brief（目标/范围/验收）
+6. Engineering Journal 持续追加 + 14 个 Today's Question 及回答
+7. 两份 Virtual CTO Review（9/6、9/13）
+```
+
+---
+
+## W14+ 后续（W16+）粗粒度方向
+
+1. **Semantic Model v0.2 迭代**：Rule/Policy 从 mi 代码批量抽取（lease→cash 链优先，MI-AC 验收用例是现成的规则语料库），覆盖率从 v0.1 基线持续提升。
+2. **语义层接入 mi 真实栈**：ontology → capability/MCP tool 描述的生成（mi 的 MCP 工具体系刚完成写路径加固，是天然接入点）；走 openspec 变更流程提交第一份 AI 侧 change。
+3. **数字员工 2.0**：从 ipynb 模拟走向 LnkChat / LnkChatBI 实际集成（SSO、dataset/metric 契约已具备），A101 场景换真实项目数据。
+4. **LnkVision 能力包与 CRE 语义层汇合**：Vision KPI（客流/巡检）→ Business Scene Matrix → Capability，补齐 Semantic Model 的"感知输入"维度。
+5. **与 lnkcre 主仓的长期同步机制**：固定每周 digest + R-wave 跟读，开发期所有产出以 openspec change 形式归档，避免学习轨道与主仓演进脱节。
