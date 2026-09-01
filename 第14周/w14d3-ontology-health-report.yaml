@@ -1,0 +1,55 @@
+generated_at: '2026-09-02T06:04:55'
+source:
+  file: /root/docs/lanlnk/config/ontology/business-ontology.yaml
+  sha256_16: bf550bc24de66813
+counts:
+  modules: 12
+  sub_functions: 102
+  scenario_entries: 15
+  term_entries: 883
+  unique_terms: 792
+  capability_labels: 102
+findings:
+  governance_frontmatter: false
+  schema_shape_violations: 0
+  role_coverage: 7/102
+  scenario_coverage: 15/102 (全部在资源管理)
+  terms_multi_location: 65
+  terms_cross_module: 37
+  capability_L_placeholder: 23
+  capability_named: 79
+  capability_spec_hits: 33
+  capability_hit_rate: 42%
+  spec_reverse_coverage: 33/273 = 12%
+  orphan_contexts:
+  - 2 02 Party Core
+  - 12 12 Engineering
+  - 15 15 Cust/Member
+  - 16 16 Parking
+module_to_contexts:
+  资源管理:
+  - 01 Asset Fnd
+  - 05 Lease/Occ
+  招商管理:
+  - 03 Leasing
+  合同管理:
+  - 04 Contract
+  财务管理:
+  - 06 Billing
+  - 07 Collection
+  - 08 TaxInvoice
+  - 09 AcctBridge
+  运营管理:
+  - 10 Operations
+  - 13 WorkOrder
+  物业管理:
+  - 11 Property
+  推广营销:
+  - 14 Marketing
+  系统管理: []
+  资产管理（系统对接）: []
+  移动端: []
+  数据决策:
+  - 17 BI/Analytics
+  预算管理:
+  - 06 Billing
