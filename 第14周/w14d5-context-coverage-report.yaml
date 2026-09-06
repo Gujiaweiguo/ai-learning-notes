@@ -1,0 +1,758 @@
+generated_at: '2026-09-07T05:14:52'
+experiment: W14-D5 DomainModel 覆盖率检查（实验2）
+inputs:
+  canonical_tables: /root/lnkcre/backend/internal/platform/database/testdata/canonical_tables.txt
+  canonical_count: 472
+  migrations_mysql: /root/lnkcre/backend/internal/platform/database/migrations
+  migrations_pg: /root/lnkcre/backend/internal/platform/database/migrations-pg
+  lineage_note: 计划记载 336 已过时；实际 307→336→472（+136/4 个月）
+method:
+  layers:
+    L1: 迁移文件基名规则（55 条中的 46 条 core）
+    L3: 表名规则兜底
+    L2: 包名 grep（代码证据，仅扫待定表，单遍流式）
+  rules_total: 53
+  rules_core: 44
+  rules_fix_0906: 9
+  orphan_convergence:
+    baseline: 18
+    final: 0
+coverage:
+  contexts_with_tables: 17/17
+  platform_bucket_tables: 54
+  platform_share_pct: 11.4
+  orphan_tables: []
+  provenance:
+    L1:migration: 417
+    L3:tablename: 34
+    L2:package: 21
+dual_migration_finding:
+  mysql_tables: 316
+  pg_files: 200
+  pg_tables: 472
+  union: 472
+  canonical_missing: 0
+  note: 并集=canonical 全覆盖；PG 为全量基线、MySQL 为活跃子集；双体系并存是 schema 演进分叉风险
+by_context:
+- context: 17 BI & Analytics
+  tables: 70
+  share_pct: 14.8
+  provenance:
+    L1:migration: 66
+    L3:tablename: 4
+  table_list:
+  - alert_records
+  - alert_rules
+  - alert_runs
+  - analytics_bigscreen_widgets
+  - analytics_bigscreens
+  - analytics_charts
+  - analytics_consumer_bindings
+  - analytics_dashboard_items
+  - analytics_dashboards
+  - analytics_dataset_versions
+  - analytics_datasource_metadata
+  - analytics_embed_tokens
+  - analytics_field_lineage_edges
+  - analytics_lineage_edges
+  - analytics_lineage_runs
+  - analytics_metric_lifecycle_events
+  - analytics_metric_versions
+  - analytics_metrics
+  - analytics_parameter_contexts
+  - analytics_resource_acls
+  - analytics_writeback_audit
+  - analytics_writeback_idempotency
+  - analytics_writeback_targets
+  - customer_traffic
+  - daily_shop_sales
+  - deposit_forfeitures
+  - fill_cell_data
+  - fill_sessions
+  - filter_views
+  - income_types
+  - payment_method_catalog
+  - percentage_rent_calculations
+  - report_audit_logs
+  - report_consumers
+  - report_datasets
+  - report_datasources
+  - report_definitions
+  - report_design_packages
+  - report_export_jobs
+  - report_expression_audit
+  - report_folder_acls
+  - report_folder_items
+  - report_folders
+  - report_generated_artifacts
+  - report_lifecycle_events
+  - report_renumber_map
+  - report_share_links
+  - report_sheets_v2
+  - report_template_configs
+  - report_template_layouts
+  - report_template_library_entries
+  - report_template_mounts
+  - report_templates_v2
+  - report_versions
+  - sales_adjustment_audit
+  - sales_adjustments
+  - sales_closing_periods
+  - sales_codes
+  - sales_confirmed_values
+  - sales_proofs
+  - sales_receipt_audit_rules
+  - sales_refunds
+  - sales_revisions
+  - sales_source_keys
+  - sales_transactions
+  - seller_profiles
+  - tenant_daily_sales
+  - tenant_daily_sales_edit_audit
+  - tenant_daily_sales_late_overrides
+  - tenant_sales_reports
+- context: Platform/Shared
+  tables: 54
+  share_pct: 11.4
+  provenance:
+    L1:migration: 52
+    L2:package: 1
+    L3:tablename: 1
+  table_list:
+  - audit_logs
+  - bill_print_jobs
+  - business_groups
+  - coding_counters
+  - coding_rules
+  - custom_field_definitions
+  - custom_field_values
+  - custom_form_submissions
+  - custom_form_types
+  - department_types
+  - departments
+  - dict_categories
+  - dict_items
+  - doc_no_seq
+  - document_deliveries
+  - functions
+  - industry_dict_aliases
+  - login_logs
+  - menu_items
+  - notification_outbox
+  - numbering_sequences
+  - operation_logs
+  - org_change_history
+  - org_companies
+  - org_groups
+  - org_portfolios
+  - org_projects
+  - org_regions
+  - outbox_messages
+  - print_batches
+  - print_subscriptions
+  - print_template_consumers
+  - print_templates
+  - refresh_tokens
+  - role_permissions
+  - roles
+  - unit_pricing_history
+  - user_data_scopes
+  - user_roles
+  - users
+  - wf_inbox
+  - wf_outbox
+  - wf_publication_audit
+  - wf_publication_requests
+  - workflow_assignment_rules
+  - workflow_audit_history
+  - workflow_definition_audit
+  - workflow_definitions
+  - workflow_instance_steps
+  - workflow_instances
+  - workflow_nodes
+  - workflow_reminder_audit
+  - workflow_templates
+  - workflow_transitions
+- context: 12 Engineering & Facility
+  tables: 46
+  share_pct: 9.7
+  provenance:
+    L1:migration: 46
+  table_list:
+  - equipment_categories
+  - equipment_lifecycle_history
+  - equipments
+  - fixed_asset_categories
+  - fixed_asset_inventories
+  - fixed_asset_inventory_items
+  - fixed_asset_movements
+  - fixed_assets
+  - hazard_rechecks
+  - hazard_rectifications
+  - hazard_reports
+  - hazard_templates
+  - inspection_plans
+  - inspection_tasks
+  - iot_meter_anomalies
+  - iot_meter_configs
+  - iot_meter_sync_logs
+  - maintenance_plans
+  - maintenance_records
+  - material_batches
+  - material_billing_rules
+  - material_categories
+  - material_issue_note_lines
+  - material_issue_notes
+  - material_movements
+  - material_procurement_items
+  - material_procurements
+  - material_receipt_lines
+  - material_receipts
+  - material_requisition_lines
+  - material_requisitions
+  - material_stock_count_lines
+  - material_stock_counts
+  - materials
+  - meter_loss_allocation_rules
+  - meter_monthly_settlement_runs
+  - meter_price_history
+  - meter_reading_records
+  - meter_tariff_configs
+  - mig_000202_hazard_default_due_days_backup
+  - office_energy_account_meters
+  - office_energy_accounts
+  - procurement_no_seq
+  - renovation_inspections
+  - safety_shutoff_inspections
+  - smart_device_stubs
+- context: 03 Leasing Pipeline
+  tables: 40
+  share_pct: 8.5
+  provenance:
+    L1:migration: 33
+    L2:package: 4
+    L3:tablename: 3
+  table_list:
+  - ai_drafts
+  - asset_budget_documents
+  - asset_budget_lines
+  - asset_budget_versions
+  - broker_accounts
+  - broker_companies
+  - broker_contracts
+  - broker_project_authorizations
+  - broker_refresh_tokens
+  - broker_reported_leads
+  - brokers
+  - commission_settlements
+  - customer_follow_ups
+  - leasing_intent_attachments
+  - leasing_intent_brands
+  - leasing_intents
+  - leasing_negotiation_attachments
+  - leasing_negotiations
+  - leasing_plan_item_attachments
+  - leasing_plan_items
+  - leasing_plan_monthlies
+  - leasing_plan_versions
+  - leasing_plans
+  - leasing_tasks
+  - monthly_leasing_plans
+  - monthly_leasing_tasks
+  - office_lead_status_history
+  - office_leads
+  - office_profile_resources
+  - office_profiles
+  - office_resource_holds
+  - opportunities
+  - opportunities_resources
+  - opportunity_status_history
+  - prospect_otp_codes
+  - prospect_refresh_tokens
+  - quotations
+  - showing_records
+  - unit_listings
+  - viewing_appointments
+- context: 01 Asset Foundation
+  tables: 36
+  share_pct: 7.6
+  provenance:
+    L1:migration: 25
+    L2:package: 3
+    L3:tablename: 8
+  table_list:
+  - area_levels
+  - areas
+  - buildings
+  - currency_types
+  - floor_plan_versions
+  - floors
+  - location_blocked_periods
+  - locations
+  - multi_business_points
+  - project_company_roles
+  - project_parameters
+  - project_team_members
+  - project_teams
+  - resource_events
+  - resource_splits
+  - resources
+  - shop_engineering_attachments
+  - shop_engineering_conditions
+  - shop_operations
+  - shop_types
+  - spatial_attribution_events
+  - spatial_lineage_events
+  - spatial_project_backfill_log
+  - spatial_project_quarantine
+  - store_management_types
+  - store_types
+  - stores
+  - trade_definitions
+  - unit_areas
+  - unit_layout_positions
+  - unit_pricing_versions
+  - unit_split_merge_audits
+  - unit_types
+  - units
+  - warehouse_bins
+  - warehouses
+- context: 06 Billing & AR
+  tables: 35
+  share_pct: 7.4
+  provenance:
+    L1:migration: 28
+    L2:package: 4
+    L3:tablename: 3
+  table_list:
+  - accounting_period_closures
+  - accrual_forecast_lines
+  - ar_open_items
+  - ar_rebalance_failures
+  - ar_rebalance_trigger_events
+  - asset_annual_indicators
+  - asset_expense_budget_lines
+  - billing_charge_generation_runs
+  - billing_charge_lines
+  - billing_document_lines
+  - billing_documents
+  - billing_runs
+  - budget_impact_events
+  - charge_item_collection_defaults
+  - charge_scheme_version_lines
+  - charge_scheme_versions
+  - charge_schemes
+  - customer_locks
+  - fee_adjustments
+  - interest_rate_configs
+  - invoice_interest_entries
+  - late_fee_rule_tiers
+  - late_fee_rules
+  - lease_term_category_rates
+  - lease_term_percentage_tiers
+  - pricing_matrix_entries
+  - rebalance_requisitions
+  - receivable_reductions
+  - receivable_schedule_items
+  - receivable_schedules
+  - store_rent_budgets
+  - temporary_charge_settlements
+  - tenant_breach_notes
+  - unit_prospects
+  - unit_rent_budgets
+- context: 16 Parking Management
+  tables: 30
+  share_pct: 6.4
+  provenance:
+    L1:migration: 29
+    L3:tablename: 1
+  table_list:
+  - commitment_metrics
+  - enterprise_party_claims
+  - industry_access_commitments
+  - investment_agreements
+  - overtime_bill_formulas
+  - overtime_bills
+  - overtime_formula_minimum_tiers
+  - overtime_formula_percentage_tiers
+  - overtime_generated_charges
+  - park_admission_review_departments
+  - park_admission_reviews
+  - park_charge_lines
+  - park_commitment_assessments
+  - park_enterprise_status
+  - park_industry_services
+  - park_policies
+  - park_policy_matches
+  - park_service_orders
+  - parking_lot_gates
+  - parking_lots
+  - parking_sessions
+  - parking_spaces
+  - parking_zones
+  - policy_rebate_clauses
+  - resource_industrial_constraints
+  - resource_park_profiles
+  - tenancy_mgmt_contracts
+  - triad_groups
+  - vehicle_monthly_passes
+  - vehicles
+- context: 07 Collection & Settlement
+  tables: 28
+  share_pct: 5.9
+  provenance:
+    L1:migration: 24
+    L3:tablename: 2
+    L2:package: 2
+  table_list:
+  - advance_transfers
+  - allocation_lines
+  - allocation_runs
+  - ar_payment_entries
+  - bank_statement_claim_rules
+  - collection_record_bills
+  - collection_records
+  - collection_units
+  - deposit_applications
+  - deposit_records
+  - deposit_refunds
+  - deposit_transfers
+  - dunning_notice_configs
+  - dunning_records
+  - dunning_runs
+  - intent_deposit_ledger
+  - payment_method_fee_tiers
+  - payment_method_fees
+  - payment_proxy_agreements
+  - payment_reversals
+  - pos_payment_methods
+  - receipts
+  - reconciliation_diff_slips
+  - scheduler_lock
+  - take_high_settlement_adjustments
+  - take_high_settlement_runs
+  - unknown_payments
+  - write_offs
+- context: 09 Accounting Bridge
+  tables: 23
+  share_pct: 4.9
+  provenance:
+    L1:migration: 16
+    L3:tablename: 5
+    L2:package: 2
+  table_list:
+  - account_sets
+  - accounting_entities
+  - bank_account_sftp_bindings
+  - bank_accounts
+  - bank_statement_import_batches
+  - bank_statement_import_rows
+  - bank_transactions
+  - cash_flow_items
+  - chart_of_accounts
+  - commission_payable_history
+  - commission_payables
+  - commission_payments
+  - finance_adapter_artifacts
+  - finance_closed_periods
+  - invoice_operations
+  - location_charge_subject_accounting_entities
+  - location_charge_subject_rule_history
+  - payment_settlements
+  - sales_monitoring_alerts
+  - voucher_export_batch_items
+  - voucher_export_batches
+  - voucher_records
+  - voucher_templates
+- context: 02 Merchant
+  tables: 22
+  share_pct: 4.7
+  provenance:
+    L1:migration: 20
+    L3:tablename: 2
+  table_list:
+  - ar_surplus_entries
+  - brand_approval_routes
+  - brand_versions
+  - brands
+  - channel_versions
+  - customer_brand_authorization_history
+  - customer_brand_authorizations
+  - customer_integrity_records
+  - customer_surplus_balances
+  - customer_versions
+  - customers
+  - merchant_channels
+  - merchant_operating_status
+  - merchant_operating_status_changes
+  - promotion_ledger_entries
+  - tenant_accounts
+  - tenant_certificates
+  - tenant_channel_bindings
+  - tenant_channel_bindings_audit
+  - tenant_refresh_tokens
+  - tenant_requests
+  - unit_approval_requests
+- context: 10 Operations Management
+  tables: 20
+  share_pct: 4.2
+  provenance:
+    L1:migration: 17
+    L2:package: 3
+  table_list:
+  - document_review_files
+  - document_review_templates
+  - document_reviews
+  - duty_logs
+  - duty_shift_plans
+  - estimate_fillings
+  - exit_registrations
+  - move_in_registrations
+  - opening_registrations
+  - renovation_applications
+  - renovation_attachments
+  - renovation_personnel
+  - repair_work_order_attachments
+  - repair_work_order_logs
+  - repair_work_orders
+  - shift_handover_items
+  - shift_handovers
+  - tenant_activities
+  - tenant_operation_lifecycle_events
+  - tenant_operation_lifecycles
+- context: 05 Lease/Occupancy
+  tables: 17
+  share_pct: 3.6
+  provenance:
+    L1:migration: 16
+    L3:tablename: 1
+  table_list:
+  - lease_allocations
+  - lease_amendment_diffs
+  - lease_commercial_template_terms
+  - lease_commercial_templates
+  - lease_contract_ad_board_details
+  - lease_contract_area_ground_details
+  - lease_contract_attachments
+  - lease_contract_joint_operation_details
+  - lease_contract_terms
+  - lease_contract_units
+  - lease_contracts
+  - lease_discount_policies
+  - lease_lifecycle_extensions
+  - lease_pilot_published_versions
+  - lease_pilot_signing_evidence
+  - occupancies
+  - resource_restrictions
+- context: 04 Contract Lifecycle
+  tables: 14
+  share_pct: 3.0
+  provenance:
+    L1:migration: 13
+    L3:tablename: 1
+  table_list:
+  - amendment_type_matrix
+  - approval_authority_rules
+  - commercial_condition_snapshots
+  - condition_approval_candidates
+  - condition_approval_lifecycle_audit
+  - condition_approval_workflow_policy
+  - condition_approvals
+  - contract_archive_records
+  - contract_template_clauses
+  - contract_template_versions
+  - contract_templates
+  - lease_amendment_requests
+  - lease_party_assignments
+  - receivable_schedule_amendment_consumptions
+- context: 14 Marketing & Campaign
+  tables: 13
+  share_pct: 2.8
+  provenance:
+    L1:migration: 12
+    L3:tablename: 1
+  table_list:
+  - brand_placement_history
+  - brand_placements
+  - footfall_records
+  - footfall_targets
+  - marketing_campaigns
+  - promotion_automation_log
+  - promotion_contracts
+  - promotion_spot_apps
+  - promotion_spots
+  - resource_booking_slots
+  - resource_booking_status_history
+  - resource_bookings
+  - vehicle_flow_records
+- context: 11 Property Management
+  tables: 10
+  share_pct: 2.1
+  provenance:
+    L1:migration: 10
+  table_list:
+  - access_audit_log
+  - cleaning_areas
+  - cleaning_plans
+  - cleaning_tasks
+  - inspection_checkpoints
+  - patrol_route_checkpoints
+  - patrol_routes
+  - patrol_task_checkpoints
+  - patrol_tasks
+  - property_tasks
+- context: 08 Tax Invoice
+  tables: 9
+  share_pct: 1.9
+  provenance:
+    L1:migration: 6
+    L3:tablename: 1
+    L2:package: 2
+  table_list:
+  - ar_discount_entries
+  - invoice_adjustment_lineage
+  - invoice_discounts
+  - invoice_provider_configs
+  - payable_records
+  - tax_rate_configs
+  - tax_voucher_rule_sets
+  - tax_voucher_rules
+  - temporary_invoices
+- context: 13 Work Order Service
+  tables: 3
+  share_pct: 0.6
+  provenance:
+    L1:migration: 3
+  table_list:
+  - service_request_status_history
+  - service_requests
+  - tenant_messages
+- context: 15 Customer/Member
+  tables: 2
+  share_pct: 0.4
+  provenance:
+    L3:tablename: 1
+    L1:migration: 1
+  table_list:
+  - customer_referral_attribution_audit
+  - customer_referrals
+gray_zones:
+- pattern: ^overtime
+  context: 16 Parking Management
+  note: overtime 停车超时费归16有灰度
+- pattern: ^tenant_(bills|breach)
+  context: 06 Billing & AR
+  note: tenant_breach 归06还是04有灰度
+- pattern: ^tenant_(daily_sales|sales)
+  context: 17 BI & Analytics
+  note: 销售采集归17还是02有灰度
+- pattern: ^sales_|_sales$|^daily_sales|^seller
+  context: 17 BI & Analytics
+  note: sales 事实表归17有灰度
+- pattern: ^alert
+  context: 17 BI & Analytics
+  note: alert 归17（预警消费在BI侧）有灰度
+- pattern: ^bank
+  context: 09 Accounting Bridge
+  note: 银企直联归09有灰度
+- pattern: ^fixed_asset
+  context: 12 Engineering & Facility
+  note: 固定资产台账：实物口径归12，财务口径可改09，有灰度
+- pattern: ^wf_
+  context: Platform/Shared
+  note: 工作流引擎表：业务审批语义在04，引擎归Platform，有灰度
+- pattern: ^approval_authority
+  context: 04 Contract Lifecycle
+  note: 审批权限矩阵：与condition-approval同族，有灰度
+- pattern: ^temporary_charge
+  context: 06 Billing & AR
+  note: settlement词根亦指07，有灰度
+- pattern: ^pos_payment
+  context: 07 Collection & Settlement
+  note: 无代码引用，疑似预留表
+- pattern: ^spatial_project
+  context: 01 Asset Foundation
+  note: backfill/quarantine为数据治理日志，有灰度
+monthly_growth:
+  2026-04:
+    new_tables: 68
+    cumulative: 68
+    by_context:
+      17 BI & Analytics: 3
+      Platform/Shared: 19
+      01 Asset Foundation: 14
+      06 Billing & AR: 10
+      16 Parking Management: 5
+      07 Collection & Settlement: 3
+      02 Merchant: 4
+      05 Lease/Occupancy: 6
+      08 Tax Invoice: 4
+  2026-05:
+    new_tables: 4
+    cumulative: 72
+    by_context:
+      Platform/Shared: 4
+  2026-06:
+    new_tables: 152
+    cumulative: 224
+    by_context:
+      17 BI & Analytics: 26
+      Platform/Shared: 7
+      12 Engineering & Facility: 18
+      03 Leasing Pipeline: 16
+      01 Asset Foundation: 12
+      06 Billing & AR: 10
+      16 Parking Management: 1
+      07 Collection & Settlement: 6
+      09 Accounting Bridge: 16
+      02 Merchant: 8
+      10 Operations Management: 13
+      05 Lease/Occupancy: 5
+      04 Contract Lifecycle: 3
+      14 Marketing & Campaign: 4
+      08 Tax Invoice: 3
+      13 Work Order Service: 3
+      15 Customer/Member: 1
+  2026-07:
+    new_tables: 148
+    cumulative: 372
+    by_context:
+      17 BI & Analytics: 19
+      Platform/Shared: 14
+      12 Engineering & Facility: 25
+      03 Leasing Pipeline: 6
+      01 Asset Foundation: 2
+      06 Billing & AR: 10
+      16 Parking Management: 24
+      07 Collection & Settlement: 16
+      09 Accounting Bridge: 2
+      02 Merchant: 2
+      10 Operations Management: 7
+      05 Lease/Occupancy: 3
+      04 Contract Lifecycle: 4
+      14 Marketing & Campaign: 3
+      11 Property Management: 9
+      08 Tax Invoice: 2
+  2026-08:
+    new_tables: 98
+    cumulative: 470
+    by_context:
+      17 BI & Analytics: 22
+      Platform/Shared: 10
+      12 Engineering & Facility: 3
+      03 Leasing Pipeline: 18
+      01 Asset Foundation: 8
+      06 Billing & AR: 5
+      07 Collection & Settlement: 3
+      09 Accounting Bridge: 5
+      02 Merchant: 7
+      05 Lease/Occupancy: 3
+      04 Contract Lifecycle: 7
+      14 Marketing & Campaign: 6
+      15 Customer/Member: 1
+references:
+  d3_report: /root/learning-notebooks/第14周/w14d3-ontology-health-report.yaml
+  ontology: /root/docs/lanlnk/config/ontology/business-ontology.yaml
+  charts:
+  - /root/learning-notebooks/第14周/w14d5_context分布.png
+  - /root/learning-notebooks/第14周/w14d5_月度增长热力图.png

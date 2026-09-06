@@ -1,0 +1,22 @@
+# 第14周-Day6 Semantic Model v0.1 定稿包要点
+
+> 补录说明：9/6 晚管线故障补填。定稿包双格式已存 `/root/learning-notebooks/semantic-model/`（mi-cre-semantic-model-v0.1.yaml + .md）。
+
+## 定稿包里有什么
+
+- **六构件**（Entity/Identity/Relationship/Lifecycle/Rule/Capability+Policy），每个构件带证据指针：ontology sha256_16、D3 体检报告、D5 覆盖率报告、D4 对账、代码锚点（lease/model.go、occupancy 包、amendmentmatrix 包）
+- **宪章**：分层 SoT 五行表（术语/能力/边界/规则/实现各归其主）
+- **已知缺口 10 条**（G-01~G-10），P0 一条：ontology 无治理 frontmatter
+- **熵增基线**：D5 月度增长实数 + 跨切面桶 26.2%
+- **第一个消费方声明**：W15-D3 LnkChatBI term-aliases 生成（附"只能吃术语层"预警）
+
+## 关键组装决策
+
+1. **骨架选 Context 不选模块**：模块↔Context 是多对多（财务管理 1→4），任何"模块名≈Context"假设都会翻车（D2 实证）；Context 有 472 表实证分布背书。
+2. **索引不复制**：Semantic Model 是裁决层，不复制 business-ontology 内容——复制会制造第二个需要同步的副本（D3 锚点熵的教训）。
+3. **缺口是交付物**：10 条缺口与六构件同等重要，每条可追溯到具体证据（W15 消费方据此知道什么不能信）。
+4. **service-effect 不注册写进档案**：评审理由+代码反向验证（13 Context 仅 3 表）是"负空间也是语义"的示范。
+
+## 与计划口径的差异
+
+计划 D6 写"六构件清单+两个实验度量报告+缺口列表"——两个实验中实验1（D3）已存、实验2（D5）本次补齐后接入；差异仅时间线（补录），内容口径一致。

@@ -1,0 +1,143 @@
+# MI CRE Enterprise Semantic Model v0.1
+# 定稿包（W14-D6 组装，2026-09-06 补录）。六构件 + 证据引用 + 已知缺口。
+# 宪章：分层 SoT（W14-D2 定稿）——本文件是索引与裁决层，不复制下游源。
+meta:
+  version: "0.1"
+  assembled: "2026-09-06"
+  status: assembled-draft
+  scope: MI CRE ERP（lnkcre 主仓 8/28 快照）
+  charter:
+    terms_aliases: business-ontology.yaml
+    business_capability_row_id: CRE BCM
+    object_boundary_lifecycle: MI Domain Model 17 Context
+    rules_effects: effect-registry.yaml
+    implementation_acceptance: openspec specs + 代码
+sources:
+  ontology:
+    path: /root/docs/lanlnk/config/ontology/business-ontology.yaml
+    sha256_16: bf550bc24de66813
+  health_report: /root/learning-notebooks/第14周/w14d3-ontology-health-report.yaml
+  coverage_report: /root/learning-notebooks/第14周/w14d5-context-coverage-report.yaml
+  rule_audit: /root/learning-notebooks/第14周/第14周-Day4-Rule层对账要点.md
+  effect_registry: /root/docs/lanlnk/config/ontology/cre-business-capability-matrix/effect-registry.yaml
+  canonical_tables: /root/lnkcre/backend/internal/platform/database/testdata/canonical_tables.txt
+
+entity:
+  skeleton: 17 Context + Platform/Shared（D5 实证，非模块层）
+  table_total: 472
+  contexts:
+    "17 BI & Analytics": {tables: 70, share_pct: 14.8, anchor: [sales_transactions, analytics_metrics, report_definitions]}
+    Platform/Shared: {tables: 54, share_pct: 11.4, anchor: [workflow_instances, users, org_projects]}
+    "12 Engineering & Facility": {tables: 46, share_pct: 9.7, anchor: [equipments, materials, meter_reading_records]}
+    "03 Leasing Pipeline": {tables: 40, share_pct: 8.5, anchor: [opportunities, leasing_intents, quotations]}
+    "01 Asset Foundation": {tables: 36, share_pct: 7.6, anchor: [projects, buildings, units]}
+    "06 Billing & AR": {tables: 35, share_pct: 7.4, anchor: [billing_documents, charge_schemes, receivable_schedules]}
+    "16 Parking Management": {tables: 30, share_pct: 6.4, anchor: [parking_sessions, overtime_bills]}
+    "07 Collection & Settlement": {tables: 28, share_pct: 5.9, anchor: [receipts, collection_records, deposit_records]}
+    "09 Accounting Bridge": {tables: 23, share_pct: 4.9, anchor: [voucher_records, chart_of_accounts, bank_accounts]}
+    "02 Merchant": {tables: 22, share_pct: 4.7, anchor: [customers, brands, tenant_accounts]}
+    "10 Operations Management": {tables: 20, share_pct: 4.2, anchor: [repair_work_orders, tenant_operation_lifecycles]}
+    "05 Lease/Occupancy": {tables: 17, share_pct: 3.6, anchor: [lease_contracts, occupancies, lease_contract_terms]}
+    "04 Contract Lifecycle": {tables: 14, share_pct: 3.0, anchor: [condition_approvals, contract_templates, amendment_type_matrix]}
+    "14 Marketing & Campaign": {tables: 13, share_pct: 2.8, anchor: [promotion_contracts, resource_bookings]}
+    "11 Property Management": {tables: 10, share_pct: 2.1, anchor: [cleaning_tasks, patrol_routes]}
+    "08 Tax Invoice": {tables: 9, share_pct: 1.9, anchor: [invoice_operations, tax_rate_configs]}
+    "13 Work Order Service": {tables: 3, share_pct: 0.6, anchor: [service_requests]}
+    "15 Customer/Member": {tables: 2, share_pct: 0.4, anchor: [customer_referrals]}
+  module_context_mapping:
+    nature: many-to-many（D2 实证，禁止"模块名≈Context名"假设）
+    fanout_examples:
+      资源管理: [01 Asset Foundation, 16 Parking Management]
+      财务管理: [06 Billing & AR, 07 Collection & Settlement, 08 Tax Invoice, 09 Accounting Bridge]
+      运营管理↔客服: 2-to-2 模块吞域
+    orphan_contexts_no_module_entry: ["02 Merchant", "12 Engineering & Facility", "15 Customer/Member", "16 Parking Management"]
+
+identity:
+  physical_anchor: canonical_tables.txt（472 表，8/28 快照，双迁移并集裁判）
+  row_anchor: CRE BCM 行 ID（不可变锚点）
+  term_layer:
+    entries: 883
+    unique_terms: 792
+    reuse_without_disambiguation: 91
+    worst_case: 项目（跨 5 模块 ×16 处）
+
+relationship:
+  semantic_side: 模块×BCM域×Context 映射 v0.1（D2 手工 12 模块全量，D5 程序化覆盖替代）
+  implementation_side:
+    transactional_coupling:
+      - occupancy.CreateTx（合同↔占用，同事务）
+      - amendment_receivable_impact（变更→应收重算）
+      - ar_rebalance trigger_events（触发重平衡）
+    gray_zones: 12 条（见 coverage_report.gray_zones，含 tenant_daily_sales 归属、wf_ 引擎/业务分界）
+
+lifecycle:
+  lease:
+    source: 代码枚举为准（lease/model.go）
+    states: [draft, pending_approval, pending_termination, active, rejected, terminated, voided, closed]
+    approval_codes: [lease-approval, lease-change]
+  condition_approval:
+    states: [pending_approval, ...]
+    audit: condition_approval_lifecycle_audit
+  amendment:
+    form: 运行时可编辑 9 类矩阵（amendmentmatrix 包，键=lease.AmendmentType）
+    snapshot_gap: 矩阵变更无版本快照（D4 缺口④）
+
+rule:
+  registry: effect-registry v1.0（2026-07-26 冻结）
+  frozen_types:
+    - state-transition-effect
+    - occupancy-effect
+    - financial-effect
+    - lead-conversion-effect
+    - maintenance-effect
+  evaluated_not_registered:
+    service-effect: 无独立结果类语义，由 state-transition/maintenance/financial/occupancy 覆盖（代码侧 13 Context 仅 3 表反向验证）
+  implementation_map:
+    state-transition-effect: [lease 8 态机, conditionapproval]
+    occupancy-effect: [occupancy 包 CreateTx + ReserveRejectsActiveOccupancy]
+    financial-effect: [billing, collections, arrebalance]  # 多对多映射
+    lead-conversion-effect: [opportunity_status_history]   # 断言未逐条核
+    maintenance-effect: [repair_work_orders, material_* 族]
+
+capability_policy:
+  modules: 12
+  capability_labels: 102
+  role_coverage: "7/102"
+  scenario_entries: 15
+  scenario_concentration: 全部在资源管理（溯源：华侨城12/锦和8/明源6/悦商2）
+  policy_carriers:
+    - approval_authority_rules
+    - condition_approval_workflow_policy
+    - amendment_type_matrix
+
+entropy_baseline:
+  table_growth_monthly: {2026-04: 68, 2026-05: 4, 2026-06: 152, 2026-07: 148, 2026-08: 98}
+  anchor_erosion: 反向覆盖 12%→模拟半年 9%（D3，方向性结论）
+  platform_share_pct: 26.2  # BI+Platform 跨切面桶占比
+
+known_gaps:
+  - id: G-01
+    severity: P0
+    item: ontology 无治理 frontmatter（版本+变更流程缺失，宪章候选第一条）
+  - id: G-02
+    item: 其余 11 模块场景层 0 条 + 溯源纪要存疑
+  - id: G-03
+    item: role 覆盖 7/102；贴纸质量按模块两极（财务 12/12 vs 移动端 1/15、数据决策 2/14、预算 1/8）
+  - id: G-04
+    item: 91 条术语复用无消歧声明（「项目」跨 5 模块 ×16）
+  - id: G-05
+    item: effect-registry 无代码锚点；frozen 无 CI 强制（不走 ORE-1 零告警）
+  - id: G-06
+    item: 双迁移体系分叉（MySQL 316 活跃子集 / PG 472 全量基线，PG-only 表已出现）
+  - id: G-07
+    item: canonical 新表无 Context 归属挡板（孤儿收敛靠事后启发式）
+  - id: G-08
+    item: lead-conversion 链路断言未核
+  - id: G-09
+    item: amendmentmatrix 运行时编辑无版本快照
+  - id: G-10
+    item: 语义层超额承诺：13/15 Context 稀疏（3/2 张表）vs 102 能力声明
+
+first_consumer:
+  planned: W15-D3——从本模型 term 层 + Entity 锚点批量生成 LnkChatBI term-aliases / SQL 示例校准集
+  warning: 术语库只能吃术语层；场景层 15/102 填充率不可消费（W14-D2 预警沿用）

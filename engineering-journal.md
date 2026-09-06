@@ -549,3 +549,85 @@ D6（周六）：Vision Capability Inventory——按今天架构图盘点段3 �
 - 明日 D4：effect-registry.yaml 冻结 5 类 vs mi 代码事实（lease 状态机/condition-approval/amendment matrix）逐条对账；Today's Question"语义层声明的规则和代码里的 if-else，谁是 SoT"——今天 0/6 说明声明侧近空白，先量实现侧存量
 - D5 交叉验证：用 canonical_tables 336 表增长验证熵增方向结论（替代 +10 spec/月假设）；D1 遗留 R-wave 跟读机制并入 D5 开发节奏环节
 - 登记项：D6 组装时把「其余 11 模块场景层 0 条 + 溯源纪要存疑」写进缺口列表
+
+## 2026-09-06（W14-D5 实验2，9/6 补录）Domain Model 覆盖率检查：过时、越界，还有第三种
+
+### 今天最大的认知
+计划问"Domain Model 过时了还是代码越界了"，472 张表实测后答案是**两者都有+第三种**：表层四个月 +40%（336→472，月增 98~152 张，D3 模拟的 +10 spec/月是乐观假设），同时增长正涌向跨切面桶——BI 70 张（14.8%，最大 Context，分析层吞了 sales_*/alert_*/report_* 事实）+ Platform/Shared 54 张（11.4%，workflow/打印/编码）合计 26.2%，四分之一 schema 领域不可归属。错位的真实方向不是某域越界，是**跨切面能力增速>领域能力增速**，领域 taxonomy 天生接不住。D3 的方向结论（无校验→稀释）拿到实数背书。
+
+### 今天最大的坑
+两个结构性陷阱差点漏掉：①**双迁移体系**——MySQL migrations 316 张是活跃子集、migrations-pg 472 张才是全量基线，canonical testdata 并集做裁判，PG-only 表（hazard/office_energy 族）已出现，同一 schema 双方言维护是表层版的 SoT 分叉，不治理就是下一个 D-001；②**稀疏区与盲区重合**——13 工单（3 张）/15 会员（2 张）的稀疏 Context 与 D3 发现的 ontology 四个孤儿 Context 精确重叠，访谈覆盖缺口在语义层和代码层是同一缺口的两个投影，这条比覆盖率数字更有说服力。
+
+### 今天最大的决策
+三层归类法（L1 迁移名 417 / L3 表名 34 / L2 包 grep 21，孤儿 18→0，12 灰区显式登记）沉淀为可复用资产：与 D3 的 150 行体检同构成"语义资产配 CI"的第二块——新表在 canonical diff 时必须携带 Context 归属，无归属挡板。覆盖率报告（w14d5-context-coverage-report.yaml）连同月度增长熵增基线直接喂 D6 定稿包，替代模拟假设。
+
+### 遗留 / 下一步
+- 补录背景：9/3-9/6 推送管线因旧日期算法静默跳过 D4-D7（已修复+提超时），D4-D6 本晚补齐
+- D6 定稿包组装：六构件从 ontology+D3 体检+D5 覆盖率三源合成；「其余 11 模块场景层 0 条」「双迁移分叉」「灰区 12 条」全部进缺口列表
+- D7 Virtual CTO Review：以补齐后的 W14 全量产物做五维评分
+
+
+## 2026-09-06（W14-D4，9/6 补录）Rule 层对账：effect-registry 5 类 vs 代码事实
+
+### 今天最大的认知
+"规则在 registry 还是代码"的答案不是二选一，是**分层 + 第三形态**：存在性与意图在 effect-registry（service-effect 评审不注册的理由档案本身就是证据——代码侧 13 Context 仅 3 张表反向验证了它），执行事实在代码，而 amendmentmatrix 把 9 类矩阵做成**运行时可编辑表**——规则数据化，"if-else 在哪"越来越不在代码里。occupancy-effect 是对账标杆：语义（占用随租赁变更）与实现（Go 事务 CreateTx + ReserveRejectsActiveOccupancy 测试锚定）各司其职，语义层不管传输机制，边界划对了。
+
+### 今天最大的坑
+registry 与代码之间**没有机器锚点**：5 类 effect 不含任何 package/表引用，对账全靠人读——与 D3 发现的 ontology 无 frontmatter 完全同构，语义资产的三宗罪（无治理头、无锚点、无 CI）在规则层原样复现。financial-effect 落在 billing/collections/arrebalance 多包是多对多映射，人肉对账不可扩展。
+
+### 今天最大的决策
+D4 精简执行（对账表+3 例+缺口），四个缺口全部登记进 D6：①registry 无代码锚点 ②frozen 无 CI 强制（新增 effect 不走 ORE-1 零告警）③lead-conversion 断言未核 ④amendmentmatrix 运行时编辑无版本快照。
+
+### 遗留 / 下一步
+- D6 定稿包 Rule 构件以本对账为证据基座，四个缺口进已知缺口列表
+- amendmentmatrix 变更是否被 lifecycle_audit 覆盖，W15 Policy 语义化日核
+
+
+## 2026-09-06（W14-D6 实战日，9/6 补录）Semantic Model v0.1 定稿包：从文档到可消费资产
+
+### 今天最大的认知
+定稿包的核心决策是**索引不复制**：Semantic Model 做分层 SoT 的裁决层（什么在哪、谁说了算、哪里断了），不复制 business-ontology 内容——复制就是制造第二个需要同步的副本，D3 刚证明锚点稀释不需要任何人犯错。骨架选 Context 不选模块（多对多实证），缺口列表与六构件同等重要（负空间也是语义：service-effect 不注册的评审档案+代码反向验证是示范）。
+
+### 今天最大的坑
+组装顺序险些颠倒：D6 依赖 D5 实验报告（覆盖率/增长基线）和 D4 对账（Rule 构件证据基座），两个都被管线故障吃掉——先补实验再组装，定稿包里每个数字才有出处。教训登记：交付物依赖链（实验→报告→定稿包）在有静默跳过的管线里会整体断链，NO_REPLY 护栏+运行说明留痕就是为此修的。
+
+### 今天最大的决策
+v0.1 落盘 `semantic-model/` 双格式：六构件+证据指针（sha256_16/代码锚点）+10 条缺口（P0：ontology 无 frontmatter）+熵增基线+第一个消费方声明（W15-D3 术语层 only 预警）。
+
+### 遗留 / 下一步
+- D7 Virtual CTO Review：以补齐后的 W14 全量产物五维评分
+- W15-D1（9/7 起）：LnkChatBI 精读，管线已修复（新日期算法+超时 1200s），明早 06:00 应正常推送
+
+
+## 2026-09-06（W14-D7 周日 · Virtual CTO Review：Semantic Model v0.1 质检 + W15 裁决）
+
+### 今天最大的认知
+评审不读数字，评审**重算**数字——12 项机器检查直接跑在定稿包×D3×D5×ontology 真实文件上，11 过 1 失败，而那个失败项（C07 孤儿 Context 双源重合）是全场最有价值的产出：D3 报告叫 `02 Party Core`、定稿包叫 `02 Merchant`，**语义资产组装第一天就踩了自己 9/2 刚登记的 G-04（术语复用无消歧）**——消歧不能靠人记性有了实证。深挖还修正了 D5 journal 的过度概括句：盲区≠稀疏，四个孤儿 Context 里 12 Engineering（46 表）/16 Parking（30 表）是大块头（代码长大、语义没跟上的定向腐蚀），13 WorkOrder 反向稀疏（有入口、代码没长）——两种病两种药，比"精确重叠"的原句更有裁决含金量。
+
+### 今天最大的坑
+差点把质检做成"文档朗读 + 拍分数"。补上评分稳健性蒙特卡洛（3 万次权重扰动）后才看清：综合 6.4 在均值规则下 68% 区间 [6.1,6.8] 尚算稳健，但木桶规则恒锚 DX=5.5——**报分不报规则等于没报**（同一个资产 6.4 和 5.5 都是真的）。排期用木桶（最弱维度=第一个消费方的成败面），汇报用均值；DX 之所以最低，就是因为第一个消费方还没发生——W15 的全部意义是把这一分挣回来。
+
+### 今天最大的决策
+① Semantic Model v0.1 定稿**通过，带 4 项整改进 v0.1.1**（≤1 小时小修，排 W15-D3 前置）：场景层冻结升格机器可读 `scenario_layer_frozen: true`、Context 别名表（规范名以 D5 全名为准）、G-01 frontmatter 四行提案模板。② W15 落地方案 **GO**：双线不变（LnkChatBI 精读 + term-aliases 第一个消费方），附四条护栏——指纹锚（生成物带 sha256_16）、场景层冻结、名称规范、**Demo 前先测导入前基线**（没有基线的 Demo 是展示不是验证）。③ 五维评分 7.5/7.0/6.0/8.0/5.5 综合 6.4（望远镜分，排期用），预测 W15-D7 内窥镜复评 6.0±0.3——剪刀差规则延续到开发期对象。
+
+### 遗留 / 下一步
+- W15-D1（明早 9/7）：LnkChatBI 架构精读① NL→SQL 组装链路；Today's Question"为什么第一个消费方选问答而不是生成代码/自动审批"——今天质检已给一半答案（问答恰好只吃术语层这唯一完整可消费的面）
+- v0.1.1 小修三件套登记为 W15-D3 实验前置步骤；effect-registry"冻结无 CI"（G-05）与 ontology frontmatter（G-01）合并为一个主仓 change 提案候选
+- 挂账未动：LangChat ADR-004 示例前缀未跟 ADR-008 改名（W13 遗留，非本周对象）
+
+
+## 2026-09-07（W15-D1 周一 · LnkChatBI 架构精读①：NL→SQL 组装链路）
+
+### 今天最大的认知
+NL→SQL 组装链路是一条**确定性与概率性分层共存**的流水线：九级流水（RAG 三件套 → M-Schema 选表 → XML 标签 prompt 组装 → 流式生成 → check_sql → 权限下推二次 LLM 调用 → AST 只读闸门 → 执行 → 图表）里，只读保证走 sqlglot AST 九类写操作黑名单（确定性），SSE 事件契约有 openspec 规格管着且可写成 7 条机器可校验不变量（实验①证实），但行权限是**概率性执行**——tables 来自 LLM JSON 自报、fallback 裸 SQL 路径 tables=None 直接整体跳过、改写后复验不含权限条件保留断言（实验②量化：join 表召回 0.93 时 J=3 单次缺口 16%，日查询 4 次即过 50%）。"为什么第一个消费方选问答"的完整答案四条：失败成本被 AST 锁零、只吃 v0.1 唯一完整的术语层、data_training 让消费即反哺、验收证据全落 record log 可机器复核。
+
+### 今天最大的坑
+差点把权限下推当成已解决的确定性机制写进验收口径。逐行核对 check_sql:1546（表自报）、get_row_permission_filters:46（空表返回 []）、check_save_sql:1622（复验无权限断言）三层代码后才确认：permissions 模板规则 #3"不要替换原过滤条件"只是 prompt 层约束，漏报/漏合并均静默。Demo 验收口径因此新增 L1' 护栏（改写后 SQL 文本含权限谓词断言），加固方向零新依赖（表提取改 sqlglot AST 遍历，实验③证明注册对账恒 100% 召回）。
+
+### 今天最大的决策
+L1-L5 判定梯正式翻译为 LnkChatBI 语境的机器可复核验收口径：L0 基线护栏（D7 裁决）+ L1 身份路径（POSITION_CODE 谓词 + 四级层级列）+ L2 join 链（CONT_NO→租约 + 状态引用）+ L3 降级口径（规则以术语 description 注入，模板原文"可能是计算公式或查询条件"= Rule 构件天然接口）为必达线，L4/L5 标 TODO；实验④判分器在 4 条种子数据轨迹上验证判分稳定（T3 反例"字段代替身份"被稳定识别）。种子无字面 A101：决策走 term-aliases 别名映射（A101→LOC_DEMO_*）而非补种，直接应用 D2"词汇层管命名漂移"结论。
+
+### 遗留 / 下一步
+- 权限概率性执行 Gap 与 G-05/G-01 合并为主仓 change 提案候选包；D6 Demo L1' 护栏实测
+- 明日 D2：RAG 三件套精读 + MI context provider 集成线 + Semantic Model vs Text-to-SQL 分工边界；线索：术语 description 即 Rule 注入接口
+- v0.1.1 三件套仍挂账 D3 前置；assistant 动态数据源（type=1）分支、pgvector 双路检索细节留 D2
