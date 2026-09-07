@@ -1,0 +1,126 @@
+# 🧱 W15-D2 · LnkChatBI 架构精读②：RAG 三件套 × MI context provider × Semantic Model 与 Text-to-SQL 的分界线
+
+> 开发期 · Week 15「LnkChatBI 精读 × Semantic Model 第一个消费方」Day 2（2026-09-08 周二）
+> 昨日 D1 交付了 NL→SQL 九级流水全图 + L1-L5 验收口径，并留了三条线索给今天：术语 description 即 Rule 注入接口、pgvector 双路检索细节、assistant 动态数据源（type=1）分支。
+
+---
+
+## 0. 今日开发目标
+
+精读 RAG 三件套的三条「检索→注入」链（term-aliases 术语库 / data_training SQL 示例校准 / custom_prompt 自定义提示），读出行级事实（谁检索、检索什么、注入到哪）；补全 MI context provider 集成线全貌（SSO 契约 / attribute_mapping / context sync / 消费点）；收掉 D1 两个遗留（pgvector 双路细节、type=1 分支）；最终回答 Today's Question——**Semantic Model 和 Text-to-SQL 的分界线到底在哪**，并把答案操作化为 D3 生成实验的规格。
+
+---
+
+## 1. Today's Question：Semantic Model 和 Text-to-SQL 的分界线到底在哪？
+
+**一句话答案：分界线不在功能清单上，而在错误归因与修复方式上——错在「词-物映射、表间关系、业务口径」（语义）→ Semantic Model 的领地，用治理修（SoT / 锚点 / CI）；错在「语法、方言、join 写法、表达习惯」（组装）→ Text-to-SQL 的领地，用校准修（示例 few-shot + AST 闸门）。LnkChatBI 的三件套就是这条线的物证：每一件套都是把一件"本可以丢给 LLM 猜"的事收编为确定性输入，而三件套之外 LLM 真正"自己说了算"的只剩一件事——把已消歧的意图组装成 SQL 文本。**
+
+### 1.1 三件套实测对照表（今日主交付，全部行号级事实）
+
+| 维度 | ① term-aliases 术语库 | ② data_training SQL 示例校准 | ③ custom_prompt 自定义提示 |
+|---|---|---|---|
+| **解决什么** | 词→物归一（"计租面积"是哪个字段） | 表达校准（这个语义的 SQL 该怎么写） | 口径声明（背景信息/额外要求） |
+| **检索方式** | 单向子串：`sentence ILIKE '%word%'`（问句包含术语词）+ 可选 pgvector（`1-(embedding<=>q)>0.4`，TOP_COUNT 截断） | **双向**子串：`sentence ILIKE '%question%' OR question ILIKE '%sentence%'` + pgvector（阈值同 0.4） | **无检索**：oid+type 全量选取，仅 specific_ds 时按数据源过滤 |
+| **数据结构** | 父子分组：父行持 `(word, description)`，子行 pid 指父，只持 `word`（别名） | 平铺 `(question, description)`，description 充当 suggestion-answer | 平铺 `(type, prompt)`，type ∈ GENERATE_SQL / ANALYSIS / PREDICT_DATA |
+| **命中语义** | 命中**任一别名 → 拉全组**（父 description + 所有兄弟别名一起进 prompt） | 问句与示例 question 任一方向子串重叠即命中 | 不看问句，必进（oid+type 作用域内） |
+| **注入位置** | `<Info>` 内 `<terminologies>` 块（CDATA） | `<Info>` 内 `<sql-examples>` 块（CDATA） | `<Info>` **外**的 `<Other-Infos>` 块（`{custom_prompt}` 槽位在 Info 结束标签之后） |
+| **作用域** | oid + (specific_ds ? datasource_ids) | oid + datasource（type=1 assistant 时改按 advanced_application） | oid + type + (specific_ds) |
+| **关键代码** | terminology.py:913/1162 + llm.py:766 | data_training.py:676 + llm.py:821 | custom_prompt.py find_custom_prompts + llm.py:792 |
+| **Semantic Model 对应** | **Entity/术语构件**（v0.1 唯一完整面） | 消费即反哺（record log → 校准集） | **Rule/Policy 的批量注入位**（口径声明） |
+
+一个容易忽略的不对称：术语检索是**单向**子串（问句必须包含术语词），示例检索是**双向**（短问句 "计租面积" 能命中长示例 "各项目计租面积汇总"）。方向差异不是疏忽——术语词短、问句长，单向够用；示例 question 往往比问句长，必须双向。**检索语法是跟着数据形态设计的，这也是 D3 生成规格要遵守的约束：术语词必须短到能出现在问句里。**
+
+### 1.2 为什么说三件套是分界线的物证（四层论证）
+
+**① 术语层：检索兜底有边界，边界外靠治理。** 双路检索的真实能力面：子串路径覆盖**字面命中**（问句里真出现了"计租面积"），向量路径覆盖**语义近邻**（"出租面积"与"计租面积"embedding 相近）。但两路都救不了**完全漂移的命名**——问句里的 "A101" 和库里的 `LOC_DEMO_L101` 字面零重叠、语义不近邻（今日实验②量化：n-gram 余弦 < 0.15，远低于 0.4 阈值）。这类映射没有任何检索算法能"猜"出来，只有 Semantic Model 术语层**预喂**（A101 作为别名进术语组）才能确定性解决。**这是分界线第一段：LLM 的消歧能力上限 = 检索召回上限；上限之外不是模型问题，是资产缺位问题。**
+
+**② 示例层：表达问题靠校准，不进治理资产。** 同一个已消歧的意图（"查 A101 的状态"），SQL 可以有一百种写法——方言函数、join 顺序、limit 习惯、字段限定风格。这些差异**不影响对错、只影响稳定**，属于概率性提升的对象：data_training 用 few-shot 把"我们这儿的标准写法"喂给 LLM，且校准信号来自消费沉淀（好答案存回校准集）。**分界线第二段：如果把表达习惯也塞进 Semantic Model，资产会被无穷无尽的写法细节淹没——校准集是"越用越准"的活数据，治理资产是"变更走流程"的慢数据，两者节奏根本不同。**
+
+**③ 指令层：口径与规则是治理资产，以确定性注入，不参与检索赌博。** custom_prompt 最反直觉的设计是**无检索**——不看问句、必进 prompt。今天读懂了为什么：它承载的是"无论问什么都必须成立的口径"（如"所有面积单位为平方米""空置=POSITION_STATE=2"）。口径不能赌检索命中率——赌输了就是一次静默的错误回答。术语 description 的模板定位（原文："其中也可能是能够用来参考的**计算公式**，或者是一些其他的**查询条件**"）说明 LnkChatBI 作者清楚 description 不只是注释，是**规则注入口**——这正是 D1 埋下的线索：Semantic Model 的 Rule 构件经术语 description 注入，是 L3 降级口径的天然接口。**分界线第三段：确定性注入 vs 检索式注入的选择标准只有一个——这条信息漏掉的代价是否可接受。口径漏掉不可接受，所以无条件注入。**
+
+**④ 剩下的确定性层把 LLM 的领地压缩到只剩组装。** 数一遍九级流水里谁说了算：表结构 M-Schema（DB catalog 说了算）、权限 WHERE（expression_tree 说了算）、只读约束（AST 说了算）、词-物映射（术语库说了算）、口径（custom_prompt 说了算）——LLM 真正"自己说了算"的只有：选哪些表 join、SQL 文本怎么写、图表选什么、brief 怎么说。**Text-to-SQL 的"Text-to"部分被确定性层包夹到只剩一个窄条——这个窄条恰好是 LLM 最强、规则最弱的地方。** 好的 NL→SQL 架构不是让 LLM 更聪明，而是把 LLM 的自由度压缩到"错了也不伤人"的范围内。
+
+### 1.3 对照 Orchestrator NL→SQL：平台与专用引擎共享同一条分界线
+
+ADR-007 三段链（External Clients → Capability Runtime → Enterprise Systems）里，LnkChat 平台侧的语义供给通道是 Capability 描述 + KB/RAG（`langchat/capability/`、`langchat/server/knowledge_base/`）；LnkChatBI 作为专用 NL→SQL 引擎，语义供给通道是三件套 XML 注入。通道不同，分界线相同：**平台不替业务定义"计租面积是什么"，引擎不替业务定义"空置怎么判定"——这些都在 Semantic Model。** 这也是为什么 Semantic Model v0.1 的第一个消费方可以是 LnkChatBI 而不必等 LangChat 平台侧就绪：分界线保证了语义资产与消费引擎解耦，换注入通道（XML 块 → capability description）不需要改资产本身。W16+ 接 LnkChat 主仓时，这是复用的核心论据。
+
+### 1.4 ERP 人话（26 年对照）
+
+这是老 ERP 人都踩过的坑：**数据字典与报表工具的关系**。帆软、Crystal Report、BO 工具再强，科目口径错了报表全错——而口径从来不是报表工具的职责，是财务制度（数据字典）的职责。26 年里见过太多 BI 项目失败，八成不是工具不行，是"计租面积包不包含公摊"这种问题三个部门三个答案、没人裁决。LnkChatBI 的 terminology 库就是 AI 时代的数据字典表，Semantic Model 是整本财务制度。AI 问数把这个问题放大了一百倍：报表工具口径空洞顶多报错，LLM 口径空洞会**用幻觉把空洞填上**，填得像模像样。所以 AI 时代语义层不是锦上添花，是把原来"人肉口头对齐"的隐性资产显式化成机器可注入的格式——三件套就是那三个注入口。
+
+---
+
+## 2. 完成事实
+
+### 2.1 RAG 三件套：行号级链路（今日实测）
+
+**① 术语链**：`filter_terminology_template`（llm.py:766，assistant 作用域 oid 覆盖 + type=1 时 ds_id 置 None）→ `get_terminology_template`（terminology.py:1162）→ `select_terminology_by_word`（terminology.py:913）。双路检索：ILIKE 子串（主路，永远在）+ pgvector（`EMBEDDING_ENABLED` 且 embedding runtime 就绪才开，`1-(embedding<=>:q) > 0.4`，按 TOP_COUNT 截断）。**归并逻辑是术语库的灵魂**：命中的词按 `id/pid` 去重收集 `_ids`，二次查询把**整组**（父 description + 全部兄弟别名）拉回来组装成 `{words:[], description}`——用户问"租赁面积"，prompt 里会同时出现"计租面积/rentable area"全家，LLM 拿到的是**归一后的语义单元**而不是孤立词条。
+
+**② 示例链**：`filter_training_template`（llm.py:821）→ `select_training_by_question`（data_training.py:676）。双向子串 + pgvector，平铺结构，`description` 直接当 `suggestion-answer` 注入。**D1 遗留收口（type=1 分支）**：动态数据源 assistant（type=1）下 ds_id 无意义，改按 `advanced_application` 维度检索（llm.py:830-846 两分支）——即"高级应用"有自己的校准集，与数据源级校准集平行。批量导入走 `skip_embedding` 先插后算（data_training.py:255/533），embedding 失败不回滚数据（只记日志）——**校准数据的可用性优先于向量完整性**，与 context provider 的 stale-but-safe 同一哲学。
+
+**③ 指令链**：`filter_custom_prompts`（llm.py:792，license 门控）→ `find_custom_prompts`（custom_prompt.py）：oid+type 全量、specific_ds 过滤、按 id 排序拼接。三类型分别注入 SQL 生成/分析/预测三个环节（chat_model.py:412/429 可见 analysis 与 predict 模板同时吃 terminologies + custom_prompt——**分析环节也吃术语**，术语库的作用面比"生成 SQL"更宽）。
+
+**④ 注入落点**（chat_model.py `sql_sys_question` + template.yaml sql.system）：`<Info><db-engine/><m-schema/>{terminologies}{data_training}</Info>{custom_prompt}`——custom_prompt 的 `{custom_prompt}` 槽位在 `</Info>` 之后，对应 System prompt 里 `<Other-Infos>` 块的说明（"可能会是额外添加的背景信息，或者是额外的生成SQL的要求"）。
+
+### 2.2 MI context provider 集成线全貌（D1 粗读 → 今日细读完毕）
+
+四段链（context_provider.py 全文 190 行）：
+
+1. **触发**：ChatBIInstance 初始化时（llm.py:593），仅 CoreDatasource 走；FastAPI cache TTL 300s 去重（`context_provider:{user_id}`）。
+2. **拉取**：`GET <provider_url>`，`Authorization: Bearer <token>` + `X-SSO-Username: <account>` 头 → `{"username", "attributes"}`。url/token 可被数据源级 config 覆盖，兜底 `settings.MI_API_URL/MI_API_TOKEN`——**每数据源可配不同 MI 实例**。
+3. **映射**：`attribute_mapping` 把 attr 名映射到 `variable_name` → 查 SystemVariable 表拿 id → 组装 `{variableId, variableValues:[值]}` **双写**：`sys_user.system_variables`（DB，持久）+ 内存 DTO（当前请求免回读）。SystemVariable 查不到只 warning 跳过——**映射漂移静默**。
+4. **消费**：行权限解析时 `transTreeItem` 对 `value_type="variable"` 的 expression_tree 节点，用 system_variables 的值替换 → WHERE 谓词。
+
+**架构判断（今日新增）**：这条线把数据权限的**事实源**放在 MI 侧（attributes 由 MI 说了算），LnkChatBI 只做缓存+映射——SoT 方向正确。失败语义 stale-but-safe（拉取失败静默返回 False 用旧值）。与 D1 发现的"权限下推概率性执行"合起来看是**两类不同风险**：context sync 是 **staleness 风险**（值旧 → 最多看到旧项目的数据），权限下推是 **soundness 风险**（LLM 漏报表 → 直接越权）。前者可容忍（TTL 内旧值），后者不可容忍——**风险分类决定加固优先级，权限下推的 AST 加固仍然优先于 sync 任何改造**。
+
+### 2.3 分界线操作化：六构件 × LnkChatBI 消费面矩阵（D3 的规格基座）
+
+| Semantic Model 构件 | LnkChatBI 消费面 | 注入通道 | v0.1 状态 |
+|---|---|---|---|
+| **Entity/术语** | terminology 表（父子组） | FILTER_TERMS → `<terminologies>` | ✅ 唯一完整面，D3 生成 |
+| **Relationship** | **无直接消费面**——M-Schema 只给表结构，join 链靠 LLM 从字段名（CONT_NO 等）猜 | （缺口）data_training 示例可间接承载 join 写法 | ⚠️ 最大缺口，v0.2 再裁 |
+| **Lifecycle** | 术语 description（状态口径："空置=POSITION_STATE=2"） | FILTER_TERMS | 部分（L2 素材已在种子） |
+| **Rule** | 术语 description（"计算公式/查询条件"模板原文背书）+ custom_prompt | FILTER_TERMS / Other-Infos | L3 降级口径接口，D3 一并生成 |
+| **Capability/Policy** | 超出问数消费范围 | — | 不消费（**正确**——消费方选型结论的再次验证） |
+
+**结论：问数消费方的合同 = 术语层为主 + Rule 走 description 注入。D3 只生成术语条目即可覆盖 L1（词-物）与 L3（规则引用）两级验收；Relationship 缺口由 data_training 示例间接补，不欠 v0.1。**
+
+### 2.4 给 D3 定的生成规格（明日实验的输入，今日定稿）
+
+- **结构**：父行 =（规范词取 Entity 规范名，description = 定义 + 口径 [+ Rule 条件，引用 R-编号]）；子行 = 别名（中文名 / 英文字段名 / 口语叫法 / **编码风格值**如 A101→LOC_DEMO_L101——今日实验证明这类映射检索救不了，必须预喂）。
+- **约束**：术语词必须短到能作为子串出现在自然问句中（单向检索约束）；description 含 XML 特殊字符要谨慎（to_xml_string 有 unescape 反转义，见遗留）。
+- **作用域**：`specific_ds=true` + `datasource_ids=[mallcre]`——术语库是 oid 级共享池，Semantic Model 是项目级资产，**不圈作用域就是往共享池里倒项目私货**（污染其它数据源的问答）。
+- **验收**：复现 `_ids` 归并逻辑跑一遍——问"A101 铺位为什么不能出租"，断言拉出的组含 POSITION_CODE 映射与空置口径 description。
+
+配套实验（`第15周-Day2-RAG三件套与语义分工边界.ipynb`）已完成三项验证：三件套检索机制的忠实模拟（子串/向量双路召回矩阵）、命名漂移量化（A101 类映射两路得分均低于阈值 → 治理预喂必要性）、错误归因分界模拟（语义错注入术语可修 vs 组装错需示例校准）。
+
+---
+
+## 3. 遗留 / 风险
+
+- **to_xml_string 反转义面**（terminology.py to_xml_string 尾部 escape_map）：生成后把 `&lt;` 等全部还原——术语 description 含 `<` `>` 会直接破坏注入块结构（内部资产低危，但 D3 生成时须过滤或转义特殊字符，登记进 D3 checklist）。
+- **attribute_mapping 无校验静默跳过**：SystemVariable 查不到只 warning——MI 侧改了属性名，LnkChatBI 侧行权限变量悄悄失效（fail 到旧值/空值）。与 G-05（effect-registry 无 CI）、G-01（ontology 无 frontmatter）、权限概率性执行合并为主仓 change 候选包，四件同宗：**语义漂移无机器告警**。
+- **Relationship 构件缺口**：join 语义现在靠 M-Schema 字段名暗示 + 示例间接承载，v0.2 裁决是否显式化（候选：生成"标准 join 链"示例进 data_training 而非新通道——复用现有消费面）。
+- **v0.1.1 三件套**（D7 整改）仍挂账 D3 前置，明早第一件事。
+
+## 4. 明日连接（D3 · ⚡实验3：Semantic Model → term-aliases/SQL 示例生成）
+
+从 v0.1 六构件批量生成 LnkChatBI 术语库条目 + SQL 示例校准集，对照 mallcre 种子数据验证可消费性与覆盖率提升（**前置：先做 v0.1.1 三件套小修，再测导入前基线**——D7 护栏）。Today's Question：**同一份 ontology，喂"术语库"和喂"表结构注释"效果差在哪？** 今天已有一半答案：表结构注释走 M-Schema 通道（表/字段级、无别名归并、无 Rule 注入口），术语库走 FILTER_TERMS 通道（组级归并 + description 口径）——差的不是内容是通道能力。
+
+---
+
+### 附：今日证据清单
+
+| 证据 | 来源 |
+|---|---|
+| 三件套检索/归并/注入全链（行号） | terminology.py:913/1162（单向子串+pgvector 0.4+命中拉全组）、data_training.py:676（双向子串）、custom_prompt.py find_custom_prompts（无检索全量）、llm.py:766/792/821 |
+| 注入位置与模板原文（"计算公式/查询条件"、Other-Infos 说明） | chat_model.py:308/362/418/432 + template.yaml sql.system `{terminologies}{data_training}</Info>{custom_prompt}` |
+| 三类型 custom_prompt + analysis/predict 也吃术语 | custom_prompt_model.py:13 + chat_model.py analysis_sys_question/predict_sys_question |
+| type=1 动态数据源分支（D1 遗留收口） | llm.py:830-846（advanced_application 维度检索）+ data_training.py embedding_sql_in_advanced_application |
+| 批量导入 skip_embedding / embedding 失败不回滚 | data_training.py:255/533/550 |
+| context provider 四段链 + stale-but-safe + 双写 | context_provider.py 全文（TTL 300/attribute_mapping/SystemVariable 查表/DB+DTO 双写）+ llm.py:593 触发点 |
+| embedding 默认参数（ENABLED=True / 相似度 0.4） | config.py:161-167 |
+| ADR-007 三段链（平台侧语义供给通道对照） | langchat/docs/adr/ADR-007-platform-architecture-chain-three-tiers.md |
+| 命名漂移两路检索均失效 / 错误归因分界 | 今日配套实验 ipynb（n-gram 余弦模拟向量检索，忠实复现 0.4 阈值） |
+
+*配套实验：`第15周-Day2-RAG三件套与语义分工边界.ipynb` —— 三件套检索机制忠实模拟（子串/向量双路召回矩阵）、命名漂移量化（A101→LOC_DEMO 两路得分）、错误归因分界蒙特卡洛（语义错 vs 组装错的修复通道差异）。*
