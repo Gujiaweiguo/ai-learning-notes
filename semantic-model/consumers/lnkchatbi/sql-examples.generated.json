@@ -1,0 +1,46 @@
+[
+  {
+    "question": "A101 铺位为什么不能出租？",
+    "description": "SELECT STORE_CODE, POSITION_CODE, POSITION_NAME, POSITION_STATE, CONT_NO, END_DATE FROM bi_d_position WHERE POSITION_CODE = 'LOC_DEMO_L101';"
+  },
+  {
+    "question": "当前所有空置铺位有哪些？面积多大？",
+    "description": "SELECT FLOOR_NAME, POSITION_CODE, POSITION_NAME, POSITION_TYPE, RENT_AREA FROM bi_d_position WHERE POSITION_STATE = '空置' ORDER BY RENT_AREA DESC;"
+  },
+  {
+    "question": "合同 CONT_DEMO_001 名下有哪些铺位？",
+    "description": "SELECT POSITION_CODE, POSITION_NAME, POSITION_STATE, CONT_NO, END_DATE FROM bi_d_position WHERE CONT_NO = 'CONT_DEMO_001';"
+  },
+  {
+    "question": "L1 层各铺位的租金单价是多少？",
+    "description": "SELECT POSITION_CODE, POSITION_NAME, RENT_PRICE, FIXFEE_PRICE FROM bi_d_position WHERE FLOOR_CODE = 'F1' ORDER BY RENT_PRICE DESC;"
+  },
+  {
+    "question": "星河购物中心有哪些商户？",
+    "description": "SELECT TENANT_CODE, TENANT_NAME, SHORT_NAME FROM bi_b_tenant WHERE STORE_ID = 'STORE_DEMO_001' ORDER BY TENANT_CODE;"
+  },
+  {
+    "question": "费用科目有哪些？",
+    "description": "SELECT SUBJECTCODE, SUBJECTNAME, SUBJECT_TYPE FROM bisubject WHERE STOREID = 'STORE_DEMO_001';"
+  },
+  {
+    "question": "商户押金缴纳情况如何？",
+    "description": "SELECT TENANTCODE, TENANTNAME, CONTRACTCODE, SUBJECTNAME, DEPOSITDATE, DSPTYPE FROM bipreddeposit WHERE STOREID = 'STORE_DEMO_001' ORDER BY DEPOSITDATE;"
+  },
+  {
+    "question": "12 月的账单有哪些？最后缴款日是什么时候？",
+    "description": "SELECT BILL_NUM, TENANTNAME, POSITIONNAME, SUBJECTNAME, BILLYEAR, BILLMONTH, BILL_DATE, LASTPAYDATE FROM bibillrecvinfo WHERE STOREID = 'STORE_DEMO_001' AND BILLMONTH = 12;"
+  },
+  {
+    "question": "最近 7 天停车场车流和收入如何？",
+    "description": "SELECT date_key, parking_entries, avg_turnover_times, parking_revenue_amount FROM fact_parking_daily ORDER BY date_key DESC LIMIT 7;"
+  },
+  {
+    "question": "各项目空铺面积汇总？",
+    "description": "SELECT project_name, count(*) AS vacant_cnt, sum(vacant_area) AS vacant_area FROM vw_mall_ops_vacancy_snapshot GROUP BY project_name ORDER BY vacant_area DESC;"
+  },
+  {
+    "question": "当前哪些合同快到期了？",
+    "description": "SELECT project_name, contract_no, brand_name, shop_name, lease_end_date, days_to_expiry FROM vw_mall_ops_contract_expiry WHERE days_to_expiry BETWEEN 0 AND 90 ORDER BY lease_end_date;"
+  }
+]

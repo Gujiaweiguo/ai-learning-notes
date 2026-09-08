@@ -1,0 +1,167 @@
+[
+  {
+    "word": "铺位",
+    "other_words": [
+      "关注铺位",
+      "铺位信息",
+      "铺位修改",
+      "铺位审批",
+      "铺位工程条件",
+      "铺位新增",
+      "铺位状态",
+      "铺位编码",
+      "铺位资料",
+      "铺位预定",
+      "A101",
+      "L1-01",
+      "L1-02",
+      "L2-01",
+      "L2-02",
+      "门店铺位"
+    ],
+    "description": "商场最小可租赁经营单元（物理锚 bi_d_position，一行一铺位；bilocation 为源系统镜像）。 口径：状态口径 bi_d_position.POSITION_STATE 取值 已出租/空置；空置聚合 BI 侧走 vw_mall_ops_vacancy_snapshot（business_status=vacant，双口径并存）。 映射：编码风格映射：口语 A101 型编码 → POSITION_CODE 前缀 LOC_DEMO_L1xx（demo 种子）；生产环境由铺位编码规则注册表替换。"
+  },
+  {
+    "word": "楼层",
+    "other_words": [
+      "楼层信息",
+      "楼层平面图",
+      "楼层资料",
+      "F1",
+      "F2"
+    ],
+    "description": "楼宇内的经营分层，锚 bi_d_position.FLOOR_CODE/FLOOR_NAME（F1/L1 首层等），BI 侧维表 dim_floor。 口径：demo 种子楼层编码 F1、F2；ERP 侧 FLOOR_CODE 与 BI 侧 floor_code 大小写折叠见导入说明。"
+  },
+  {
+    "word": "楼宇",
+    "other_words": [
+      "楼宇信息",
+      "楼宇新增",
+      "楼宇资料",
+      "BLDG_A",
+      "楼栋"
+    ],
+    "description": "项目下的物理楼栋，锚 bi_d_position.BUILDING_CODE/BUILDING_NAME。 口径：demo 种子 BLDG_A（A座）；楼宇编码在项目内唯一。"
+  },
+  {
+    "word": "项目",
+    "other_words": [
+      "申报项目",
+      "项目信息",
+      "项目参数",
+      "项目新增",
+      "项目概览",
+      "项目维护",
+      "项目资料",
+      "项目资源",
+      "星河购物中心",
+      "购物中心"
+    ],
+    "description": "购物中心经营主体，demo 锚 bi_d_position.STORE_CODE/STORE_NAME 与 BI 侧 dim_project。 口径：歧义声明（G-04）：「项目」在 ontology 跨 5 模块复用 16 处；本组 demo 口径=购物中心项目（MALL_DEMO_001 星河购物中心），集团→区域→项目组织层级属系统管理域不在本表。"
+  },
+  {
+    "word": "商户",
+    "other_words": [
+      "商户服务平台",
+      "商户生命周期查验",
+      "商户移动录入",
+      "租户",
+      "租户名称",
+      "商户名称"
+    ],
+    "description": "与项目签约的经营主体（租户），ERP 锚 bi_b_tenant（TENANT_CODE/TENANT_NAME），BI 侧日粒度 vw_mall_ops_merchant_daily.merchant_name。 口径：商户/租户在 ontology 两词并存，demo 语义等价，统一归并本组；租户账户另见 lease 侧。"
+  },
+  {
+    "word": "品牌",
+    "other_words": [
+      "品牌中文名",
+      "品牌代码",
+      "品牌入库",
+      "品牌审批",
+      "品牌库",
+      "品牌授权",
+      "品牌档次",
+      "品牌移动录入",
+      "品牌管理",
+      "品牌落位",
+      "招牌",
+      "招牌名"
+    ],
+    "description": "商户经营的商业品牌；门店侧招牌名锚 bi_d_position.SIGNBOARD，BI 侧品牌维 dim_brand.brand_name。 口径：招牌名=门店级品牌展示名（SIGNBOARD），与品牌维（dim_brand）粒度不同，聚合统计用品牌维。"
+  },
+  {
+    "word": "租赁合同",
+    "other_words": [
+      "租赁合同管理",
+      "合同",
+      "合同号",
+      "租约",
+      "合约"
+    ],
+    "description": "铺位租赁契约，ERP 锚 bi_d_contract.CONT_NO（合同维），铺位关联 bi_d_position.CONT_NO，BI 侧事实 fact_leasing_contract.contract_no。 口径：合同身份口径 CONT_NO 前缀 CONT_；到期窗口查询走 starter 组「合同到期」（vw_mall_ops_contract_expiry.days_to_expiry），两组互补不重复。"
+  },
+  {
+    "word": "合同状态",
+    "other_words": [
+      "租约状态"
+    ],
+    "description": "租赁合同生命周期状态。两套体系并存：ERP 侧 bi_d_contract.CONT_STATE，BI 侧 fact_leasing_contract.contract_status。 口径：查询时以所在表为准——状态值域未对齐（D1 结论 L2 落点），跨表比较前先做状态映射。"
+  },
+  {
+    "word": "空置",
+    "other_words": [
+      "空置率",
+      "空铺",
+      "空铺面积",
+      "空置铺位",
+      "未出租"
+    ],
+    "description": "铺位未出租状态。ERP 口径 bi_d_position.POSITION_STATE=空置；BI 口径 fact_shop_daily_operation.business_status=vacant（视图 vw_mall_ops_vacancy_snapshot）。 口径：双口径并存：铺位实时状态用 ERP 侧；空置面积快照/趋势用 BI 侧（gla_area 汇总）。"
+  },
+  {
+    "word": "停车",
+    "other_words": [
+      "车位",
+      "停车场",
+      "停车收入",
+      "车流"
+    ],
+    "description": "停车场经营数据，BI 锚 fact_parking_daily（车流/周转/收入），项目车位规模 dim_project.parking_spaces。 口径：停车收入口径 fact_parking_daily.parking_revenue_amount（日粒度）；车流=parking_entries。"
+  },
+  {
+    "word": "费用科目",
+    "other_words": [
+      "科目",
+      "收费科目",
+      "费项"
+    ],
+    "description": "计费科目字典。ERP 锚 bisubject（STOREID 级，SUBJECTCODE/SUBJECTNAME/SUBJECT_TYPE），BI 侧维表 dim_fee_subject。 口径：账单/押金明细的 SUBJECTCODE 均引用本字典；两套编码未对齐前以各自表内自洽为准。"
+  },
+  {
+    "word": "销售明细",
+    "other_words": [
+      "销售流水",
+      "POS 销售"
+    ],
+    "description": "POS/销售流水明细，ERP 锚 bisaledtl（笔级，SALEYEAR/SALEMONTH/SALEDAY）与 bipossaledtl（POS 通道流水，无铺位列，按 CONTRACT_CODE/BUSDATE 关联合同）。 口径：明细=笔级；汇总口径走 BI 侧 vw_mall_ops_merchant_daily（starter 组销售额），勿用明细表直算全场汇总（口径差异）；POS 通道表无 POSITIONCODE，铺位维度须经合同桥接。"
+  },
+  {
+    "word": "押金",
+    "other_words": [
+      "押金台账",
+      "装修押金",
+      "保证金",
+      "押金流水"
+    ],
+    "description": "合同保证金类款项。ERP 流水锚 bipreddeposit（DEPOSITDATE/DSPTYPE，笔级），BI 侧合同字段 fact_leasing_contract.deposit_amount（合同级）。 口径：两粒度勿混：流水=实收轨迹（笔级），合同字段=应缴额度（合同级）。"
+  },
+  {
+    "word": "账单",
+    "other_words": [
+      "账单调整",
+      "账单号",
+      "缴款日"
+    ],
+    "description": "应收账单头，ERP 锚 bibillrecvinfo（BILL_NUM/BILL_DATE/LASTPAYDATE，账单粒度）。 口径：账单身份与日期归本组；应收/实收/欠费金额口径归 starter 组（vw_mall_ops_arrears_current），两组互补。"
+  }
+]

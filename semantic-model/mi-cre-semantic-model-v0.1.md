@@ -42,3 +42,7 @@ W15-D3：从术语层+Entity 锚点批量生成 LnkChatBI term-aliases/SQL 示�
 
 - 本文件全部数字可由 `w14d3-ontology-health-report.yaml`、`w14d5-context-coverage-report.yaml`、D4 对账 md 复算
 - ontology 指纹带 sha256_16，重跑 diff = 熵增量（体检可复现原则）
+
+## v0.1.1 patch 记录（2026-09-09，W15-D3 前置落地）
+
+按 W14-D7 整改清单原位 patch，不重发版：R2 场景层冻结升格机器可读 `scenario_layer_frozen: true`；R3 Context 别名表 14 条（D3 短名→D5 全名，含 02 Party Core↔02 Merchant，规范名以 D5 全名为准）；G-01 ontology frontmatter 四行提案模板（待主仓 change 流程提交，语义资产侧先固化模板）。ontology 指纹复验仍为 `bf550bc24de66813`（patch 未触碰 SoT）。机器检查全过：版本 0.1.1 / 冻结字段 / 别名表全解析 / frontmatter 四键。

@@ -2,8 +2,10 @@
 # 定稿包（W14-D6 组装，2026-09-06 补录）。六构件 + 证据引用 + 已知缺口。
 # 宪章：分层 SoT（W14-D2 定稿）——本文件是索引与裁决层，不复制下游源。
 meta:
-  version: "0.1"
+  version: "0.1.1"
   assembled: "2026-09-06"
+  patched: "2026-09-09"
+  patch_note: v0.1.1 三件套（W14-D7 整改 R2/R3/G-01，W15-D3 前置落地）——场景层冻结升格机器可读、Context 别名表（规范名以 D5 全名为准）、ontology frontmatter 提案模板。不重发版，原位 patch。
   status: assembled-draft
   scope: MI CRE ERP（lnkcre 主仓 8/28 快照）
   charter:
@@ -24,6 +26,22 @@ sources:
 
 entity:
   skeleton: 17 Context + Platform/Shared（D5 实证，非模块层）
+  canonical_context_names: D5 全名（索引层规范名，v0.1.1 R3 裁决）
+  context_alias_v1:
+    "01 Asset Fnd": "01 Asset Foundation"
+    "02 Party Core": "02 Merchant"
+    "03 Leasing": "03 Leasing Pipeline"
+    "04 Contract": "04 Contract Lifecycle"
+    "05 Lease/Occ": "05 Lease/Occupancy"
+    "06 Billing": "06 Billing & AR"
+    "07 Collection": "07 Collection & Settlement"
+    "08 TaxInvoice": "08 Tax Invoice"
+    "09 AcctBridge": "09 Accounting Bridge"
+    "10 Operations": "10 Operations Management"
+    "11 Property": "11 Property Management"
+    "13 WorkOrder": "13 Work Order Service"
+    "14 Marketing": "14 Marketing & Campaign"
+    "17 BI/Analytics": "17 BI & Analytics"
   table_total: 472
   contexts:
     "17 BI & Analytics": {tables: 70, share_pct: 14.8, anchor: [sales_transactions, analytics_metrics, report_definitions]}
@@ -100,6 +118,7 @@ rule:
     maintenance-effect: [repair_work_orders, material_* 族]
 
 capability_policy:
+  scenario_layer_frozen: true  # v0.1.1 R2：W15 任何生成动作不得引用 scenario_entries（15/102 半成品，防固化进术语库）
   modules: 12
   capability_labels: 102
   role_coverage: "7/102"
@@ -137,6 +156,13 @@ known_gaps:
     item: amendmentmatrix 运行时编辑无版本快照
   - id: G-10
     item: 语义层超额承诺：13/15 Context 稀疏（3/2 张表）vs 102 能力声明
+
+governance_proposals:
+  ontology_frontmatter:  # v0.1.1 G-01：business-ontology.yaml frontmatter 四行提案模板（待主仓 change 流程提交，语义资产侧先固化模板）
+    version: "1.0.0"          # 语义化版本，术语/结构变更升 minor
+    status: active            # active | frozen | deprecated
+    maintainer: mi-domain-owner
+    change_process: openspec change（proposal → 对账报告 → 合入；禁止无 diff 报告直改）
 
 first_consumer:
   planned: W15-D3——从本模型 term 层 + Entity 锚点批量生成 LnkChatBI term-aliases / SQL 示例校准集

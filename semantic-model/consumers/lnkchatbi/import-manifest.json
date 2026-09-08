@@ -1,0 +1,40 @@
+{
+  "generated_at": "2026-09-09T06:11:22",
+  "producer": "semantic-model v0.1.1 → LnkChatBI 术语库/SQL 示例生成器（W15-D3 实验3）",
+  "source": {
+    "ontology": {
+      "path": "/root/docs/lanlnk/config/ontology/business-ontology.yaml",
+      "sha256_16": "bf550bc24de66813"
+    },
+    "semantic_model": "/root/learning-notebooks/semantic-model/mi-cre-semantic-model-v0.1.yaml",
+    "version": "0.1.1"
+  },
+  "scope": {
+    "specific_ds": true,
+    "datasource_ids": "SET_AT_IMPORT（= mallcre / CRE BI Demo 数据源 id）",
+    "reason": "术语库是 oid 级共享池，Semantic Model 是项目级资产，不圈作用域=往共享池倒项目私货（W15-D2 决策②）"
+  },
+  "r2_guard": "scenario_layer_frozen=true；生成源仅 aliases+terms；scenario 名仅用于排除校验（断言已过）",
+  "counts": {
+    "term_groups": 14,
+    "aliases": 81,
+    "sql_examples": 11,
+    "merge_suggestions": 0,
+    "ontology_unique_terms": 844,
+    "consumed_unique_terms": 51
+  },
+  "validation": {
+    "term_binding_failures": 0,
+    "explicit_anchor_failures": 0,
+    "sql_failures": 0,
+    "validator_calibration": {
+      "starter_term_failures": 0,
+      "starter_sql_failures": 0
+    }
+  },
+  "files": {
+    "term-aliases.generated.json": "39c553b4e497fb49",
+    "sql-examples.generated.json": "5fdbe1f329bf4734",
+    "alias-merge-suggestions.json": "4f53cda18c2baa0c"
+  }
+}
