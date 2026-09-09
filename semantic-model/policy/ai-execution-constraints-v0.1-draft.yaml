@@ -1,0 +1,138 @@
+# =====================================================================
+# MI CRE · AI 执行约束声明格式 v0.1-draft（W15-D4 定义）
+# =====================================================================
+# 定位：给 AI（数字员工/问答/LnkChatBI）的「不可做 + 必须解释什么」边界声明。
+# 状态：draft-proposal（2026-09-10），未经 Jason 评审，禁止消费进任何生成物。
+# 双消费方：① 机器校验（本文件可被程序验证词表封闭性/证据完整性，见 W15-D4 ipynb §5）
+#           ② prompt 注入（explanation.template 走 D3 验证的 term-aliases description 通道）
+#
+# 代码事实依据（lnkcre 8/28 快照）：
+#   - workflow/model.go（Node/Transition/AssignmentRule/NodeKind/Definition 生命周期）
+#   - workflow/condition_evaluator.go（8-op 受限谓词 + and/or，字段解析失败→False）
+#   - approvalmatrix/model.go + service.go（三级升级链 resolveChain/EscalatedFrom/AutoPass）
+#   - conditionapproval/service.go:233（SubmitForApproval 策略门禁）+ workflowpolicy/policy.go
+#   - workflow/timeout_service.go（TimeoutAction 四值，人定 fail-open）
+# 语义层依据（CRE BCM）：
+#   - ADR-004（声明式适用性五维；端点不引运行时 ID；§12 工作流语义让渡下游）
+#   - ADR-006（Lifecycle Effect 三轴分离：状态耦合归 effect，路由归下游）
+# =====================================================================
+
+meta:
+  id: mi-cre-ai-execution-constraints
+  version: "0.1-draft"
+  defined: "2026-09-10"
+  status: draft-proposal
+  author: "W15-D4 Policy 语义化（开发期学习轨道）"
+  review_gate: "Jason + 主仓 openspec change 流程后才可升 0.1"
+  source_of_truth:
+    code: /root/lnkcre/backend/internal/{workflow,conditionapproval,approvalmatrix}
+    spec: /root/lnkcre/openspec/specs/{workflow-approvals,condition-approval,condition-approval-workflow-policy,approval-authority-matrix}
+    bcm: /root/docs/lanlnk/config/ontology/cre-business-capability-matrix/
+  design_rules:            # 六条 Policy 抽取规则中的五条可机读约束（P1 规则数据化由载体本身体现）
+    - R1-declarative-restricted-predicate   # 仅 8 op + and/or，禁任意 DSL（ADR-004 §9 同构）
+    - R2-fail-closed                        # 未映射/字段缺失→拒绝或保守跳过，不猜测
+    - R3-evidence-anchor-and-version-binding # 证据锚用业务键；解释绑定提交时版本
+    - R4-ai-explains-not-executes           # AI 解释路由，不执行路由；auto_approve 只能来自人定配置
+    - R5-dual-consumer                      # 同一份声明可被机器校验，也可走 description 通道进 prompt
+
+schema:                    # 封闭词表（新增取值须走评审，同 ADR-004 binding_type 治理方式）
+  constraint_types: [route_only, act_with_approval, read_only, forbidden]
+  ai_may: [explain, preview, draft, annotate, monitor]
+  ai_may_not: [approve, reject, escalate, auto_approve, suppress_escalation, modify_route, modify_policy_cell, skip_branch, fabricate_rationale]
+  fail_modes: [closed, open_explicit]        # open_explicit 仅当 evidence 指向人定 timeout_action=auto_approve 类显式放开
+  predicate_ops: [">", ">=", "<", "<=", "==", "!=", "in", "not_in"]
+  applicability_dims: [scope, document_type, threshold, area_band, term_band, custom_predicate]
+  evidence_required: [carrier, business_key, rationale_fields, version_binding]
+
+constraints:
+
+  # ---- ① 条件报批路由：只解释，不执行 --------------------------------
+  - id: ca-approval-routing-explain-only
+    type: route_only
+    applies_to:
+      document_type: condition_approval
+      scope: [01-招商管理, 02-合同管理]        # 条件报批横跨招商/合同链
+    rules:
+      ai_may: [explain, preview, draft, annotate]
+      ai_may_not: [approve, reject, escalate, auto_approve, skip_branch, modify_route]
+      fail_mode: closed                        # workflowpolicy 未映射 role key → 提交即失败，AI 只能如实转述失败原因
+    evidence:
+      carrier: condition_approval_workflow_policy + workflow_definitions(published version)
+      business_key: [project_id, branch_key, definition_code, version_number]
+      rationale_fields: [branch_key, role_id, authorization_policy, definition_version]
+      version_binding: instance_created_at_definition_version   # 实例创建即绑版本（workflow-approvals spec）
+      known_gaps:                              # W15-D4 盘点出的断链（详见 Day4 md §2）
+        - authorization_policy 字段存而不执行（无执法点）
+        - ResolveRole 结果被丢弃（门禁不回填节点分配，审批人来自 seed 硬编码 role_id=1）
+    explanation:
+      trigger_questions: ["这个条件报批要谁审？", "为什么卡在公司审核？"]
+      template: "条件报批按已发布流程定义 v{definition_version} 串行流转：提交→项目审核→公司审核；项目角色分支由项目 {project_id} 的策略映射到角色 {role_id}。若提交失败提示未映射，表示该项目未配置该分支审批人，流程会拒绝开始而不是跳过审批。"
+      rationale_placeholders: [definition_version, project_id, role_id]
+
+  # ---- ② 合同审批权限矩阵：升级链解释 + 禁止压制升级 ------------------
+  - id: contract-authority-escalation-explain
+    type: route_only
+    applies_to:
+      document_type: [contract, change, refund, payment, collection]
+      threshold: {field: amount, op: ">", value: 0}     # 矩阵天然按金额起作用
+    rules:
+      ai_may: [explain, preview]
+      ai_may_not: [suppress_escalation, modify_policy_cell, auto_approve, fabricate_rationale]
+      fail_mode: closed
+    evidence:
+      carrier: approval_authority_rules
+      business_key: [role_id, document_type, approval_level]   # 唯一约束（spec Requirement 1）
+      rationale_fields: [threshold_min, threshold_max, area_band_min, area_band_max, term_band_min, term_band_max, auto_route_rule, escalated_from, auto_pass_eligible]
+      version_binding: submission_time_rule_row               # ⚠ 规则行无版本快照（is_active 软停用），解释只能锚行 ID+读取时刻——登记为格式缺口 GAP-P1
+    explanation:
+      trigger_questions: ["为什么这份合同要报总部？", "50 万以下是不是项目就能批？"]
+      template: "金额 {amount} 元{escalation_clause}，命中 {approval_level} 级权限带（规则 #{rule_id}：{threshold_min}–{threshold_max} 元{band_clause}）。{auto_pass_clause}"
+      rationale_placeholders: [amount, approval_level, rule_id, threshold_min, threshold_max, escalation_clause, band_clause, auto_pass_clause]
+
+  # ---- ③ 红旗/受控商户强制升级：意图存在但执行端断链（诚实声明） --------
+  - id: redflag-minlevel-escalation
+    type: route_only
+    applies_to:
+      document_type: [condition_approval, lease]
+      custom_predicate: {field: judgment_flags, op: "!=", value: "null"}   # 红旗报价 / 受控商户（MER-015/016）
+    rules:
+      ai_may: [explain, annotate]
+      ai_may_not: [suppress_escalation, modify_route, approve]
+      fail_mode: closed
+    evidence:
+      carrier: conditionapprovals.judgment_flags + lease 提交侧 MinApprovalLevel 设置
+      business_key: [document_id]
+      rationale_fields: [judgment_flags, red_flag_reasons, intended_min_level]
+      version_binding: submission_time_flags
+      known_gaps:
+        - workflow.StartInput.MinApprovalLevel（model.go:323）被两处赋值（lease MER-015/016、conditionapproval 红旗）但 workflow 包内零消费——升级意图在引擎侧丢失（W15-D4 断链①）
+        - AI 解释此类单据时必须声明「应升级至 city 级」为策略意图而非已执行事实
+    explanation:
+      trigger_questions: ["这家商户是受控状态，为什么还能提交合同？"]
+      template: "该单据携带红旗标记（{judgment_flags}），提交侧策略要求最低 city 级审批；注意：当前引擎版本未消费该升级下限（断链），实际审批级别以权限矩阵解析结果为准。"
+      rationale_placeholders: [judgment_flags]
+
+  # ---- ④ 超时处置边界：auto_approve 只能来自人定配置 -------------------
+  - id: node-timeout-autoapprove-boundary
+    type: act_with_approval
+    applies_to:
+      scope: [workflow 节点级]                  # 适用于一切 published 定义节点
+    rules:
+      ai_may: [monitor, annotate, explain]      # AI 可提示超时与预警
+      ai_may_not: [auto_approve, approve, escalate]   # 超时动作四值（reject/escalate_to_manager/auto_approve/none）只能由定义 draft 期人定，publish 后不可变
+      fail_mode: open_explicit                  # 唯一显式 fail-open：节点配置 timeout_action=auto_approve 是人写的放开
+    evidence:
+      carrier: workflow_nodes.longest_delay_minutes + timeout_action
+      business_key: [definition_code, version_number, node_code]
+      rationale_fields: [longest_delay_minutes, timeout_action, timeout_audit_key]
+      version_binding: instance_created_at_definition_version   # 超时配置 publish 后 immutable（spec）
+    explanation:
+      trigger_questions: ["这个审批节点会超时自动通过吗？"]
+      template: "节点 {node_code}（定义 v{version_number}）的超时配置：{longest_delay_minutes} 分钟后执行 {timeout_action}。auto_approve 是流程定义者在草稿期显式选择的放开，不是 AI 的裁量。"
+      rationale_placeholders: [node_code, version_number, longest_delay_minutes, timeout_action]
+
+# ---- 登记缺口（不阻塞 draft，升 0.1 前须裁决）--------------------------
+known_gaps:
+  - GAP-P1: approval_authority_rules 规则行无版本快照（is_active 软停用），rationale 不可复现历史——与 amendment 矩阵同病（W14-D4 缺口④），v0.2 统一裁决
+  - GAP-P2: authorization_policy / MinApprovalLevel 两处「声明无执行」断链——格式先行声明 known_gaps 是诚实做法，修复归 lnkcre change 流程
+  - GAP-P3: seed 定义与 condition-approval-workflow-policy spec 漂移（硬编码 role_id=1 / 多出 finance_review 节点），约束①的解释依赖实际 seed 而非 spec 文本

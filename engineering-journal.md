@@ -665,3 +665,20 @@ Today's Question「同一份 ontology，喂术语库和喂表结构注释差在�
 - D6 实战日待办：生成物导入 LnkChatBI 实测（mallcre 数据源）+ A101 依据链问答走 L1-L3 + 覆盖率复测；招商线索组缺失（BI-P0 唯一 MISS）登记 v0.2 候选第一顺位
 - 验证器 v0 边界登记：裸列名未校验、大小写折叠近似；计数口径差（883 vs 963）并入 G-01 提案第五行
 - 微信通道 9/8 起中断（NOTICE-2026-09-09 已留），等 owner 重配对；学习内容落盘链路不受影响
+
+## 2026-09-10（W15-D4 周四 · Policy 语义化：审批流 → Policy Model 抽取规则 × AI 执行约束声明格式）
+
+### 今天最大的认知
+Today's Question「AI 需要知道谁审批，还是为什么找他审批」的答案被量化坐实：**"谁"塌缩"为什么"**。复刻 approvalmatrix resolveChain 扫描 56 份单据（7 金额×2 面积×2 租期×2 红旗），同一个终审级别 city 下压着 **4 条互斥理由路径**（金额越带升级/面积带跳级/谓词跳级/红旗下限强制），hq 级同样 4 条——只答"谁"的 AI 把政策理由压成标签必然丢因。更硬的证据是系统自己正丢着"为什么"：三处断链全部坐实——① StartInput.MinApprovalLevel 被 lease/conditionapproval/merchantstatus 多处认真赋值（SAL-021 红/管商户→city），workflow 包内 grep 零消费，红旗单据误路由率 11%（丢下限后 3/28 落回 project）；② workflowpolicy.ResolveRole 返回的映射角色被 `if _, err :=` 丢弃，门禁只验存在性不回填，审批人错配率 100%（策略映射 role 12 vs seed 硬编码 role_id=1）；③ authorization_policy 存了字符串、spec 声明 SHALL enforce、执法点为零。"谁审批"的表都在，"为什么"的字段都在，链没接完——**rationale 不是锦上添花，是当前实现的真实缺口**。
+
+### 今天最大的坑
+① YAML 流序列陷阱：`business_key: [a, b] + [c, d]` 在 YAML 里不是拼接是语法错误（流序列闭合后跟 `+` scalar），verify_ipynb 当场 FAIL 一次——修复后才全绿；draft 声明文件自己先被机器抓住格式错误，倒是意外验证了"机检先行"的流程价值。② Go resolveChain 有个容易漏看的细节：终端兜底优先选 hq 行时**只复查带+谓词闸，不复查 threshold_max**——复刻时忠实镜像了这个行为，否则 spec 场景回放会对不上。③ seed/spec 当天分叉的教训：condition-approval-workflow-policy spec 8/7 归档（"不内嵌角色 ID、两分支串行"），seed.go 8/8 写下四节点全 RoleID:1 + 多出 finance_review——W14-D4 发现的"语义声明与代码无机器锚点"在 policy 域原样复现，两份文件隔一天就分叉，人对人传递规格靠不住。
+
+### 今天最大的决策
+① 主交付物 **AI 执行约束声明格式 v0.1-draft** 落盘 `semantic-model/policy/`：五块结构（meta/schema 封闭词表/4 条约束实例/known_gaps），每条约束 = applies_to（声明式适用）+ rules（ai_may/ai_may_not/fail_mode）+ evidence（carrier/业务键/rationale_fields/版本绑定）+ explanation（trigger_questions+模板）；机检全过（封闭词表/证据四键/模板占位符⊆声明占位符/fail-open 仅限 act_with_approval）。R5 双消费方设计：同一份声明既能机检又能走 D3 验证的 description 通道进 prompt。② 抽取规则六条定稿（P1 策略是数据不是代码 / P2 升级链带迹遍历 / P3 声明式受限谓词 8-op / P4 fail-closed / P5 版本绑定 / P6 路由与商务计算分离），全部有 file:line 证据。③ 对照 ADR-004 三点校准+一条反哺：权限矩阵就是"声明式适用性"的生产实例；**O-4 反哺证据**——mi 的 auto_route_rule/ConditionJSON 就是 8-op+and/or 受限谓词集且生产在用，若 O-4 复审可直接采纳为受限 DSL 基线不必发明新 DSL；Policy Model 不是第五类 binding_type（O-9 已决策），是 ADR-004 §12.2 显式让渡给下游的领域。④ 三断链+seed 漂移登记为 lnkcre change 候选（与 G-01"语义漂移无机器告警"同宗），学习轨道不擅改主仓。
+
+### 遗留 / 下一步
+- 明日 D5：开发节奏定轨——W16+ backlog 按 Semantic Model 依赖排序（断链修复 > 策略载体版本化 GAP-P1 > 通道注入实测），定与主仓同步机制（每周 digest + R-wave 跟读）；Today's Question"学习期雷达机制，开发期保留什么砍掉什么"
+- draft 未评审不得消费；D6 实战日：约束 explanation.template 占位符替换后随 term-aliases 一起走 LnkChatBI 注入实测
+- GAP-P1（approval_authority_rules 行无版本快照，rationale 不可复现历史）与 W14-D4 缺口④（amendment 矩阵）同病，v0.2 统一裁决"策略载体版本化"
+- 微信通道仍中断（NOTICE-2026-09-09），落盘链路不受影响
