@@ -1,0 +1,68 @@
+{
+ "imported_at": "2026-09-12T06:19:37",
+ "executor": "第15周-Day6 ipynb（SQLite 镜像导入演练；服务器无 PG，LnkChatBI 真库导入为 W16 候选项）",
+ "datasource": {
+  "name": "CRE BI Demo",
+  "id": 1,
+  "binding": "specific_ds=true（解析 SET_AT_IMPORT）"
+ },
+ "pack": {
+  "terms": 14,
+  "aliases": 81,
+  "sql_examples": 11,
+  "fingerprints": {
+   "terminology.json": "2deb9b63daa86aab",
+   "sql_examples.json": "9d3fbb388c62197d"
+  }
+ },
+ "upsert": {
+  "first_run": [
+   14,
+   81,
+   11
+  ],
+  "second_run": [
+   0,
+   0,
+   0
+  ],
+  "convergence": "PASS（全 0）"
+ },
+ "coverage_ab": {
+  "battery": 21,
+  "term_base": 2,
+  "term_after": 19,
+  "example_base": 2,
+  "example_after": 13,
+  "e2e_exec_ok": 11,
+  "e2e_with_example": 11
+ },
+ "a101_chain": {
+  "L1": "PASS",
+  "L2": "PASS",
+  "L3": "PASS",
+  "L4": "TODO",
+  "L5": "TODO",
+  "L1_prime": "TODO"
+ },
+ "whitelist_compliance": {
+  "in_prod_whitelist": "0/11（demo 数据源设计域）",
+  "mallcre_valid": "11/11",
+  "mapping_gap_objects": [
+   "bi_b_tenant",
+   "bisubject",
+   "bipreddeposit",
+   "fact_parking_daily"
+  ]
+ },
+ "known_gaps_found_today": [
+  "示例#2 值域枚举未校验（POSITION_STATE '空置' vs 种子 1/2）",
+  "V2 口语变体（空着的铺）全 MISS → 别名补录候选"
+ ],
+ "source": {
+  "ontology_sha256_16": "bf550bc24de66813",
+  "semantic_model": "v0.1.1",
+  "lnkcre_head": "d580ebd5",
+  "starter_pack": "/root/LnkChatBI/backend/scripts/mall_ops_starter_pack"
+ }
+}
