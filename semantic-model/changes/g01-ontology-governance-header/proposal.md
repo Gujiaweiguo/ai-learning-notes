@@ -1,0 +1,67 @@
+# Change Proposal: ontology 治理头 + 家族治理关系声明（G-01）
+
+> 起草：2026-09-14（W16-D1，S1 首次正式 digest 裁决后）
+> 状态：**draft（学习轨道起草，待主仓立案受理）**
+> 载体：按 openspec change 格式起草；**立案载体待主仓裁决**（lnkcre openspec change 流程 vs docs 仓 evidence-chain 流程——目标文件全部在 docs 仓）。
+> 关联缺口：G-01（ontology 无治理头，语义漂移无机器告警）；同宗第五件（W15-D6/D7 登记）：产品级 ontology ×4 无治理关系声明。
+
+## Why（为什么）
+
+三条证据链，全部可机器复核：
+
+1. **SoT 无治理头**。`lanlnk/config/ontology/business-ontology.yaml`（12 模块 / 102 子功能 / 195 capability，指纹 `bf550bc24de66813`）顶层键只有 `modules`——无 version、无 owner、无变更流程声明。同族文件已出现过"一个文件两种数法"（2026-09-09 W15-D3 复盘：883 vs 963，模块级 aliases 是否入计数无声明）。
+2. **产品级 ontology ×4 治理关系未声明**。docs 仓并存 5 件 ontology.yaml（详见对账报告 reconciliation.md）：
+   - SoT 与四件产品件模块集合 **Jaccard = 0%**（不是副本、不是同域双 SoT）；
+   - 但派生/维护/管辖域关系**零声明**（反向 grep：产品件无一引用 SoT；SoT 无一登记产品件）；
+   - 「数据源管理」在 LnkChatBI 与 lnkreport 两件中**同名异义**（内容不相交）——消费方选件无机器依据。
+3. **复制演化无链**。`90-legacy/…/out-prd-langchat/output/ontology.yaml` 是 lnkchat 产品本体的冻结快照（模块集与 live 件 100% 同名，子功能 18→26、capability 31→41，指纹不同），但无 frozen 标记、无指纹登记——家族靠拷贝生长，历史与现状的关系只存在于知情者脑中。
+
+**一句话**：五件 ontology 里任何一件被改、被拷贝、被误用，今天没有任何机器机制能发现或阻止。
+
+## What Changes（改什么）
+
+1. **SoT frontmatter 五键治理头**（模板已在 Semantic Model v0.1.1 固化四键，本次增第五键）：
+
+```yaml
+# business-ontology.yaml 头部新增
+ontology_meta:
+  version: "1.0.0"            # 语义化版本：术语/结构变更升 minor
+  status: active              # active | frozen | deprecated
+  maintainer: mi-domain-owner
+  change_process: "openspec change（proposal → 对账报告 → 合入；禁止无 diff 报告直改）"
+  counting_caliber:           # 计数口径声明（883/963 双数教训固化）
+    module_count: 顶层 modules 键计数
+    sub_function_count: 各模块 sub_functions 展平计数
+    capability_count: 各子功能 capabilities 展平计数
+    term_count: 全部 aliases 展平去重计数（模块级与子功能级合并，声明二者均计）
+```
+
+2. **四件产品件各加最小治理块**（不触碰内容，仅头部声明）：
+
+```yaml
+# 产品件头部新增
+ontology_meta:
+  authority_scope: lnkchat-platform   # 管辖域：mi-cre-business | lnkchat-platform | lnkchatbi | lnkreport
+  status: active                      # legacy 件标 frozen
+  custody: <产品文档 owner>
+  derives_from: "<源文档/代码指针 + 日期>"
+  relation_to_mi_sot: "管辖域不重叠（模块 Jaccard=0，2026-09-14 裁决）；非派生、非副本"
+```
+
+3. **新增家族登记簿** `lanlnk/config/ontology/registry.yaml`：登记全部 ontology 件（路径/authority_scope/status/指纹 sha256_16/最后核验日期），作为 SoT 指纹链锚点——S1 digest 与消费方选件据此机器判定。
+
+4. **legacy 件标记**：`90-legacy/…` 件 status: frozen（已在文档控制面下，仅补机器可读标记）。
+
+## Impact（影响面）
+
+- 文件：docs 仓 5 件头部追加 + 1 件新增（registry.yaml）；**不改任何语义内容**（合入后 SoT 内容指纹不变，仅文件级指纹随头部更新并登记）。
+- 消费方：LnkChatBI 语义包生成（W16-③）、未来 MCP 工具描述生成（W17 ⑥）获得机器可判定的选件依据；S1 周频 digest 获得指纹链基线。
+- lnkcre 仓：零代码影响。
+- 风险：低——纯声明性变更；唯一裁决点是立案载体（见头部）。
+
+## 验收
+
+1. 五件 ontology 均带治理头/治理块，`python -c "yaml.safe_load(...)"` 可解析；
+2. registry.yaml 五条登记齐全，指纹与实际文件 sha256_16 逐条一致（对账脚本复验）；
+3. SoT counting_caliber 声明后，W15-D3 的 883/963 双数按声明口径复算唯一化；
+4. 合入后 SoT 指纹（含头部）登记入指纹链，W39 起每次 S1 digest 复验。
