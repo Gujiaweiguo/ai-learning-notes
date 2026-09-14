@@ -1,0 +1,103 @@
+# G-05 Effect-Registry 代码锚点登记 v0.1（W16-② 交付，2026-09-15）
+# 治理依据：ADR-006 §10 ORE-1（effect-registry 冻结 v1.0，2026-07-26）
+# 对账基线：lnkcre 0392e1079c5da77d85bf16ed3d0cdcd241eb811e（2026-09-15 S2 探针后 pull，behind 9→0）
+# 来源对账：第14周-Day4-Rule层对账要点.md（5 类冻结 effect × 代码事实）
+#
+# 锚点语义（frozen_effect_ci.py anchors 门消费）：
+#   OK      = expect 子串仍出现在登记行号上（绿）
+#   DRIFTED = 内容还在文件里但行号变了（上游插删行 → 维护信号，黄，不红）
+#   BROKEN  = expect 内容在文件中已找不到（冻结 effect 的实现证据被改/删 → 红，须带 change）
+#
+# 红线遵守：本文件登记在 semantic-model 工作区，不写入 lnkcre 主仓（S5 归档律）。
+
+registry_source: docs/lanlnk/config/ontology/cre-business-capability-matrix/effect-registry.yaml
+registry_frozen_version: v1.0 (2026-07-26)
+baseline_commit: 0392e1079c5da77d85bf16ed3d0cdcd241eb811e
+verified_date: "2026-09-15"
+anchor_policy: {drift: warn, broken: red-unless-change}
+
+effects:
+  state-transition-effect:
+    owner_domain: general
+    w14d4_verdict: 实现在，且状态迁移有审计轨迹
+    anchors:
+      - file: backend/internal/lease/model.go
+        line: 16
+        expect: StatusDraft
+        role: lease 8 态状态机字面量首行（16-23：draft/pending_approval/pending_termination/active/rejected/terminated/voided/closed）
+      - file: backend/internal/conditionapproval/model.go
+        line: 102
+        expect: type LifecycleAuditEntry struct {
+        role: 生命周期审计条目类型（状态迁移留痕的载体）
+      - file: backend/internal/conditionapproval/repository.go
+        line: 307
+        expect: func (r *Repository) InsertLifecycleAudit(
+        role: 审计写入入口（append-only 契约的执行点）
+
+  occupancy-effect:
+    owner_domain: leasing
+    w14d4_verdict: 语义=实现一致，测试锚定
+    anchors:
+      - file: backend/internal/occupancy/state_machine.go
+        line: 20
+        expect: func ValidateTransition(
+        role: 占用状态机迁移合法性校验（什么会变的声明侧）
+      - file: backend/internal/occupancy/repository.go
+        line: 26
+        expect: func (r *Repository) CreateTx(
+        role: 占用写入与业务事务耦合点（怎么变的执行侧）
+      - file: backend/internal/occupancy/integration_test.go
+        line: 69
+        expect: func TestService_ReserveRejectsActiveOccupancy(
+        role: 活跃占用拒绝再预留（语义=实现的测试锚）
+
+  financial-effect:
+    owner_domain: finance
+    w14d4_verdict: 多对多分布于 billing/collections/arrebalance
+    anchors:
+      - file: backend/internal/lease/amendment_receivable_impact.go
+        line: 10
+        expect: type ReceivableImpact struct {
+        role: 变更→应收重算分类器（文档注释自证被 billing.ArrebalanceConsumer 与 receivableschedule.Consumer 双消费）
+      - file: backend/internal/arrebalance/model.go
+        line: 17
+        expect: TriggerEventType = "amendment"
+        role: 触发事件族首行（17-20：amendment/termination/renewal/void）
+      - file: backend/internal/billing/service.go
+        line: 118
+        expect: func (s *Service) GenerateCharges(
+        role: 计费生成入口（财务影响的产出端）
+
+  lead-conversion-effect:
+    owner_domain: sales
+    w14d4_verdict: 表级证据在，转化链断言未逐条核（本批补锚点）
+    anchors:
+      - file: backend/internal/officelead/conversion.go
+        line: 25
+        expect: func (s *Service) Convert(
+        role: Lead→Customer 手工转化（CD-04，幂等，转化链依赖齐备才放行）
+      - file: backend/internal/opportunitydomain/funnel.go
+        line: 253
+        expect: func (r *Repository) funnelTransitions(
+        role: 商机漏斗阶段迁移取数（转化链的查询侧）
+      - file: backend/internal/platform/db/models.go
+        line: 4005
+        expect: CRE-SAL-038
+        role: append-only Lead 迁移审计（OfficeLeadStatusHistory，转化断言的档案层）
+
+  maintenance-effect:
+    owner_domain: operations
+    w14d4_verdict: 表级证据充分（12 Context 46 表）
+    anchors:
+      - file: backend/internal/operations/repository.go
+        line: 22
+        expect: INSERT INTO repair_work_orders
+        role: 维修工单写入（工单状态迁移的起点）
+      - file: backend/internal/material/model.go
+        line: 54
+        expect: type Material struct {
+        role: 物料主类型（领用/费用归集的对象侧）
+      - file: backend/internal/material/billing_link.go
+        line: 34
+        expect: BillingLink decouples material from the billing package
+        role: 工单→费用归集的解耦契约（物料→计费的桥，下游任务生成）

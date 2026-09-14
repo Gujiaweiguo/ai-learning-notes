@@ -751,3 +751,20 @@ Today's Question「多一份 ontology 为什么是事故苗头」的答案固化
 - G-01 提案待主仓立案受理（对账报告已成，brief 底线达标待立案）；w14-plus 建议补一行指向 w16-dev-brief
 - 登记待查（P2）：trade/industry 字典表是否产生新 canonical 表/术语 → W16-③ Identity 登记时一并核
 - 微信通道仍中断（NOTICE-2026-09-09 在案），落盘链路不受影响
+
+## 2026-09-15（W16-D2 周二 · G-05 Effect-Registry 代码锚点 × Frozen CI）
+
+### 今天最大的认知
+Today's Question「frozen 被违反时谁说不」的答案：**退出码**。`# Registry frozen v1.0` 昨天还是写给读者看的注释，今天被编码为 `frozen_effect_ci.py` 的两门（anchors 门治 W14-D4 缺口①无机器锚点、registry 门治缺口②无 CI 强制），8 场景红绿双向实测：篡改实现证据/新增第 6 类/伪造未立案 change 全部 exit 1，带已立案 change 才 exit 0——**门禁不消灭变化的权利，只给变化定价**（想改冻结项？先立案）。锚点设计的关键取舍：`(file, line, expect)` 三元组里行号只是首次观测值，三级判决把"证据消失"（BROKEN 红=违规）与"位置漂移"（DRIFTED 黄=维护）分开——蒙特卡洛（5 场景×400 次，真实文件）证明纯行号策略良性场景 100% 误报（狼来了→团队关告警的完整理由），包路径策略（现状）违规 0% 告警（静默腐烂），C 策略 0 误报+改名/删除 100% 抓获。**今日最重要实验发现：子串锚点对"扩名不改名"（StatusDraft→StatusDraftLegacy）盲**——新名包含旧子串，这是子串语义的固有代价不是 bug，已作为显式断言登记（`assert tamper_extend C==0`）；B 策略恰好此类全中但无法分辨哪次是对的——什么都报的策略总会蒙对几类。治理工具的第一性指标不是能抓到什么，是**误报率低到没人想关掉它**。
+
+### 今天最大的坑
+ipynb 构建脚本再踩 f-string 三重转义（W15-D7 同宗，第 N 次）：builder 的 f-string 与 notebook 内字典字面量 `{{}}` 混用导致两处 SyntaxError，被 verify 当场抓住；第一版模拟的"篡改"写法 `exp.replace(exp, exp+"Renamed")` 根本没破坏子串（新串仍包含 exp）——**模拟篡改先问自己：突变后的字符串还包含原锚吗**，修法是把篡改拆成"改名"（新名不含旧子串，C 抓获）与"扩名"（含，C 盲）两类分别断言，反而把盲区变成了显式登记的发现。另外 S4 演示 initially 红——`--change` 找不到 changes-dir（脚本默认 semantic-model/changes，演示建错位置），脚本行为正确、演示参数错：门禁第一次抓住的就是它自己的使用者。
+
+### 今天最大的决策
+① **G-05 落盘双工件**：`semantic-model/governance/g05-effect-anchors.yaml`（5 类×3 锚=15，声明/执行/档案三侧面，真实基线 15/15 OK @ 0392e107）+ `governance/ci/frozen_effect_ci.py`（两门，--json 机读输出）；brief 验收②「红绿可测本地演示」双向达成。锚点选 expect 子串而非整行精确匹配：对格式化重排（gofmt 对齐空格变化）免疫。② **S6 用 service-effect 做篡改素材**——它是 2026-07-29 经 PT-CS-06 评审被拒注册的类型，用它演示"不走 ORE-1 的注册"恰是该流程要防的事故，演示素材即语义。③ **G-05 锚点进 S1 周验基线**：digest 增锚点漂移项（15 锚 DRIFTED/BROKEN 计数），与 D1 registry 指纹链同窗复验；G-01 提案继续等主仓立案。S2 探针：lnkcre 9（baseinfo 波次尾段，拉齐锚定）/docs 3/chatbi 0，挡板未触发。
+
+### 遗留 / 下一步
+- 明日 W16-D3（brief ③）：chatbi 白名单 20 对象 Identity 登记 + 示例 #2 值域修订重出 pack + S6 回执换新；**须对齐 LnkChatBI domain-semantic-pack-contract（D1 digest P0）**；trade/industry 字典表新术语一并核
+- G-05 v0.2 候选：expect 升级为定界签名（治扩名盲区）；锚点漂移项进 W39 digest
+- G-01 提案待主仓立案受理；w14-plus 建议补一行指向 w16-dev-brief（D1 已提，待 Jason）
+- 微信通道仍中断（NOTICE-2026-09-09 在案），落盘链路不受影响
