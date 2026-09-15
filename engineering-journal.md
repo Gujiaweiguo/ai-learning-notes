@@ -768,3 +768,23 @@ ipynb 构建脚本再踩 f-string 三重转义（W15-D7 同宗，第 N 次）：
 - G-05 v0.2 候选：expect 升级为定界签名（治扩名盲区）；锚点漂移项进 W39 digest
 - G-01 提案待主仓立案受理；w14-plus 建议补一行指向 w16-dev-brief（D1 已提，待 Jason）
 - 微信通道仍中断（NOTICE-2026-09-09 在案），落盘链路不受影响
+
+## 2026-09-16（W16-D3 周三 · ChatBI 白名单 Identity 登记 × 生成器 v0.1.2 值域修正 × Pack 契约化重出）
+
+### 今天最大的认知
+Today's Question「为什么修正必须回生成器源头」的答案：**pack 是投影，不是源**——直接改 pack = 在投影上打补丁 = 下次重生成补丁必丢，且没有机器证据能区分"手改的包"和"生成的包"，漂移从此无声开始。修正回源后三重保障：changelog（人可审计）+ 回归哨兵断言（`= 2` 必须在、`= '空置'` 必须不在）+ 全链指纹换新（漂移可检测）。**分层 SoT 宪章的消费面实例：改投影是漂移，改源是演进**。今日最强证据是 #8 的连带发现：正因为验证器建在了源，复验时揪出第二处同病——BILLMONTH 是 varchar(32)（种子 '6' 型月份串），裸数字谓词在 PG 类型报错、在 SQLite 静默恒 false；W15-D6 归因"种子无 12 月账单"只对表层，**即使有 12 月数据旧谓词也永远查不到**。同样 0 行语义完全不同：一个是坏了，一个是没数据——错误归因决定治理动作的值域版。
+
+### 今天最大的坑
+① 构建脚本嵌套引号第 N 次翻车（builder 外层定界符 vs cell 内 f-string/yaml 三引号/正则转义），verify 连环抓出 6→2→1 个失败 cell 才全绿——**每次都是 verify 抓的，这就是它存在的理由**；教训新增一条：含内层 `"""` 的 cell 外层一律 `'''`，正则转义在外层非 raw 字符串里必须加倍。② `plt.cm.get_cmap` 在当前 matplotlib 已移除，直接用 `plt.cm.RdYlGn`——老 API 肌肉记忆在环境升级后是雷。③ 手滑在 md 里写了一个"看起来像"的 spec 指纹占位，写完核对 identity yaml 实测值（80c720f39832e44d）后改回——**指纹没有"大概"，只有实测**。
+
+### 今天最大的决策
+① **Identity 登记走 G-05 同门设计**：20 对象（16 open + 3 gov 视图 + 1 函数）+ 6 负锚点（5 restricted + refresh_run——边界的一半是"不能看见什么"）全部 `(file, line, expect)` 锚定进 `governance/identity-analysis-anchors.yaml`；血缘事实显式化：9/20 有 demo 血缘（5 干净 + 1 缺口承接）、11/20 无血缘（即 W17 backlog 清单）、4 缺口对象登记不隐藏。**权限边界也是语义资产，且是最不该靠人读的那一种**。② **P2 待查裁决**：trade/industry 字典零新增 canonical（industry_dict_aliases/trade_definitions 8/28 前已在册）；真实增量 472→477 是工程条件库 5 张 + 门店变更台账 1 张——v0.1.1 的 table_total 过期，登记进 W39 digest 刷熵基线，不静默改计数。③ **契约对照不粉饰**：回执 contract_alignment 8 项 = 4 ALIGNED + 3 PARTIAL + 1 N/A，demo profile 未注册（先于框架存在）如实标注为生产 pack 接入项——PARTIAL 项就是 W17 backlog，契约对齐不是打勾练习。
+
+### 数字速览
+值域复验 11/11（9 PASS+2 N/A，0 FAIL，生成器自报与独立复算一致）｜#2 真跑 0 行→1 行（LOC_DEMO_L202）｜幂等全 0｜电池 2→19/2→13 守恒｜e2e 11/11｜A101 L1-L3 PASS（DDL 枚举口径随组注入）｜指纹换新 terminology 2deb9b63→8137b094 / sql_examples 9d3fbb38→0af3cb1f｜S1 检查单 2→5 项（G-05+Identity 锚点漂移进周验，基线 lnkcre 0392e107/docs c3d08d6/LnkChatBI c8927267）
+
+### 遗留 / 下一步
+- 明日 W16-D4：G-01 立案窗口跟进（docs behind 10 未消化，受理状态核查）+ 两套锚点（15+26）周验预演 + G-04 v0.2 别名素材定稿（V2"空着的铺"全 MISS 与『项目』误触今日电池再复现）
+- 无血缘 11 对象（dim_date/dim_trade/mv_ops_daily 等）W17 生产绑定重生成时逐个补对象白皮书
+- G-01 提案待主仓立案受理；w14-plus 建议补一行指向 w16-dev-brief（D1 已提，待 Jason）
+- 微信通道仍中断（NOTICE-2026-09-09 在案），落盘链路不受影响

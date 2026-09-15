@@ -1,0 +1,118 @@
+# Identity 构件 · analysis 域锚点登记 v0.1（W16-③ 交付，2026-09-16）
+# 治理依据：lnk_chatbi_ro 白名单（openspec/specs/chatbi-governed-account-boundary/spec.md）
+# 对账基线：lnkcre 0392e1079c5da77d85bf16ed3d0cdcd241eb811e（同 G-05；S2 探针 behind=0）
+# 锚点语义（与 g05-effect-anchors.yaml 同门，进 S1 周验基线）：
+#   OK = expect 仍在登记行号 | DRIFTED = 内容在但行号变（黄）| BROKEN = 内容消失（红，须带 change）
+# 白名单边界是消费侧硬边界（数据库权限），本登记把「生产对象宇宙」从 spec 文本固化为 Identity 事实。
+registry_kind: identity-artifacts
+domain: analysis
+account: lnk_chatbi_ro
+spec_source: openspec/specs/chatbi-governed-account-boundary/spec.md
+spec_sha256_16: 80c720f39832e44d
+baseline_commit: 0392e1079c5da77d85bf16ed3d0cdcd241eb811e
+verified_date: "2026-09-16"
+anchor_policy: {drift: warn, broken: red-unless-change}
+counts: {open: 16, gov_views: 3, functions: 1, total: 20, demo_lineage: 9, no_lineage: 11}
+demo_to_prod_mappings: 9      # W15-D6 §1 初判映射（W17+ 生产绑定重生成器的输入）
+mapping_gaps: 4               # bi_b_tenant / bisubject / bipreddeposit / fact_parking_daily
+p2_check_2026_09_16: trade-industry 字典波次零新增 canonical 表（industry_dict_aliases/trade_definitions 8/28 前已在册）；
+  canonical 472→477（+工程条件库5 +store_change_records −mig备份1）→ 熵基线刷新入 W39 digest
+objects:
+  - name: dim_project
+    kind: table-open
+    grant: SELECT
+    spec_anchor: {file: openspec/specs/chatbi-governed-account-boundary/spec.md, line: 11, expect: dim_project}
+  - name: dim_date
+    kind: table-open
+    grant: SELECT
+    spec_anchor: {file: openspec/specs/chatbi-governed-account-boundary/spec.md, line: 11, expect: dim_date}
+  - name: dim_trade
+    kind: table-open
+    grant: SELECT
+    spec_anchor: {file: openspec/specs/chatbi-governed-account-boundary/spec.md, line: 12, expect: dim_trade}
+  - name: dim_unit
+    kind: table-open
+    grant: SELECT
+    spec_anchor: {file: openspec/specs/chatbi-governed-account-boundary/spec.md, line: 12, expect: dim_unit}
+    demo_lineage: "bi_d_position(铺位→租赁单元)"
+  - name: dim_store
+    kind: table-open
+    grant: SELECT
+    spec_anchor: {file: openspec/specs/chatbi-governed-account-boundary/spec.md, line: 12, expect: dim_store}
+    demo_lineage: "bi_d_position(铺位→店铺)"
+  - name: mv_ops_daily
+    kind: table-open
+    grant: SELECT
+    spec_anchor: {file: openspec/specs/chatbi-governed-account-boundary/spec.md, line: 12, expect: mv_ops_daily}
+  - name: mv_store_ops_daily
+    kind: table-open
+    grant: SELECT
+    spec_anchor: {file: openspec/specs/chatbi-governed-account-boundary/spec.md, line: 12, expect: mv_store_ops_daily}
+  - name: mv_collection_summary
+    kind: table-open
+    grant: SELECT
+    spec_anchor: {file: openspec/specs/chatbi-governed-account-boundary/spec.md, line: 13, expect: mv_collection_summary}
+    demo_lineage: "bipreddeposit/bisubject"
+    lineage_gap_notes: [bipreddeposit(缺口③:粒度丢失), bisubject(缺口②:仅结果承接)]
+  - name: mv_customer_receivable_daily
+    kind: table-open
+    grant: SELECT
+    spec_anchor: {file: openspec/specs/chatbi-governed-account-boundary/spec.md, line: 13, expect: mv_customer_receivable_daily}
+    demo_lineage: "bibillrecvinfo"
+  - name: mv_contract_summary
+    kind: table-open
+    grant: SELECT
+    spec_anchor: {file: openspec/specs/chatbi-governed-account-boundary/spec.md, line: 14, expect: mv_contract_summary}
+    demo_lineage: "bi_d_contract"
+  - name: mv_leasing_structure
+    kind: table-open
+    grant: SELECT
+    spec_anchor: {file: openspec/specs/chatbi-governed-account-boundary/spec.md, line: 14, expect: mv_leasing_structure}
+  - name: mv_target_tracking
+    kind: table-open
+    grant: SELECT
+    spec_anchor: {file: openspec/specs/chatbi-governed-account-boundary/spec.md, line: 14, expect: mv_target_tracking}
+  - name: mv_leads_funnel
+    kind: table-open
+    grant: SELECT
+    spec_anchor: {file: openspec/specs/chatbi-governed-account-boundary/spec.md, line: 15, expect: mv_leads_funnel}
+  - name: mv_campaign_summary
+    kind: table-open
+    grant: SELECT
+    spec_anchor: {file: openspec/specs/chatbi-governed-account-boundary/spec.md, line: 15, expect: mv_campaign_summary}
+  - name: mv_resource_summary
+    kind: table-open
+    grant: SELECT
+    spec_anchor: {file: openspec/specs/chatbi-governed-account-boundary/spec.md, line: 15, expect: mv_resource_summary}
+    demo_lineage: "vw_mall_ops_vacancy_snapshot"
+  - name: mv_property_summary
+    kind: table-open
+    grant: SELECT
+    spec_anchor: {file: openspec/specs/chatbi-governed-account-boundary/spec.md, line: 16, expect: mv_property_summary}
+  - name: gov_snap_lease_daily
+    kind: governed-view
+    grant: SELECT
+    spec_anchor: {file: openspec/specs/chatbi-governed-account-boundary/spec.md, line: 17, expect: gov_snap_lease_daily}
+    demo_lineage: "bi_d_contract"
+  - name: gov_snap_lease_monthly
+    kind: governed-view
+    grant: SELECT
+    spec_anchor: {file: openspec/specs/chatbi-governed-account-boundary/spec.md, line: 17, expect: gov_snap_lease_monthly}
+  - name: gov_lease_expiry_summary
+    kind: governed-view
+    grant: SELECT
+    spec_anchor: {file: openspec/specs/chatbi-governed-account-boundary/spec.md, line: 17, expect: gov_lease_expiry_summary}
+    demo_lineage: "vw_mall_ops_contract_expiry"
+  - name: gov_ar_aging_summary
+    kind: governed-function
+    grant: EXECUTE
+    spec_anchor: {file: openspec/specs/chatbi-governed-account-boundary/spec.md, line: 18, expect: gov_ar_aging_summary}
+    demo_lineage: "bibillrecvinfo"
+restricted_base_objects:   # 白名单显式排除（负锚点：SELECT 必须为 false）
+  - {name: snap_lease_daily, spec_anchor: {line: 17, expect: snap_lease_daily}}
+  - {name: snap_lease_monthly, spec_anchor: {line: 17, expect: snap_lease_monthly}}
+  - {name: fact_lease_signed, spec_anchor: {line: 23, expect: fact_lease_signed}}
+  - {name: fact_lease_expiry, spec_anchor: {line: 24, expect: fact_lease_expiry}}
+  - {name: fact_ar_open_item, spec_anchor: {line: 24, expect: fact_ar_open_item}}
+  - {name: refresh_run, spec_anchor: {line: 22, expect: refresh_run}}
+red_line: 本文件登记在 semantic-model 工作区，不写入 lnkcre 主仓（S5 归档律）；白名单 spec 变更 → BROKEN → 须带 openspec change

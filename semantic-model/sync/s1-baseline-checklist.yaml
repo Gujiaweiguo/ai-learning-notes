@@ -1,0 +1,21 @@
+# S1 周验基线登记（W16-D3 生效：W39 digest 起增锚点漂移项）
+registered: "2026-09-16"
+w39_baseline:
+  heads: {lnkcre: 0392e107, docs: c3d08d6, LnkChatBI: c8927267}
+  ontology_sot_fingerprint: bf550bc24de66813   # config/ontology/business-ontology.yaml（W38 复验未漂移）
+  canonical_tables: {count: 477, snapshot_0828: 472,
+    delta: "+engineering_condition_items/+engineering_condition_mirror_repairs/+engineering_condition_template_items/+engineering_condition_template_projects/+engineering_condition_templates/+store_change_records -mig_000202_hazard_default_due_days_backup"}
+checks:
+  - id: S1-三仓对账
+    what: behind/HEAD + wave 主题 + P0-P3 评级（S1 常规）
+  - id: S1-指纹复验
+    what: ontology SoT sha256_16 复算比对（漂移→G-01 家族裁决）
+  - id: S1-G05锚点漂移
+    what: python3 semantic-model/governance/ci/frozen_effect_ci.py anchors → 15 锚 OK/DRIFTED/BROKEN 判决入 digest
+    new_in: W39（W16-D2 交付的锚点从本基线起进周验）
+  - id: S1-Identity锚点复验
+    what: governance/identity-analysis-anchors.yaml 20 对象 spec 在册复验（同三级判决语义）
+    new_in: W39（W16-D3 交付）
+  - id: S1-canonical漂移
+    what: canonical_tables.txt 行数 477 基线比对（增量→熵基线刷新 v0.2 议程）
+governance: 白名单 spec 或 effect 实现变更 → 锚点 BROKEN → 须带 openspec change（与 ORE-1 同门：变化留痕，不是禁止变化）

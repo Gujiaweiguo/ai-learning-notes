@@ -5,7 +5,7 @@
   },
   {
     "question": "当前所有空置铺位有哪些？面积多大？",
-    "description": "SELECT FLOOR_NAME, POSITION_CODE, POSITION_NAME, POSITION_TYPE, RENT_AREA FROM bi_d_position WHERE POSITION_STATE = '空置' ORDER BY RENT_AREA DESC;"
+    "description": "SELECT FLOOR_NAME, POSITION_CODE, POSITION_NAME, POSITION_TYPE, RENT_AREA FROM bi_d_position WHERE POSITION_STATE = 2 ORDER BY RENT_AREA DESC;"
   },
   {
     "question": "合同 CONT_DEMO_001 名下有哪些铺位？",
@@ -29,7 +29,7 @@
   },
   {
     "question": "12 月的账单有哪些？最后缴款日是什么时候？",
-    "description": "SELECT BILL_NUM, TENANTNAME, POSITIONNAME, SUBJECTNAME, BILLYEAR, BILLMONTH, BILL_DATE, LASTPAYDATE FROM bibillrecvinfo WHERE STOREID = 'STORE_DEMO_001' AND BILLMONTH = 12;"
+    "description": "SELECT BILL_NUM, TENANTNAME, POSITIONNAME, SUBJECTNAME, BILLYEAR, BILLMONTH, BILL_DATE, LASTPAYDATE FROM bibillrecvinfo WHERE STOREID = 'STORE_DEMO_001' AND BILLYEAR = '2024' AND BILLMONTH = '12';"
   },
   {
     "question": "最近 7 天停车场车流和收入如何？",

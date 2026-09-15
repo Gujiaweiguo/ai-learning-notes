@@ -1,18 +1,20 @@
 {
- "imported_at": "2026-09-13T05:11:36",
- "executor": "第15周-Day6 ipynb（SQLite 镜像导入演练；服务器无 PG，LnkChatBI 真库导入为 W16 候选项）",
+ "imported_at": "2026-09-16T06:17:55",
+ "executor": "W16-D3 ipynb（生成器 v0.1.2 重出后 S6 验证链重跑：upsert 幂等 + 21 题电池 + e2e + A101 L1-L3）",
  "datasource": {
   "name": "CRE BI Demo",
   "id": 1,
-  "binding": "specific_ds=true（解析 SET_AT_IMPORT）"
+  "binding": "specific_ds=true"
  },
  "pack": {
+  "pack_id": "lnkcre-mall-ops-demo-pack",
+  "version": "0.1.2",
   "terms": 14,
   "aliases": 81,
   "sql_examples": 11,
   "fingerprints": {
-   "terminology.json": "2deb9b63daa86aab",
-   "sql_examples.json": "9d3fbb388c62197d"
+   "terminology.json": "8137b094a09c5e02",
+   "sql_examples.json": "0af3cb1f524cb908"
   }
  },
  "upsert": {
@@ -45,24 +47,45 @@
   "L5": "TODO",
   "L1_prime": "TODO"
  },
- "whitelist_compliance": {
-  "in_prod_whitelist": "0/11（demo 数据源设计域）",
-  "mallcre_valid": "11/11",
-  "mapping_gap_objects": [
-   "bi_b_tenant",
-   "bisubject",
-   "bipreddeposit",
-   "fact_parking_daily"
+ "value_domain": {
+  "method": "DDL COMMENT 枚举 + 列类型 + 种子值域 三层对账（生成器内建，独立复算一致）",
+  "pass": 9,
+  "na": 2,
+  "fail": 0,
+  "fixes": [
+   "#2 POSITION_STATE='空置'→=2（DDL 枚举 1:在租;2:空置，真跑 0行→1行）",
+   "#8 BILLMONTH=12→BILLYEAR='2024' AND BILLMONTH='12'（varchar 类型对齐，复验新发现）",
+   "铺位/空置组 description 口径同步改 DDL 枚举"
   ]
  },
- "known_gaps_found_today": [
-  "示例#2 值域枚举未校验（POSITION_STATE '空置' vs 种子 1/2）",
-  "V2 口语变体（空着的铺）全 MISS → 别名补录候选"
- ],
+ "contract_alignment": {
+  "R1 身份/版本/兼容声明": "ALIGNED——pack_id=lnkcre-mall-ops-demo-pack v0.1.2 + compatibility 声明；demo profile 未注册（先于框架存在），fail-closed 注册路径留给生产 pack（W17+）",
+  "R2 术语映射在 Profile 允许清单内": "PARTIAL——demo 对象宇宙 11/11 合法；生产 analysis 白名单 0/11（设计域使然，Identity 登记 9 血缘即重生成输入）",
+  "R3 示例问句+语义路由": "PARTIAL——11 条示例=问句模式；结构化 routing entries 未声明（starter 通道按子串检索），W17 契约化路由",
+  "R4 能力+结果解释": "PARTIAL——description 注入即解释且只引用 demo 对象；capabilities 声明结构未建",
+  "R5 治理函数引用注册键": "N/A-demo——demo 无 governed function；生产侧 gov_ar_aging_summary 已入 Identity 登记（今日①）",
+  "R6 不越权/不放宽 Profile": "ALIGNED——pack 纯声明式零权限语义；specific_ds 圈定作用域",
+  "R7 跨域语义不隐式共享": "ALIGNED——specific_ds=1 绑定单数据源，不进 oid 共享池（W15-D2 决策②）",
+  "R8 声明式 dev-scoped": "ALIGNED——无可执行逻辑入 Core；dev reference 定位显式声明"
+ },
+ "identity_registry": {
+  "file": "semantic-model/governance/identity-analysis-anchors.yaml",
+  "objects": 20,
+  "demo_lineage": 9,
+  "no_lineage": 11,
+  "mapping_gaps": 4,
+  "spec_sha256_16": "80c720f39832e44d"
+ },
+ "p2_check": "trade/industry 字典零新增 canonical（industry_dict_aliases/trade_definitions 8/28 前在册）；canonical 472→477（工程条件库5+门店台账1−mig1）→ W39 digest",
+ "whitelist_compliance": {
+  "in_prod_whitelist": "0/11（demo 数据源设计域；血缘桥已登记，W17+ 绑定重生成）",
+  "mallcre_valid": "11/11"
+ },
  "source": {
   "ontology_sha256_16": "bf550bc24de66813",
   "semantic_model": "v0.1.1",
-  "lnkcre_head": "d580ebd5",
+  "generator": "generate_pack.py v0.1.2",
+  "lnkcre_head": "0392e107",
   "starter_pack": "/root/LnkChatBI/backend/scripts/mall_ops_starter_pack"
  }
 }

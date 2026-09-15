@@ -19,7 +19,7 @@
    "L2-02",
    "门店铺位"
   ],
-  "description": "商场最小可租赁经营单元（物理锚 bi_d_position，一行一铺位；bilocation 为源系统镜像）。 口径：状态口径 bi_d_position.POSITION_STATE 取值 已出租/空置；空置聚合 BI 侧走 vw_mall_ops_vacancy_snapshot（business_status=vacant，双口径并存）。 映射：编码风格映射：口语 A101 型编码 → POSITION_CODE 前缀 LOC_DEMO_L1xx（demo 种子）；生产环境由铺位编码规则注册表替换。"
+  "description": "商场最小可租赁经营单元（物理锚 bi_d_position，一行一铺位；bilocation 为源系统镜像）。 口径：状态口径 bi_d_position.POSITION_STATE 为 decimal(1,0) 枚举（DDL COMMENT：1:在租;2:空置；空置=2）；空置聚合 BI 侧走 vw_mall_ops_vacancy_snapshot（business_status=vacant，双口径并存）。 映射：编码风格映射：口语 A101 型编码 → POSITION_CODE 前缀 LOC_DEMO_L1xx（demo 种子）；生产环境由铺位编码规则注册表替换。"
  },
  {
   "word": "楼层",
@@ -116,7 +116,7 @@
    "空置铺位",
    "未出租"
   ],
-  "description": "铺位未出租状态。ERP 口径 bi_d_position.POSITION_STATE=空置；BI 口径 fact_shop_daily_operation.business_status=vacant（视图 vw_mall_ops_vacancy_snapshot）。 口径：双口径并存：铺位实时状态用 ERP 侧；空置面积快照/趋势用 BI 侧（gla_area 汇总）。"
+  "description": "铺位未出租状态。ERP 口径 bi_d_position.POSITION_STATE=2（DDL 枚举 1:在租;2:空置）；BI 口径 fact_shop_daily_operation.business_status=vacant（视图 vw_mall_ops_vacancy_snapshot）。 口径：双口径并存：铺位实时状态用 ERP 侧（枚举 1/2）；空置面积快照/趋势用 BI 侧（gla_area 汇总）。"
  },
  {
   "word": "停车",
@@ -162,6 +162,6 @@
    "账单号",
    "缴款日"
   ],
-  "description": "应收账单头，ERP 锚 bibillrecvinfo（BILL_NUM/BILL_DATE/LASTPAYDATE，账单粒度）。 口径：账单身份与日期归本组；应收/实收/欠费金额口径归 starter 组（vw_mall_ops_arrears_current），两组互补。"
+  "description": "应收账单头，ERP 锚 bibillrecvinfo（BILL_NUM/BILL_DATE/LASTPAYDATE，账单粒度）。 口径：账单身份与日期归本组；应收/实收/欠费金额口径归 starter 组（vw_mall_ops_arrears_current），两组互补。月份口径：BILLYEAR='YYYY' 与 BILLMONTH='M'（varchar 月份串，SETTLENO 承载 'YYYYMM'）。"
  }
 ]

@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-10T05:12:54",
-  "producer": "semantic-model v0.1.1 → LnkChatBI 术语库/SQL 示例生成器（W15-D3 实验3）",
+  "generated_at": "2026-09-16T06:17:55",
+  "producer": "generate_pack.py v0.1.2（W16-D3 脚本化；前身=W15-D3 实验3 ipynb）",
   "source": {
     "ontology": {
       "path": "/root/docs/lanlnk/config/ontology/business-ontology.yaml",
@@ -9,6 +9,24 @@
     "semantic_model": "/root/learning-notebooks/semantic-model/mi-cre-semantic-model-v0.1.yaml",
     "version": "0.1.1"
   },
+  "pack_contract": {
+    "spec": "LnkChatBI openspec domain-semantic-pack-contract（chg-governed-datasource-framework-contract，2026-09-03 归档）",
+    "pack_id": "lnkcre-mall-ops-demo-pack",
+    "version": "0.1.2",
+    "form": "dev-reference-pack（R8：dev 参考，非生产语料）",
+    "compatibility": {
+      "profile_id": "mallcre-demo-governance-profile",
+      "profile_version": "0（demo 数据源先于 governed framework，未注册——契约 R1 fail-closed 注册路径在 demo 侧不可用，生产 pack 接入项）"
+    },
+    "scope": "specific_ds=true，datasource_ids=SET_AT_IMPORT（不进 oid 级共享池，W15-D2 决策②；R6/R7 对齐）"
+  },
+  "changelog_v0_1_2": [
+    "示例#2 谓词 POSITION_STATE='空置'→=2（DDL decimal 枚举 1:在租;2:空置）",
+    "示例#8 谓词 BILLMONTH=12→BILLYEAR='2024' AND BILLMONTH='12'（varchar 类型对齐，复验新发现）",
+    "铺位/空置组 description 值域口径同步改 DDL 枚举",
+    "新增值域验证器（枚举/类型/种子三层对账）",
+    "pack 契约元数据（domain-semantic-pack-contract R1）"
+  ],
   "scope": {
     "specific_ds": true,
     "datasource_ids": "SET_AT_IMPORT（= mallcre / CRE BI Demo 数据源 id）",
@@ -25,16 +43,14 @@
   },
   "validation": {
     "term_binding_failures": 0,
-    "explicit_anchor_failures": 0,
     "sql_failures": 0,
-    "validator_calibration": {
-      "starter_term_failures": 0,
-      "starter_sql_failures": 0
-    }
+    "value_domain_pass": 9,
+    "value_domain_fail": 0,
+    "regression_sentinels": "PASS（#2/#8 新口径 + 旧口径残留检查 + 空置/铺位 description 断言）"
   },
   "files": {
-    "term-aliases.generated.json": "39c553b4e497fb49",
-    "sql-examples.generated.json": "5fdbe1f329bf4734",
+    "term-aliases.generated.json": "2ca520e14ac0485b",
+    "sql-examples.generated.json": "0e312acf5272f7a7",
     "alias-merge-suggestions.json": "4f53cda18c2baa0c"
   }
 }
