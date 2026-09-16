@@ -2,6 +2,7 @@
 
 > 审计时间：2026-09-14（docs 仓已对齐 origin/main，2026-09-12 HEAD）
 > 方法：PyYAML 结构化解析 + sha256_16 指纹 + 模块集合 Jaccard + git --follow 出身追溯；复算过程见 `第16周/第16周-Day1-*.ipynb` §1-§4。
+> **2026-09-17 深化（W16-D4）**：新增 §6 机器可复核证据链（`evidence/claims-2026-09-17.json`，仿 docs 仓 40-delivery evidence 范本）——C1-C5 五断言今日全部复验 PASS；受理状态：**未受理**（docs behind 15，增量 commits 零 ontology/governance 主题，立案窗口未开启，挂起至周日 Review 裁决是否并轨 W17）。
 
 ## 1. 现状清单（5 件）
 
@@ -42,3 +43,17 @@
 1. 立案载体：lnkcre openspec change（S5 归档律现行载体）vs docs 仓自身 evidence-chain（docs(governance) 提交线）——目标文件全在 docs 仓，载体由主仓定夺。
 2. registry.yaml 的 owner（mi-domain-owner 兼任 vs 家族各件 custody 自管）。
 3. 合入后是否同步在 lnkcre 侧建引用 spec（ontology-governance）以纳入其 openspec 检查面。
+
+## 6. 机器可复核证据链（2026-09-17 深化，W16-D4）
+
+仿 docs 仓 `40-delivery/lnkchat/evidence` 范本：每断言一条结构化记录（复核命令 / 期望 / 实测 / 日期 / 验收线），工件 `evidence/claims-2026-09-17.json`，主仓受理时可直接复算：
+
+| ID | 断言 | 复核结果 |
+|---|---|---|
+| C1 | SoT 指纹三度一致（W15-D3→W16-D1→今日） | `bf550bc24de66813` PASS |
+| C2 | 五件家族指纹与 9/14 审计一致（docs +15 commits 零漂移） | 5/5 PASS |
+| C3 | 产品件对 SoT 反向引用仍为 0 | 0 处 PASS |
+| C4 | 近 15 增量 commits 无 G-01 受理记录（立案窗口未开启） | 0 处 PASS（状态=未受理） |
+| C5 | 同名异义『数据源管理』两件并存（选件歧义未消） | 1 处 + 3 处 PASS |
+
+**深化理由**：原报告的 E1-E5 是一次性审计快照（人读表格）；evidence-chain 把它们变成**可重放的断言集**——与同日完成的锚点周验预演同构：证据的价值不在「今天是对的」，在「任何人任何时候可复核且结果可比对」。受理后本节与 registry.yaml 指纹链合流，成为 S1 周验的 G-01 族检查项。

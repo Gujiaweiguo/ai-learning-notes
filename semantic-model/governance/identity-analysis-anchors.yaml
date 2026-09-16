@@ -1,8 +1,13 @@
-# Identity 构件 · analysis 域锚点登记 v0.1（W16-③ 交付，2026-09-16）
-# 治理依据：lnk_chatbi_ro 白名单（openspec/specs/chatbi-governed-account-boundary/spec.md）
-# 对账基线：lnkcre 0392e1079c5da77d85bf16ed3d0cdcd241eb811e（同 G-05；S2 探针 behind=0）
+# Identity 构件 · analysis 域锚点登记 v0.1.1（W16-③ 交付 2026-09-16；W16-D4 周验预演修订）
+# 修订记录 v0.1.1（2026-09-17）：周验预演暴露负锚点子串碰撞——snap_lease_daily/snap_lease_monthly
+#   原注册 line 17（该行只有 `gov_snap_lease_daily` 授权对象，朴素子串匹配会返回假 OK）。
+#   修复：①重锚到真实排除条款 line 23；②负锚点补 file 字段（与正锚点格式统一）；
+#   ③验证器补位 governance/ci/identity_anchor_ci.py（词边界匹配 + 授权区泄漏检查，selftest 注入排练）。
 # 锚点语义（与 g05-effect-anchors.yaml 同门，进 S1 周验基线）：
 #   OK = expect 仍在登记行号 | DRIFTED = 内容在但行号变（黄）| BROKEN = 内容消失（红，须带 change）
+#   负锚点附加：授权区泄漏检查——restricted 对象进入 SHALL hold 段落 → BROKEN（边界放宽，最危险漂移）
+#   匹配一律词边界（(?<![A-Za-z0-9_])name(?![A-Za-z0-9_])），防 gov_snap_lease_daily ⊃ snap_lease_daily 类碰撞。
+verifier: governance/ci/identity_anchor_ci.py
 # 白名单边界是消费侧硬边界（数据库权限），本登记把「生产对象宇宙」从 spec 文本固化为 Identity 事实。
 registry_kind: identity-artifacts
 domain: analysis
@@ -108,9 +113,9 @@ objects:
     grant: EXECUTE
     spec_anchor: {file: openspec/specs/chatbi-governed-account-boundary/spec.md, line: 18, expect: gov_ar_aging_summary}
     demo_lineage: "bibillrecvinfo"
-restricted_base_objects:   # 白名单显式排除（负锚点：SELECT 必须为 false）
-  - {name: snap_lease_daily, spec_anchor: {line: 17, expect: snap_lease_daily}}
-  - {name: snap_lease_monthly, spec_anchor: {line: 17, expect: snap_lease_monthly}}
+restricted_base_objects:   # 白名单显式排除（负锚点：排除条款须在册 + 授权区不得泄漏）
+  - {name: snap_lease_daily, spec_anchor: {file: openspec/specs/chatbi-governed-account-boundary/spec.md, line: 23, expect: snap_lease_daily}}
+  - {name: snap_lease_monthly, spec_anchor: {file: openspec/specs/chatbi-governed-account-boundary/spec.md, line: 23, expect: snap_lease_monthly}}
   - {name: fact_lease_signed, spec_anchor: {line: 23, expect: fact_lease_signed}}
   - {name: fact_lease_expiry, spec_anchor: {line: 24, expect: fact_lease_expiry}}
   - {name: fact_ar_open_item, spec_anchor: {line: 24, expect: fact_ar_open_item}}

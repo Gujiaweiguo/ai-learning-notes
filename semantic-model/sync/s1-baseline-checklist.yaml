@@ -14,8 +14,14 @@ checks:
     what: python3 semantic-model/governance/ci/frozen_effect_ci.py anchors → 15 锚 OK/DRIFTED/BROKEN 判决入 digest
     new_in: W39（W16-D2 交付的锚点从本基线起进周验）
   - id: S1-Identity锚点复验
-    what: governance/identity-analysis-anchors.yaml 20 对象 spec 在册复验（同三级判决语义）
-    new_in: W39（W16-D3 交付）
+    what: python3 semantic-model/governance/ci/identity_anchor_ci.py verify --anchors governance/identity-analysis-anchors.yaml --repo /root/lnkcre → 26 项（20 正 + 6 负）三级判决 + 授权区泄漏检查入 digest
+    new_in: W39（W16-D3 登记；W16-D4 补验证器 + selftest 注入排练）
   - id: S1-canonical漂移
     what: canonical_tables.txt 行数 477 基线比对（增量→熵基线刷新 v0.2 议程）
 governance: 白名单 spec 或 effect 实现变更 → 锚点 BROKEN → 须带 openspec change（与 ORE-1 同门：变化留痕，不是禁止变化）
+rehearsal_2026_09_17:   # W16-D4 周验预演（W39 digest 排练）
+  g05_anchors: {verdict: GREEN, ok: 15, drifted: 0, broken: 0, repo_head: 0392e107}
+  identity_verify: {verdict: GREEN, ok: 26, drifted: 0, broken: 0, 修订: 负锚点 snap_lease_daily/snap_lease_monthly L17→L23 重锚（子串碰撞修复）}
+  identity_selftest: {mutations: 4, plus_sentinel: 1, verdict: 'GREEN——M1 删正锚点/M2 删排除条款/M3 授权区泄漏 全部 exit 1；M4 行号漂移 exit 0（黄不红）；碰撞哨兵 PASS'}
+  g05_mutation: {verdict: 'RED exit 1（临时仓改 StatusDraft → BROKEN）'}
+  format_issues_found: 2   # ①负锚点无验证器（已补 identity_anchor_ci.py）②子串碰撞假 OK（已词边界匹配 + 重锚）

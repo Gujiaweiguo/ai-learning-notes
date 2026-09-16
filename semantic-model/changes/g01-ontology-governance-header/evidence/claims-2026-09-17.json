@@ -1,0 +1,62 @@
+{
+  "change": "g01-ontology-governance-header",
+  "evidence_chain": {
+    "generated": "2026-09-17",
+    "generator": "W16-D4 周验预演日 · G-01 对账报告 evidence-chain 深化",
+    "format_ref": "仿 docs/lanlnk/40-delivery/lnkchat/evidence 范本（结构化工件 + 每断言带复核命令/期望/实测/日期/验收线；W38 digest 发现）",
+    "audit_base": {
+      "docs_head": "c3d08d6f2e105b1116f37611328490bc72aa53d1",
+      "docs_behind_origin_main": 15,
+      "first_audit": "2026-09-14（reconciliation.md §1-§2，docs HEAD 2026-09-12）"
+    },
+    "claims": [
+      {
+        "id": "C1",
+        "claim": "SoT 指纹未漂移：W15-D3 → W16-D1 → 本日三度一致（治理头缺失期间内容稳定 = E5 持续成立）",
+        "command": "sha256sum lanlnk/config/ontology/business-ontology.yaml",
+        "expected": "bf550bc24de66813",
+        "actual": "bf550bc24de66813",
+        "verdict": "PASS",
+        "date": "2026-09-17"
+      },
+      {
+        "id": "C2",
+        "claim": "五件 ontology 家族指纹与 2026-09-14 审计逐条一致（docs 仓 +15 commits 后零漂移）",
+        "command": "for f in <五件路径>; do sha256sum $f; done",
+        "expected": {"business-ontology": "bf550bc24de66813", "lnkchat-30products": "0a74edf9be475ecc", "LnkChatBI-out": "0240e95e2f9a84a1", "lnkreport-out": "973f3b24a0e26d16", "legacy-frozen-snapshot": "e17ad8395baf8386"},
+        "actual": {"business-ontology": "bf550bc24de66813", "lnkchat-30products": "0a74edf9be475ecc", "LnkChatBI-out": "0240e95e2f9a84a1", "lnkreport-out": "973f3b24a0e26d16", "legacy-frozen-snapshot": "e17ad8395baf8386"},
+        "verdict": "PASS",
+        "date": "2026-09-17"
+      },
+      {
+        "id": "C3",
+        "claim": "产品件对 SoT 反向引用仍为 0（治理关系双向零声明持续，E4 复验）",
+        "command": "grep -l business-ontology <四件产品件>",
+        "expected": 0,
+        "actual": 0,
+        "verdict": "PASS",
+        "date": "2026-09-17"
+      },
+      {
+        "id": "C4",
+        "claim": "docs 仓近 15 增量 commits 无 G-01 受理记录——立案窗口未开启（增量主题：6 备份 + lnkchat PRD 受理 ×4 + mi-cre handoff 收口 ×4 + lnkreport 台账）",
+        "command": "git log --oneline HEAD..origin/main | grep -ciE 'ontology|governance|g01'",
+        "expected": 0,
+        "actual": 0,
+        "verdict": "PASS（事实核验通过；受理状态=未受理）",
+        "date": "2026-09-17"
+      },
+      {
+        "id": "C5",
+        "claim": "同名异义『数据源管理』仍在 LnkChatBI 与 lnkreport 两件并存（E3 复验：选件歧义未消）",
+        "command": "grep -c 数据源管理 <两件>",
+        "expected": "两件均 ≥1",
+        "actual": {"LnkChatBI-out": 1, "lnkreport-out": 3},
+        "verdict": "PASS",
+        "date": "2026-09-17"
+      }
+    ],
+    "acceptance_line": "五条全 PASS = 提案证据仍然成立且持续可复核；受理裁决权在主仓，本周验收线保持『立案受理 + 对账报告』（brief §3-①）",
+    "next_recheck": "W39 digest（S1 周验基线：三仓对账 + SoT 指纹复验 + 锚点漂移 + canonical 漂移）"
+  }
+}

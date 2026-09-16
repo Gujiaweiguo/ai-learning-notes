@@ -1,0 +1,51 @@
+# G-04 术语消歧 · 第二批别名素材定稿（W16-D4，2026-09-17）
+# 定位：素材定稿 ≠ 批次执行——brief 红线：G-04 第二批在 W17 范围；本文件是 W17 批次的输入。
+# 证据基线：W15-D6 + W16-D3 两次电池复现（21 题电池，检索语义 = 术语单向子串 / 示例双向子串）。
+# 红线：候选一律「登记 + 附证据」，不静默改写 pack（W16-D3 教训：改投影是漂移，改源是演进）。
+kind: g04-alias-batch
+batch: v0.2-candidates
+status: finalized-material      # 素材定稿；执行待 W17 批次评审
+generated: "2026-09-17"
+evidence_runs: ["W15-D6 电池", "W16-D3 电池（pack v0.1.2 重出后复测，命中面守恒）"]
+
+# ---- ① 口语缺口补录候选（V2 类：术语+示例全 MISS 的真实口语问法）----
+# 目标术语组：『空置』（demo pack 既有组；值域口径 = DDL 枚举 STATE 1:在租/2:空置，W16-D3 修正后同源）
+alias_candidates:
+  - group: 空置
+    alias: 空着的铺
+    source_question: "现在有哪些空着的铺？（V2）"
+    evidence: "两次电池全 MISS（术语 0 / 示例 0）——口语副词『着的』+量词省略，子串检索不可达"
+    caliber_note: "命中后注入 description 沿用 DDL 枚举口径（STATE=2 空置），与示例 #2 谓词同源"
+  - group: 空置
+    alias: 空铺
+    source_question: "V2 变体（推论候选，待 W17 电池验证后再入 pack）"
+    evidence: "同族缩略口语；标注 inferred=true，未验证不注入"
+    inferred: true
+  - group: 空置
+    alias: 没租出去的
+    source_question: "口语变体（推论候选）"
+    evidence: "与『空置』同义但含否定结构；inferred=true，W17 电池补题验证"
+    inferred: true
+
+# ---- ② 通用词门槛设计 v0.1（P2/P3 类：命中≠可答的误触治理）----
+# 证据：P2「各项目工单完成率如何？」/ P3「当前项目租赁结构指标怎么样？」——经『项目』（dim_project 正名）
+# 命中术语组计入 battery 覆盖率，但问句真实对象分别是 工单（mv_ops_daily 域）/ 租赁结构（mv_leasing_structure），
+# 注入 dim_project 术语组无助于作答 = 命中≠可答。两次电池复现。
+generic_word_gate:
+  design: "检索命中 ≠ 注入。三规则（v0.1 设计稿，W17 批次评审定稿）："
+  rules:
+    - id: GW-1 别名分级
+      what: "术语组别名标记 tier：strong（专名/行业词：铺位、合同、应收）vs weak（通用词：项目、商户、门店）。weak 别名入 pack 须过 GW-2/GW-3。"
+    - id: GW-2 指标共现门槛
+      what: "weak 别名命中的组，仅当问句词元与该组 description/示例问句有第二交集（指标词/动词）时升级注入。P2『完成率』∉ dim_project 组 → 不注入；P3『租赁结构』∉ dim_project 组 → 不注入（正确目标组经专名命中）。"
+    - id: GW-3 消歧注记
+      what: "weak 别名在 terminology.json 的 description 前缀『通用词：仅当问句主对象为 <维度> 时适用』——注入 prompt 的唯一通道是 description，消歧提示必须走同一通道（与 W16-D3 值域口径同源原则）。"
+  acceptance_w17:
+    - "V2 命中：batch 2 别名注入后 V2 术语命中 0→1（inferred 候选须先补电池题）"
+    - "P2/P3 误注入消失：『项目』组不再作为唯一命中被注入（判据=注入组与问句指标词有交集）"
+    - "Q 组 21 题无回归 + S 组守恒（既有命中面不缩水）"
+
+# ---- ③ 反例登记（不入选，留痕防再议）----
+rejected:
+  - alias: 那个铺子
+    reason: "指代不完整（缺状态语义），任何口径下都不构成『空置』的可靠触发词；消歧责任在对话层不在别名层"
