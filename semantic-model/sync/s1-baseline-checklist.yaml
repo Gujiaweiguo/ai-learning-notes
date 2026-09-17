@@ -25,3 +25,9 @@ rehearsal_2026_09_17:   # W16-D4 周验预演（W39 digest 排练）
   identity_selftest: {mutations: 4, plus_sentinel: 1, verdict: 'GREEN——M1 删正锚点/M2 删排除条款/M3 授权区泄漏 全部 exit 1；M4 行号漂移 exit 0（黄不红）；碰撞哨兵 PASS'}
   g05_mutation: {verdict: 'RED exit 1（临时仓改 StatusDraft → BROKEN）'}
   format_issues_found: 2   # ①负锚点无验证器（已补 identity_anchor_ci.py）②子串碰撞假 OK（已词边界匹配 + 重锚）
+probe_2026_09_18:   # W16-D5 S2 日探针（brief 验收对账日）——事件型探针记录
+  heads_behind: {lnkcre: 19, docs: 22, LnkChatBI: 0}   # origin: lnkcre 51e9baf9 / docs 46d9d6d
+  event_canonical_drift: {baseline: 477, origin_main: 484, new_tables: 7, orphans_unregistered: 7,
+    detail: "leasing_policies/leasing_policy_versions/leasing_policy_lifecycle/price_authority_constraints/unit_pricing_batch_ops/unit_pricing_batches/unit_pricing_batch_lines（PG migrations-pg 000227+000229）",
+    detection: "人工 diff commit 内容（S2 对表盲）——G-07 草稿起草的活事件依据", follow_up: "W39 digest 熵基线刷新 + W17 G-07 citing change"}
+  g01_acceptance: {status: 未受理, evidence: "docs 增量 22 commits 零 ontology/governance 主题；受理机器活跃（PRD-LC-E1/F1/DV-LC-004 同窗 accept）"}
