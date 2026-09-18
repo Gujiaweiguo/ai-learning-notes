@@ -63,3 +63,9 @@
 3. docs 备份线（累计 13 个「备份」commit）语义定性：W39 digest 议题立案？
 4. analysis 域第三消费方（LnkReport doc-grain 视图）是否登记为 Identity 家族新成员（现白名单=chatbi 专属）？——建议：不并入 chatbi 白名单，另立 lnkreport 消费面清单（W17+ 候选）
 5. 五维预填复核 + 木桶口径（Technical Debt 7.5 是否高估：孤儿表是不是该算 Code Health 扣分？）
+
+## 5. D6 补充（2026-09-19 周六，供 D7 裁决时与 §2.4 对读）
+
+- 议题 1/3 的裁决材料已补齐：`changes/_drafts/g01g07-merged-skeleton.md`（G-01×G-07 并轨提案骨架，含活事件第四条证据链与 W17 验收线现状——回放/突变两项已提前达标）。
+- G-07 门已转正实跑：`governance/ci/canonical_drift_ci.py`（活事件回放 7+7 BROKEN 红、selftest 六突变全 PASS、--change 承认路径预演绿）；基线冻结 `canonical-baseline-w39.txt`（477 表，集合指纹 `1a4c50e673ef32d2`）。
+- S2 探针 D6：lnkcre behind 19→29（origin 51e9baf9→94b83434，+10 commits 无新表但 leasing_policy/unit_pricing 波次延续——孤儿案家族仍在扩案）；docs 22→23（备份线第 14 commit）；LnkChatBI 0。
