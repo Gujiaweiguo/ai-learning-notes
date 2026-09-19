@@ -844,3 +844,23 @@ Today's Question「计数比对和集合判决都能发现 477→484，为什么
 
 ### 数字速览
 S2 探针 lnkcre 19→29（origin 94b83434，+10 commits：canonical 484 不变零新表，但 leasing_policy/unit_pricing 波次延续——孤儿案家族扩案中）/ docs 22→23（备份线第 14 commit）/ chatbi 0｜基线冻结 477 表（fp 1a4c50e673ef32d2，行序不敏感）｜活事件回放 RED：7 positive BROKEN + 7 leak BROKEN + 0 死登记 + 0 假阳性，归因双目录单行精确｜selftest 6/6 PASS（M1 孤儿红/M2 citing绿/M3 死登记红/M4 零误伤/M5 等量换血红/M6 fail-closed 红）｜--change 承认预演 GREEN（cited 7/7）｜MC（真实 477 表名×2000 次/格）：swap 检出率 计数门 0% vs 集合门 100%（k=1..8）；add/drop 双门 100%；reorder 双门 0%｜验证器 1→3（frozen/identity/canonical）｜转正日 bug 4 个全数运行时抓获｜ipynb verify OK（5 code cells）
+
+## 2026-09-20（W16-D7 周日 · Virtual CTO Review：治理地基验收终审 × 477→499 活事件裁决 × 五维复算与 W17 定轨）
+
+### 今天最大的认知
+周日 Review 的最大发现不来自任何验收线，而来自门自己：**冻结的基线第二天就过期**——canonical 基线 477 冻结于 D6，今晨现实已是 499（两日再 +15：indicator-target ×3 @000233、leasing-progress ×10 + unit_leasing ×2 @000234）。G-07 门转正次日即执勤：44 BROKEN（22 孤儿 + 22 泄漏，cited 0）RED，归因 file:line 单行精确。门的价值由此更准一层：**不在基线永远对，在漂移从此有地址、升级从此是裁决而非猜测**（基线头部自 declare 升级须 digest 裁决——W39 周一执行 477→499，对齐源恰好是主仓自己的 testdata 清单）。同窗主仓出现 `canonical_set_test.go`（integration 门，testdata 清单=499）：主仓用「库↔清单」对照，语义层用「清单↔迁移源+裁决」对照——同一焦虑的两层执法，互补不竞争，且是 G-01「平行本体家族」教训的自我适用：若主仓升格为 spec，G-07 应对齐引用而非平行演化。
+
+### 今天最大的坑
+① **探针错仓**：首跑 S2 时 cd 顺序 fallback 命中 `/root/langchat-docs`——它同样含 lanlnk/ 目录树（连 business-ontology.yaml 都是同指纹副本 `bf550bc24de66813`），得假值 87；真仓 `/root/docs` = 24。假值险些进 Review 材料，自查 docs 主题与 W38 digest 对不上才发现。教训：S2 探针从未脚本化是人肉流程，W17-D1 落 `sync/probe.py` 钉死三仓绝对路径 + 表集合 diff。② **canonical 同名双文件**：`migrations/canonical_tables.txt`（3 表，con-005 局部）vs `testdata/canonical_tables.txt`（499 全量）——第一版集合 diff 全部 477 表显示「被删」假象；「名字包含名字」家族第三案（词边界→目录前缀→同名文件异目录）。③ ADR-004 挂账复查首跑查了 BCM 的 ADR-004（无 langchat 引用），挂账实际在 langchat/docs/adr——同名编号跨体系，检索必须带体系限定（今日终实锤：L70-73 仍 langchat.*，全目录残留 16 处，挂账第 4 周）。
+
+### 今天最大的决策
+① **五议题全落定**：G-01 并轨 W17（第 3 周未受理：docs 增量 24 commits 零 ontology 主题，但受理机器活着——同窗 accept 了 E1/F1/DV-LC-004，是队列优先级不是拒绝）；G-07 首位动作修正为「基线升级裁决 + 五族 22 表 citing」而非转正（转正 D6 已完成，今晨在执勤）；备份线（15/24=62.5%）W39 digest 定性立案；LnkReport 第三消费方另立清单不并入 chatbi 白名单（一主体一清单）；孤儿表归属裁决——主仓的债不算语义层 Code Health 扣分，语义层的债=登记滞后+基线升级欠裁决，计入 TD 论证。② **五维终值双轨**：均值 6.9（持平 W15）/ 木桶 6.0（回摆 0.5，DX 下调实锤：探针坑 + 消费面零新动作）；预填 7.0 vs 复算 6.9 命中（|Δ|=0.1，校准履历样本 3：命中上沿 / MISS 偏高 / 命中——「先跑证据再对分」程序化的兑现）。③ **W17 定轨六序**：D1 = W39 digest（pull + 基线升级 477→499 + 备份线定性 + 三门周验）+ G-01×G-07 并轨提案升格提交；五族 citing；S2 探针脚本化；G-07 v0.2 定界签名；MCP 工具描述 change 后置于基线稳定之后。
+
+### 数字速览
+四验收线：①部分（对账 C1-C5 全 PASS 五度指纹一致 / 受理第 3 周 0%）②超额（三门今晨实跑：G-05 15/15 GREEN @0392e107、Identity 26/26 GREEN + selftest、canonical selftest 6/6）③达成（pack 磁盘指纹=回执 8137b094/0af3cb1f 零漂移）④达成（digest W38 + 五件裁决）｜canonical 477→484→499（+22 五族 3+10+2+4+3；0 死登记）｜canonical 门 RED 44 BROKEN 执勤（cited 0）｜S2 lnkcre 29→47（0f66f152 +18）/ docs 23→24（备份第 15）/ chatbi 0｜SoT 五度一致 bf550bc24de66813｜ADR-004 挂账第 4 周（16 处 langchat.*）｜docs 增量主题 备份 15/mi-cre 4/lnkchat 4/lnkreport 1｜错仓假值 87 vs 真值 24｜五维 7.5/7.0/6.5/7.5/6.0 → 均值 6.9 / 木桶 6.0｜ipynb verify OK（5 code cells 一次全绿）
+
+### 遗留 / 下一步
+- W17-D1（周一）：W39 digest（三仓 pull + canonical 基线升级裁决 477→499 + 备份线定性 + 三门周验）+ G-01×G-07 并轨提案从 _drafts 升格提交 + `sync/probe.py` 探针脚本化（今日坑①直接修复）
+- 五族 22 表逐族 citing change（W17 主菜）：indicator-target / leasing-progress / unit_leasing / leasing-policy / unit-pricing
+- w14-plus 仍无 W17 逐日条目：第 2 次建议 Jason 补一行指向（W17 计划来源=本周 Review §7 + brief 展望锚点，md 头部已留计划来源说明）
+- G-01 受理第 3 周未开窗（我方对账侧自足，裁决权主仓）；微信通道仍中断（NOTICE-2026-09-09 在案），落盘链路不受影响
