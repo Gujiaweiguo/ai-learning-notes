@@ -1,5 +1,7 @@
 # Change Proposal: ontology 治理头 + 家族治理关系声明（G-01）
 
+> **⚠️ SUPERSEDED（2026-09-21 W17-D1）**：本案已并入并轨版 `changes/g0x-semantic-boundary-governance/proposal.md`（W16-D7 议题①裁决），Why 1-3 / What 1-4 全量继承。本目录留档不删除（证据链与对账报告仍是并轨案的组成部分）。
+
 > 起草：2026-09-14（W16-D1，S1 首次正式 digest 裁决后）
 > 状态：**draft（学习轨道起草，待主仓立案受理）**
 > 载体：按 openspec change 格式起草；**立案载体待主仓裁决**（lnkcre openspec change 流程 vs docs 仓 evidence-chain 流程——目标文件全部在 docs 仓）。

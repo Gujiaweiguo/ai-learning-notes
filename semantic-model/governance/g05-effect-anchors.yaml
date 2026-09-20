@@ -26,13 +26,13 @@ effects:
         expect: StatusDraft
         role: lease 8 态状态机字面量首行（16-23：draft/pending_approval/pending_termination/active/rejected/terminated/voided/closed）
       - file: backend/internal/conditionapproval/model.go
-        line: 102
+        line: 108
         expect: type LifecycleAuditEntry struct {
-        role: 生命周期审计条目类型（状态迁移留痕的载体）
+        role: 生命周期审计条目类型（状态迁移留痕的载体）；W39 digest 重锚 102→108（contract-review-automation 上游插行，内容零变化）
       - file: backend/internal/conditionapproval/repository.go
-        line: 307
+        line: 338
         expect: func (r *Repository) InsertLifecycleAudit(
-        role: 审计写入入口（append-only 契约的执行点）
+        role: 审计写入入口（append-only 契约的执行点）；W39 digest 重锚 307→338（同上，内容零变化）
 
   occupancy-effect:
     owner_domain: leasing

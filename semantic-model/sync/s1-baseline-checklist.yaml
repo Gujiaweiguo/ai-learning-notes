@@ -5,6 +5,18 @@ w39_baseline:
   ontology_sot_fingerprint: bf550bc24de66813   # config/ontology/business-ontology.yaml（W38 复验未漂移）
   canonical_tables: {count: 477, snapshot_0828: 472,
     delta: "+engineering_condition_items/+engineering_condition_mirror_repairs/+engineering_condition_template_items/+engineering_condition_template_projects/+engineering_condition_templates/+store_change_records -mig_000202_hazard_default_due_days_backup"}
+w40_baseline:   # W39 digest（2026-09-21 W17-D1）裁决升级：477→499，经 22 表五族活事件取证后重冻结
+  registered: "2026-09-21"
+  heads: {lnkcre: 470ba300, docs: 3738e98, LnkChatBI: c8927267}
+  ontology_sot_fingerprint: bf550bc24de66813   # 六度一致（拉取前 origin 预验 + 拉取后本地复验）
+  canonical_tables:
+    count: 499
+    baseline_file: governance/canonical-baseline-w40.txt
+    set_sha256_16: 7995cb4839ddc5b1
+    delta_477_to_499: "+22 五族（000227×5 leasing-policy/unit-pricing、000229×2 unit-pricing、000233×3 indicator-target、000234×12 leasing-progress/unit_leasing）"
+    carrying_debt: 22   # cited 0/22，五族 citing change 为 W17-D2+ 主菜（g0x 提案第 5 条款）
+  adjudication: "取证 RED（broken 44）→ 迁移归因 → W16-D7 议题②裁决 → 重冻结 → 复验 GREEN；全程序见 sync/digest-2026-W39.md §5"
+  probe_scripted: sync/probe.py   # S2 探针脚本化（W16-D7 §6.2 坑1/2 修复），2026-09-21 实跑 OK
 checks:
   - id: S1-三仓对账
     what: behind/HEAD + wave 主题 + P0-P3 评级（S1 常规）

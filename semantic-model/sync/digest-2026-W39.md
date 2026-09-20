@@ -1,0 +1,87 @@
+# S1 周频 Digest · 2026-W39（2026-09-21，W17-D1）
+
+> W17 定轨第 1 项验收件（W16-D7 §7）。三仓 fetch+pull（ff-only）+ wave 主题 + P0-P3 评级 +
+> **canonical 基线升级裁决 477→499**（W16-D7 议题②执行）+ **docs 备份线定性**（议题③执行）+
+> **三门周验** + G-01×G-07 并轨提案升格 + S2 探针脚本化。
+> 基线：W16-D7 对账后（lnkcre 0392e107@09-19 / docs 24 behind / chatbi 0）。
+
+## 1. 三仓对账
+
+| 仓 | 拉取前 behind | 本次 pull | 增量时间窗 | 提交数 | 判定 |
+|---|---|---|---|---|---|
+| lnkcre | 55（W16-D7 47→今晨 55） | ✅ 已对齐 origin/main（`470ba300`） | 09-16 ~ 09-20 | 55（无 merge） | 健康；波次延续（leasing-progress/indicator-target/unit-pricing rev3），无挡板风险（55 < 300） |
+| docs | 24 | ✅ 已对齐（`3738e98`） | 09-15 ~ 09-19 | 24（**备份 ×15** + 受理/收口 ×9） | 健康；SoT 指纹拉取前 origin 预验 = 拉取后本地复验 = `bf550bc24de66813`（**六度一致**） |
+| LnkChatBI | 0 | 无需 | — | 0 | 健康；非增长型 |
+
+**S2 探针脚本化今日落地**：`sync/probe.py`（三仓绝对路径钉死 + behind 计数 + canonical 集合 diff 秒级判决 + `--json`）。实跑：判决 OK，三仓 behind 0/0/0，canonical baseline 499 = origin/main 499。坑 1（错仓假值 87）与坑 2（同名双文件）从根上修复——脚本只认绝对路径与固定 baseline 文件。
+
+## 2. lnkcre（55 commits，spec 311→325，canonical 477→499）
+
+**wave：招商进度（leasing-progress）全链成形 + 指标目标值层**——上周 +7 孤儿表的家族本周长成完整业务面，另开两条新纵深。
+
+| 变更 | 内容 | 语义影响 | 评级 |
+|---|---|---|---|
+| **leasing-progress-plan phase-1**（000234，12 表 + menu 78 takeover 000235 + contract-review-automation 000236 + 验收链全档） | 铺位招商进度域包（`leasingprogress`）、进度任务/事件消费/设置审计、stage 模板与完成事实、unit_leasing 计划与阶段、合同审查进度自动化 + 合同审查自动化归档 | **22 表中 12 表的出处**：招商进度是全新业务面（任务驱动 + 事件消费 + 审计留痕），五族中 leasing-progress 9 表 + unit_leasing 3 表全在此；`leasing-progress-contract-review-automation` spec 显示它已接入验收链模式 | **P1**（citing 首批对象） |
+| **indicator-target-value-layer**（000233，3 表） | registry 驱动年度指标 + 月度目标控制台、冻结守卫、版本化、七要素审计 | 指标目标值层=指标语义的**目标侧**锚（与达成率 caliber 呼应）；22 表中 indicator-target 3 表出处 | **P1**（citing 首批对象） |
+| **leasing-policy-unit-pricing-pages 归档 + rev3 benchmark**（000227+000229，7 表） | rev2 批量调价 UI 转正、rev3 基准增强（结构化押金规则/派生摘要/相邻对比）全部归档 | 上周 +7 活事件家族**已闭环归档**（主仓侧）；22 表中 leasing-policy 3 + unit-pricing 4 表出处 | P2（主仓侧闭环，语义层 citing 待做） |
+| **R6 stop records 激活**（`62b9cf5e`，v1.0 remediation audit chain） | r6 stop records 激活带整改审计链 | **W38 digest 判「无 R6」已过时**：R6 波次出现且带完整整改链——雷达跟踪名单更新 | P1（wave 跟踪） |
+| **E2 单据生成入口 + doc-grain 视图**（000231/000232，无新表） | LnkReport lease-contract leg、一键租金账单、000231 grain views 合同测试同步 | 第三消费方（LnkReport）消费面加深；与 chatbi 白名单零重叠的判断维持 | P2 |
+| **leasing-achievement-rate-definition 归档 → caliber spec 同步** | 招商达成率口径定义收口 | **口径变更入 spec**：达成率是语义层 Rule 语料（W18 显式化输入） | P2 |
+| 其余：seed 修复×3、staticcheck、below-floor gate fixture | 工程卫生 | 无表无语义 | P3 |
+
+## 3. docs（24 commits：备份 ×15 + 受理/收口 ×9）
+
+| 线 | 证据 | 语义影响 | 评级 |
+|---|---|---|---|
+| **备份线（15 commits）→ 定性裁决见 §5** | `docs: 备份 YYYY-MM-DD`，09-15~09-19，日频（9/16 ×5、9/17 ×7） | 见 §5 | P3（定性后归档桶） |
+| lnkchat PRD 受理 ×4 | PRD-LC-E1-001/F1-001 accept、DV-LC-004 方向 accept、F1/E1 跨登记簿同步 | 受理机器活跃（与 W16-D5 判断一致）；**g0x 并轨提案提交后进入观察窗**——受理队列本周仍零 ontology 主题，但本案 09-21 才立案，下周一 digest 首查 | P2 |
+| mi-cre handoff 收口 ×4 | taxonomy handoff 闭环、brand placement audit closure | mi 侧 handoff 流正常滚动 | P3 |
+| lnkreport ×1 | contract printing track close + review ledger | 消费面推进 | P3 |
+
+## 4. LnkChatBI（0 commits）
+
+无增量。pack 消费闭环（W16-③）后无新动作；生产接入（S6 回执通道）维持 W17+ 候选。
+
+## 5. 重点核查①：canonical 基线升级裁决 477→499（W16-D7 议题②执行）
+
+**程序**（governance/canonical-baseline-w39.txt 头部声明的合法升级路径）：
+
+1. **取证**：`canonical_drift_ci.py verify`（477 基线）实跑 → **RED**：added 22 / removed 0 / cited 0 / **leaked 22 / broken 44**；集合指纹 `1a4c50e673ef32d2` → `7995cb4839ddc5b1`。
+2. **归因**（四迁移，双目录并集核对）：000227 ×5（leasing-policy 3 + price_authority + pricing_ops）/ 000229 ×2（pricing_batches/lines）/ 000233 ×3（indicator-target）/ 000234 ×12（leasing-progress 9 + unit_leasing 3）。
+3. **裁决**：对齐源 = 主仓 testdata 清单（499）——**升级批准**。冻结 `governance/canonical-baseline-w40.txt`（source_rev `470ba300`，头部记录完整裁决链，**carrying-debt: 22（cited 0/22）**）。
+4. **复验**：新基线重跑门 → **GREEN**（added 0 / removed 0 / leaked 0）。
+
+**升级 ≠ 结案**：22 表 citing change（五族逐族：登记入域 or 显式不入域）是 W17-D2+ 主菜（定轨第 3 项）；债已显式登记在基线头部，不再静默。**教训固化**：门的判决 RED 不是失败，是裁决的入场券——今天第一次走完「取证→归因→裁决→重冻结→复验」全程序。
+
+## 6. 重点核查②：docs 备份线定性（W16-D7 议题③执行）
+
+**画像**（15 commits 全量文件统计）：
+
+| 特征 | 事实 |
+|---|---|
+| 节奏 | 日频 checkpoint（9/15 起，9/16 ×5、9/17 ×7、9/18 ×1、9/19 ×1）——从「偶尔备份」长成「日频习惯」 |
+| 内容 | `checksums.sha256` 15/15 + `lnkreport/review/pending-items.md` 14/15 + `mi-cre/INDEX.md` 9/15 + PRD 输出件若干——**纯工作态快照，零 ontology/SoT/governance 触碰** |
+| 署名 | Co-authored-by: Sisyphus（agent 共著）——「Ultraworked」式工作流产物 |
+| 语义影响 | SoT 指纹六度一致；lnkreport pending-items 高频改写 = 该产品 review 流在滚动，非内容分叉 |
+
+**定性裁决**：备份线 = **工作态快照习惯，非治理事件**——无害（零语义内容、零 SoT 触碰）但有害噪声（15/24 = 62.5% 的 docs 增量是备份，受理类 commit 被稀释，digest 筛选成本上升）。**处置**：digest 过滤规则固化——`备份` 主题 commit 归 P3 归档桶不逐条评级（本 digest §3 已执行）；不建议干预主仓习惯（备份是 Jason 的数据安全感机制，治理价值 < 打断成本）。
+
+## 7. 三门周验（S1 checklist 全项）
+
+| 门 | 结果 | 备注 |
+|---|---|---|
+| G-05 frozen_effect_ci（15 锚） | **GREEN 15/15** | 周验首跑 13/15（2 DRIFTED：conditionapproval 纯行号位移 102→108 / 307→338，contract-review-automation 上游插行）；内容零变化，按 W16-D4 先例重锚后复跑 15/15 |
+| Identity identity_anchor_ci（26 锚） | **GREEN 26/26** | 20 正 + 6 负全 OK，授权区无泄漏 |
+| canonical_drift_ci（集合门） | **RED→裁决→GREEN** | §5 全程序；门本周起执勤新基线 w40 |
+| SoT 指纹 | `bf550bc24de66813` **六度一致** | 拉取前 origin 预验 + 拉取后本地复验 |
+
+## 8. 评级汇总与 W17 定轨对账
+
+| 级别 | 条目 | 动作 |
+|---|---|---|
+| P1 | leasing-progress 全链（12 表）+ indicator-target 值层（3 表） | **citing 首批对象**（D2+ 逐族立案，定轨第 3 项） |
+| P1 | R6 stop records 激活 | 雷达名单更新；R-wave 跟读（W18 digest 复核） |
+| P2 | unit-pricing rev3 归档 / 达成率 caliber 入 spec / lnkchat PRD 受理 ×4 | 登记；g0x 提案受理观察窗开启（下周一首查） |
+| P3 | 备份线（定性毕）/ handoff 收口 / 工程卫生 | 归档桶 |
+
+**W17 定轨对账**：第 1 项（W39 digest + 基线升级 + 备份线定性 + 三门周验）✅ 全达成；第 2 项（g0x 并轨升格）✅ 今日达成（`changes/g0x-semantic-boundary-governance/proposal.md` 正式立案，原 G-01 案标 superseded）；第 4 项（probe.py）✅ 今日达成并实跑 OK。第 3 项（五族 citing）/ 第 5 项（G-07 v0.2 expect 签名）/ 第 6 项（MCP 工具描述 change，后置条件=基线稳定 ✅ 已满足）留给 D2-D6。**挡板未触发（max behind 55 < 300）。**
