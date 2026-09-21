@@ -7,6 +7,13 @@
   registry 门 —— 缺口2「frozen 无 CI 强制」：effect-registry.yaml 冻结清单的任何
     增/删/改，必须带 --change <id> 且该 change 已立案（proposal.md 存在），否则红。
 
+v0.2（2026-09-22，W17-D2 定轨第 5 项）：expect 从子串升级为**定界签名**（边缘词界匹配）。
+  治 W16-D2 实验证实的「扩名不改名」盲区：StatusDraft → StatusDraftLegacy 对子串匹配
+  不可见（0% 检出）；定界后扩名=签名消失→BROKEN（证据被改写）。
+  边界仅加在 pattern 两侧为词字符的边缘：`StatusDraft` 右缘是词字符→加界（防后缀扩名）；
+  `func Foo(` 右缘是 `(`→不加界（后随实参是合法命中，非扩名）。首版全边界的误伤
+  （7 锚点假 BROKEN）即本条款的实跑证据：定界的对象是标识符边缘，不是任意文本边缘。
+
 用法：
   frozen_effect_ci.py anchors --anchors g05-effect-anchors.yaml --repo /root/lnkcre [--change ID] [--strict] [--json]
   frozen_effect_ci.py registry --old a.yaml --new b.yaml [--change ID] [--changes-dir DIR] [--json]
@@ -16,6 +23,7 @@
 import argparse
 import hashlib
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -23,6 +31,17 @@ import yaml
 
 RED, GREEN, YELLOW = "\033[31m", "\033[32m", "\033[33m"
 RESET = "\033[0m"
+
+
+def word_boundary(pat: str) -> re.Pattern:
+    """v0.2 定界签名：仅在 pattern 边缘为词字符的一侧加词边界。
+    - 边缘是 [A-Za-z0-9_]（如 `StatusDraft` 右缘）→ 加界：`StatusDraftLegacy` 不再命中（防扩名）；
+    - 边缘是非词字符（如 `func Foo(` 的 `(` 右缘）→ 不加界：`(` 后随实参是合法命中。
+    首版两侧全加界导致 7 锚点假 BROKEN（expect 以 `(` 结尾、实参被误判扩名）——
+    定界的对象是标识符边缘，不是任意文本边缘。"""
+    left = r"(?<![A-Za-z0-9_])" if re.match(r"[A-Za-z0-9_]", pat) else ""
+    right = r"(?![A-Za-z0-9_])" if re.search(r"[A-Za-z0-9_]$", pat) else ""
+    return re.compile(left + re.escape(pat) + right)
 
 
 def _col(v: str) -> str:
@@ -38,12 +57,13 @@ def check_anchor(repo: Path, a: dict):
     except OSError as e:  # pragma: no cover
         return "BROKEN", f"读取失败: {e}"
     ln, exp = int(a["line"]), a["expect"]
-    if 1 <= ln <= len(lines) and exp in lines[ln - 1]:
+    rx = word_boundary(exp)  # v0.2 定界签名：扩名/改名一律视为签名变化
+    if 1 <= ln <= len(lines) and rx.search(lines[ln - 1]):
         return "OK", ""
     for i, l in enumerate(lines, 1):
-        if exp in l:
+        if rx.search(l):
             return "DRIFTED", f"内容位移 {ln} → {i}（上游插删行，需 re-anchor）"
-    return "BROKEN", "expect 内容已不在文件中（实现证据被改写或删除）"
+    return "BROKEN", "expect 定界签名已不在文件中（实现证据被改写/删除/扩名——v0.2 盲区闭合）"
 
 
 def cmd_anchors(args) -> int:

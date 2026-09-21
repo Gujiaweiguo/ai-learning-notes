@@ -27,14 +27,14 @@
    - w39 基线：477 表，集合指纹 `1a4c50e673ef32d2`，source_rev `0392e107`，冻结 2026-09-19；
    - w40 基线：499 表，集合指纹 `7995cb4839ddc5b1`，source_rev `470ba300`，冻结 2026-09-21（**W39 digest 基线升级裁决已执行**，`governance/canonical-baseline-w40.txt` 头部记录裁决链），**carrying-debt: 22（cited 0/22）**；
    - 升级基线须走 digest 裁决后重冻结（经 citing change 清算），禁止随手改。
-5. 【G-07 条款化】**citing-action 条款**：新表落地后一个探针周期内，语义层须有 open change 引用（实体登记 or 显式「不入域」裁决，二者皆可，不裁决即违规）——变化留痕，不是禁止变化。**首批执行对象即五族 22 表**（W17-D2+ 逐族立案）：
-   | 族 | 表数 | 来源迁移 | 归属裁决（待逐族立案） |
+5. 【G-07 条款化】**citing-action 条款**：新表落地后一个探针周期内，语义层须有 open change 引用（实体登记 or 显式「不入域」裁决，二者皆可，不裁决即违规）——变化留痕，不是禁止变化。**首批执行对象即五族 22 表**（W17-D2 逐族立案，2026-09-22 五案全部落盘，全部裁决入域登记：`changes/citing-leasing-progress` / `citing-unit-leasing` / `citing-indicator-target` / `citing-leasing-policy` / `citing-unit-pricing`；Context 分布 03×15 / 17×3 / 01×4；w39 透镜复验 cited 22/22、leaked 0）。
+   | 族 | 表数 | 来源迁移 | 归属裁决（2026-09-22 W17-D2 立案） |
    |---|---|---|---|
-   | indicator-target | 3 | 000233 | 待裁决 |
-   | leasing-progress（progress 5 + stage 4） | 9 | 000234 | 待裁决 |
-   | unit_leasing（含 recalc_batches） | 3 | 000234 | 待裁决 |
-   | leasing-policy | 3 | 000227 | 待裁决 |
-   | unit-pricing（含 price_authority_constraints） | 4 | 000227+000229 | 待裁决 |
+   | indicator-target | 3 | 000233 | **入域** → 17 BI & Analytics（目标侧锚，analytics_metrics 同码对齐） |
+   | leasing-progress（progress 5 + stage 4） | 9 | 000234 | **入域** → 03 Leasing Pipeline（执行与事实层） |
+   | unit_leasing（含 recalc_batches） | 3 | 000234 | **入域** → 03 Leasing Pipeline（铺位×节点跟踪容器） |
+   | leasing-policy | 3 | 000227 | **入域** → 03 Leasing Pipeline（政策事实：壳/版本/生命周期） |
+   | unit-pricing（含 price_authority_constraints） | 4 | 000227+000229 | **入域** → 01 Asset Foundation（一铺一价族批次化执行层） |
 6. 【G-07 条款化】S2 日探针升级条款：从「数 commit」到「数表」——`sync/probe.py`（2026-09-21 W17-D1 落地：三仓绝对路径钉死 + behind 计数 + canonical 集合 diff 秒级判决，无 pull 依赖，`--json` 机读输出），配合已转正执勤的 `governance/ci/canonical_drift_ci.py`（fail-closed / 正负锚+泄漏三检 / selftest 六突变 / `--change` 承认路径）。
 
 ## Impact（影响面）
@@ -51,9 +51,9 @@
 | 2 | 突变三向 | +假表→红 / 带 citing→绿 / 无关编辑→零误伤 | **已达标**（2026-09-19 selftest M1-M6 六突变实跑） |
 | 3 | 基线升级裁决 | 477→499 经 digest 裁决重冻结，记录在案 | **今日达标**（canonical-baseline-w40.txt + 新基线复跑 GREEN） |
 | 4 | S2 探针脚本化 | 一日一跑机读 JSON，检测延迟 ≤1 探针周期 | **今日达标**（sync/probe.py 落地） |
-| 5 | 五族 citing change | 五 change 落盘，cited 0→22 | **未达**（W17-D2+ 主菜，本案第 5 条款首批执行） |
+| 5 | 五族 citing change | 五 change 落盘，cited 0→22 | **已达标**（2026-09-22 W17-D2：五案落盘全入域；w39 透镜 cited 22/22 leaked 0，复验记录见当日 md/ipynb） |
 
 ## Open Questions
 
 1. 立案载体：lnkcre openspec change vs docs evidence-chain（目标文件全在 docs 仓；原案遗留，W17-D5 前定）。
-2. 五族逐一裁决（入域登记 or 显式不入域）：涉 W18 lease→cash Rule 显式化的输入范围，W17 digest 周内逐族立案。
+2. ~~五族逐一裁决（入域登记 or 显式不入域）：涉 W18 lease→cash Rule 显式化的输入范围，W17 digest 周内逐族立案。~~ **已裁决**（2026-09-22：五族全部入域登记，见 What-5 表；W18 Rule 显式化输入范围随之确定）。

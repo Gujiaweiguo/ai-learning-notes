@@ -3,10 +3,11 @@
 # 对账基线：lnkcre 0392e1079c5da77d85bf16ed3d0cdcd241eb811e（2026-09-15 S2 探针后 pull，behind 9→0）
 # 来源对账：第14周-Day4-Rule层对账要点.md（5 类冻结 effect × 代码事实）
 #
-# 锚点语义（frozen_effect_ci.py anchors 门消费）：
-#   OK      = expect 子串仍出现在登记行号上（绿）
+# 锚点语义（frozen_effect_ci.py anchors 门消费；v0.2 2026-09-22 起 expect 为定界签名）：
+#   OK      = expect 定界签名仍出现在登记行号上（绿；边缘词界：标识符边缘防扩名，
+#             `func Foo(` 的 `(` 右缘不加界）
 #   DRIFTED = 内容还在文件里但行号变了（上游插删行 → 维护信号，黄，不红）
-#   BROKEN  = expect 内容在文件中已找不到（冻结 effect 的实现证据被改/删 → 红，须带 change）
+#   BROKEN  = expect 定界签名在文件中已找不到（冻结 effect 的实现证据被改/删/扩名 → 红，须带 change）
 #
 # 红线遵守：本文件登记在 semantic-model 工作区，不写入 lnkcre 主仓（S5 归档律）。
 

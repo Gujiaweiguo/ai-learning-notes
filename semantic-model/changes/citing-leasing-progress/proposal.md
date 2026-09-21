@@ -1,0 +1,56 @@
+# Citing Change: leasing-progress 族 9 表入域登记（铺位招商进度 · 执行与事实层）
+
+> 立案：2026-09-22（W17-D2，W16-D7 定轨第 3 项 / g0x 提案 What-5 首批执行对象，语义权重第 1 位）。
+> 状态：**registered**（citing 落盘即生效——canonical 门 w39 透镜 cited 0→9）。
+> 裁决：**入域登记**（非「显式不入域」）。五族预判中「登记入域」最强的一族。
+
+## Why（这 9 表为什么出现、为什么入域）
+
+- 来源迁移：`migrations-pg/000234_leasing_progress_phase1.up.sql`（12 表中 9 表属本族；stage 4 + progress 5）。
+- W39 digest P1 评级：**全新业务面**——任务驱动 + 事件消费 + 审计留痕，非实验残留；leasing-progress 全链成形（phase-1 + 000235 menu takeover + 000236 合同审查自动化，验收链全档）。
+- spec：`openspec/specs/leasing-progress-plan/spec.md`（16 Requirements）+ `leasing-progress-contract-review-automation` + `leasing-progress-menu-takeover`（openspec changes 已归档 2026-09-19/20）。
+- 实现：`backend/internal/leasingprogress/`（consumer/derivation/tasks/monitoring/project_access + 3 份集成测试）。
+
+## What（登记内容）
+
+**Context 归属：03 Leasing Pipeline**（D5 全名索引；与存量锚 `leasing_plans` / `monthly_leasing_plans` 同域）。
+本体挂点：招商管理.招商计划（terms：招商进度/招商节点/招商里程碑；capability `leasing-plan-management`）。
+
+表清单（9）与语义：
+
+| 侧 | 表 | 语义 |
+|---|---|---|
+| stage 4 | `leasing_stage_templates` | 项目级版本化九节点模板（每项目至多一个 active，partial unique） |
+| | `leasing_stage_template_items` | 节点定义：manual/auto、auto_event∈{contract_approved, opening_approved}、lead_days、required（CHECK 三值逻辑防 NULL 穿透） |
+| | `leasing_stage_completion_facts` | append-only 完成事实账本；auto 行幂等键（unit×stage×source partial unique，D6.3 layer-a） |
+| | `leasing_stage_plan_overrides` | planned_date 手工覆盖审计（append-only；「已覆盖」判定=行存在，D9.4） |
+| progress 5 | `leasing_progress_tasks` | 执行层任务（new_sign/renewal；**五状态查询期派生，表内无完成态列**——D4 禁止双状态并行；area 快照永不进 KPI 目标，D11） |
+| | `leasing_progress_task_adjustments` | append-only 调整日志（create/assign/split/merge/cancel/reactivate，before/after JSONB） |
+| | `leasing_progress_settings` | O-4 无活动天数 N（默认 30 自然日，项目级覆盖） |
+| | `leasing_progress_setting_audits` | N 变更五要素审计（before/after/reason/operator/timestamp） |
+| | `leasing_progress_event_consumptions` | 事件消费去重（event×source×unit unique，模式复用 000089；D6.3 layer-b） |
+
+关键关系（登记进 relationship 构件，yaml 快照合并留待 v0.2 组装）：
+- `unit_leasing_stages` →(plan_id)→ `unit_leasing_plans` →(template_id)→ `leasing_stage_templates`（跨族关系见 citing-unit-leasing）；
+- `leasing_progress_event_consumptions` 与 04 Contract Lifecycle 的耦合点是**事件消费**（contract_approved 经消费去重后驱动 auto 节点完成），非同事务写；
+- `leasing_progress_tasks` 与 V1 `leasing_tasks` / V2 `monthly_leasing_tasks` 是**并列三代**，无外键继承。
+
+术语条目（term 层登记，不生造）：招商进度（九节点）、完成事实、无活动天数 N、任务调整（split/merge）。
+
+## 边界声明（迁移头部 Frozen boundaries 全部采信）
+
+- V1（`leasing_plans`/`leasing_tasks`）与 V2（`leasing_plan_versions` 等）表零触碰——本族是 V3 执行面。
+- 零数据纪律：迁移零行种子（无模板/计划/任务/N 覆盖行）。
+
+## Impact
+
+- canonical 门：w39 透镜 cited +9（0→9/22）；w40 执勤基线不变（集合零变化）。
+- 模型 yaml 是 snapshot（结果），本 change 是过程留痕；v0.2 组装时合并 Entity/Relationship/术语三层。
+- 消费方：LnkChatBI 术语库候选 +4 条（W18 评估）；MCP 工具描述（定轨第 6 项）获得稳定表宇宙输入。
+
+## 证据（可机器复核）
+
+- 迁移：`backend/internal/platform/database/migrations-pg/000234_leasing_progress_phase1.up.sql` L53-L261（含 D1-D11 设计引用头）；
+- spec：`openspec/specs/leasing-progress-plan/spec.md`（16 Req）；归档 change `2026-09-19-leasing-progress-plan` / `2026-09-20-leasing-progress-contract-review-automation` / `2026-09-20-leasing-progress-menu-takeover`；
+- 包：`backend/internal/leasingprogress/`（12 文件，含 contract_review_integration_test.go——验收链模式接入证据）；
+- digest：`sync/digest-2026-W39.md` §2/§5。

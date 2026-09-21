@@ -8,6 +8,10 @@
 #   added 22 / leaked 22 / cited 0，集合指纹 1a4c50e673ef32d2 → 7995cb4839ddc5b1。
 # 升级≠结案：22 表 citing change（登记 or 显式不入域）为 W17-D2+ 主菜（g0x 并轨提案第 5 条款），
 #   五族逐一裁决前，本基线标注 carrying-debt: 22（cited 0/22）。
+# 2026-09-22（W17-D2）清算记录：五族 citing change 全部落盘（changes/citing-leasing-progress
+#   9表 / citing-unit-leasing 3表 / citing-indicator-target 3表 / citing-leasing-policy 3表 /
+#   citing-unit-pricing 4表，全部裁决入域登记：03×15 / 17×3 / 01×4）。w39 透镜复验
+#   cited 22/22、leaked 0、GREEN —— carrying-debt 清零（22/22），待周日 digest 复核归档。
 # 声明：本文件是快照不是 SoT；SoT 是 lnkcre 主仓 canonical_tables.txt。
 # 升级基线 = W 周日 digest 裁决后重冻结（经 citing change 清算），禁止随手改。
 access_audit_log

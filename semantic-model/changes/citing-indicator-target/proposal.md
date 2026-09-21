@@ -1,0 +1,52 @@
+# Citing Change: indicator-target 族 3 表入域登记（指标目标值层 · 指标语义的目标侧锚）
+
+> 立案：2026-09-22（W17-D2，W16-D7 定轨第 3 项 / g0x 提案 What-5 执行对象，P1 首批）。
+> 状态：**registered**（canonical 门 w39 透镜 cited 0→3）。
+> 裁决：**入域登记**——目标值层不是新指标域，是既有指标语义（17 BI & Analytics）的目标侧补全。
+
+## Why
+
+- 来源迁移：`migrations-pg/000233_indicator_target_value_layer.up.sql`（3 表 + `asset_annual_indicators` 原位改造）。
+- W39 digest P1 评级：registry 驱动年度指标 + 月度目标控制台、冻结守卫、版本化、七要素审计——「指标目标值层=指标语义的目标侧锚（与达成率 caliber 呼应）」。
+- spec：`openspec/specs/indicator-target-value-layer/spec.md`（7 Requirements）；归档 change `2026-09-19-indicator-target-value-layer`（design D1/D2/D5/D7/OQ-8/OQ-10）。
+- 实现：`backend/internal/indicatortarget/`（decompose/freeze/service/repository + 测试）。
+- **同码对齐证据**（入域归 17 的核心理由）：`target_indicators` 种子 3 行的 indicator_code 与 `analytics_metrics`（17 锚表）字典码同码（lea_signed_area_period / fin_receivable_amount），caliber_note 直接引用 `leasing-achievement-rate-caliber` spec——目标层从第一行起就长在指标语义上。
+
+## What（登记内容）
+
+**Context 归属：17 BI & Analytics**（锚表 `analytics_metrics` 所在域；目标行是指标值域的目标侧，非业务事实）。
+本体挂点：数据决策侧指标能力（term：指标/目标值/口径）；达成率 caliber 链：`indicator_monthly_targets`(目标，分母载体) × 实际值(分子) → 达成率。
+
+表清单（3）与语义：
+
+| 表 | 语义 |
+|---|---|
+| `target_indicators` | 目标指标 registry（code 唯一业务键；一 code ↔ 一 value_type ↔ 一 unit；allows_monthly_target=FALSE 即比率类写入门禁，OQ-10） |
+| `indicator_monthly_targets` | 月度目标生效行（code×project×year×month 唯一；frozen_at 冻结守卫；source∈{decomposed, manual}；version_no≥1） |
+| `indicator_monthly_target_history` | 七要素 append-only 审计（action/before/after/version/source/reason/operator+ts；OQ-8） |
+
+存量表原位改造（非新表，随案登记）：`asset_annual_indicators` +indicator_code（partial unique WHERE <>''，存量 ''-coded 行豁免——消费方零变更边界）。
+
+关键关系：
+- `indicator_monthly_targets.indicator_code` ⟷ `target_indicators.indicator_code`（业务键，非 FK）；`project_id` → org_projects；
+- 年度载体 `asset_annual_indicators` 与月度目标经 decompose（年度→月度分解）衔接（indicatortarget/decompose.go）；
+- 与 leasing-progress 的 D11 红线呼应：`leasing_progress_tasks.area` **永不**进入本族表作目标输入（执行面积≠KPI 目标）。
+
+术语条目：目标指标（code 语义）、月度目标（生效行/冻结）、七要素审计、分解（decomposed vs manual）。
+
+## 边界声明
+
+- 比率类指标一期不建月度目标行（`allows_monthly_target=FALSE` 为写入门禁，OQ-10）。
+- 零数据纪律（D7）：种子仅 registry 3 行，零目标行、零年度行——不造目标。
+- 「目标值层」不承担实际值采集职责（实际值走 analytics 管线）——目标/实际分离。
+
+## Impact
+
+- canonical 门：w39 透镜 cited +3；17 BI & Analytics 70→73。
+- 消费方：LnkChatBI「目标 vs 实际」类问答的语义输入（W18 评估）；达成率 caliber 问答（A101 系列之外的指标系）。
+
+## 证据
+
+- 迁移：`migrations-pg/000233_indicator_target_value_layer.up.sql`（L36-L96 + 种子段，头部含 D1 hybrid 与消费方零变更边界声明）；
+- spec：`openspec/specs/indicator-target-value-layer/spec.md`（7 Req）+ `openspec/specs/leasing-achievement-rate-caliber/spec.md`；
+- 包：`backend/internal/indicatortarget/`（9 文件）；digest `sync/digest-2026-W39.md` §2。
