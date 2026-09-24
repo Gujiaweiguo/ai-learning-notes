@@ -923,3 +923,22 @@ Today's Question「工具描述是给谁看的资产——给人还是给 AI？�
 - W17-D4：g0x 受理观察窗周中巡检 + W18 Rule/Policy 显式化预研开工（输入已锁定：leasing-policy 版本不可变链 + unit-pricing 授权约束链，从 mi 代码抽第一批 Rule 语料）
 - t01 OQ-1（registry 归属）/ OQ-3（convert_quotation_to_contract 登记还是移除）周日 Review 裁决后升格 changes/ 立案；4 处 skills 漂移修复属主仓侧动作，提案验收线 1 已列
 - LnkChatBI behind 0→18 纳入 W40 digest；w14-plus 仍无 W17 逐日条目（第 5 次建议补一行指向）
+
+## 2026-09-24（W17-D4 周四 · g0x 观察窗周中巡检 × Rule 语料清单 v0 × 注释级规则漂移首案）
+
+### 今天最大的认知
+Today's Question「规则已经在 DDL CHECK 和 Go 代码里天天执行，为什么仍算未显式化——规则的执行和规则的治理为什么不是一回事」的答案：**分界线在可寻址性（addressability）**。被治理的规则要能被指名道姓地引用（在哪/谁改的/哪条 spec 承认它/约束哪些实体）；今天抽出的 34 条语料（A 链 leasing-policy 版本不可变 18 条 + B 链 unit-pricing 授权约束 16 条）全部正在生产代码里执行——content_hash 天天冻结、ResolveEffective 天天判定——但它们只有**代码位置**没有**规则身份**：改一行 stricterFloor 的比较符，没有任何门会红。最刺眼的实证是**注释级规则漂移首案（B9）**：handlers/unit_pricing.go:404-406 留着 rev1 的 decideOverAuthority 注释（"below a project-source floor escalates one level (city); below an HQ/intersect floor escalates to HQ"），实现早已迁移改名到 unitpricingbatch/diagnostics.go:171 decideMinApprovalLevel——**规则还在执行，说明书留在原址继续指路**。D3 的定律在规则层复刻：描述存在 ≠ 资产有人认领；执行存在 ≠ 治理存在。ERP 映射：老 ERP 的四形态（触发器/存储过程 if/工作流条件/配置表）本仓一样不缺（DDL 8 / 硬编码 9 / 守卫 4 / 纯函数 4 / spec 3 / 注释契约 4 / 配置表 1 / 权限映射 1），缺的从来是全局规则身份——审计问「价格红线规则最近一次变更谁批的」，四形态各答各的。
+
+### 今天最大的坑
+本日探针第一跑直接 FATAL：本地三仓副本（/root/lnkcre、docs、LnkChatBI）在当前环境不存在——S2 日探针的可靠性悄悄锚在「本地副本存在」这个**从未声明的前提**上。修复走 D1 老律（把前提变成代码的方向）：改用 GitHub 只读 fetch + digest 记录的 head SHA 作基准重算（lnkcre 470ba300 / docs 3738e98 / LnkChatBI 以 W39 behind-0 锚定 c8927267），两个锚点全对账（D3 的 30 = 09-21 增量 5 + 09-22 增量 25；LnkChatBI 18 = c8927267..c694ef5c 精确计数）——数字可用，但 probe.py 应补「本地仓缺失→自动重建」模式（遗留登记）。次坑：形态分布首版肉眼计数 DDL 11/高危 7，ipynb 断言对账实为 DDL 8/高危 5——**进产出物的每个分布数字必须过脚本**（D3「肉眼数 grep」同款坑，第三次验证同一条定律）。
+
+### 今天最大的决策
+① **Rule 语料清单 v0 落盘（34 条，W18 显式化的输入件）**：每条规则一行（规则名/文件:行/形态六分类/W18 难度预估）。高危 5 条（A3 哈希载荷排除戳记 + B9 孤儿注释 + B3 层内最具体优先 + B8 city/hq 升级 + B14 批次唯一改价事实）= W18「发明声明式表达」的真实工作量；登记类是主体但是小头。② **g0x 观察窗周中巡检结论**：第 4 天零回应——lnkcre 增量 39 全为 F5/lnkreport 消费链主题（ontology/semantic 0 条）、docs 3 条零受理、SoT 指纹第七度一致（bf550bc24de66813，无头但也无人动）；openspec 归档动作 ≥8 次证明**队列是活的**——OQ-1 载体天平继续倒向 lnkcre openspec change。③ **新观察点立案：视图宇宙无门**——000237（09-23）新增 lease-terms sibling views（analysis schema 2 视图），canonical_tables.txt 只收表不收视图、499 不变：表宇宙「第 5 天零漂移」的稳定性结论**不能外推到视图层**，视图恰是暴露给 LnkReport 的语义面。W40 digest 议题 +1（累计 3 项）。④ LnkChatBI「首次主仓侧活动」定性精确化：18 commits 全在 09-22 一天（mall-ops settlement/mysqlbot 更名/capability phase-3），**单日爆发非持续流**。
+
+### 数字速览
+Rule 语料 34 条（A18+B16）｜形态主归一：DDL 8/硬编码 9/守卫 4/纯函数 4/spec 3/注释契约 4/配置表 1/权限映射 1｜高危 5（A3/B3/B8/B9/B14）｜不可变链状态机：4 状态 5 合法迁移 + copy 派生通道，非法迁移 7 条全由 WHERE status 守卫背书｜授权链：8 环执行序（装载→层内筛选→更严交集→二分→flag→升级），不可放宽律 fuzz 5000 组全绿｜content_hash 三性质复现绿（戳记排除/version_no 入哈希/键序归一）｜探针：lnkcre 39（+9 全在 09-23 白天，09-24 零新增）/ docs 3 / LnkChatBI 18（09-22 单日爆发）｜canonical 499=499 指纹一致，R-wave 第 5 天零漂移｜巡检：主仓 ontology 主题 0 条、openspec 归档 ≥8 次（活队列）｜ipynb verify OK（5 code cells，4 图，断言 20+ 组）
+
+### 遗留 / 下一步
+- W17-D5：g0x 观察窗后半程（周一 W40 digest 首查收敛，议题 3 项：LnkChatBI 单日爆发/视图宇宙无门/F5-lnkreport 波次画像）+ Rule 语料第二批（discountpolicy/workflowpolicy/pricing_matrix 候选）或 t01 周日裁决准备
+- 周日 Review 固定议程：t01 OQ-1/OQ-3 裁决 + g0x 观察窗周报 + Rule 语料清单 v0 评审（形态分类口径）+ W18 输入范围终审
+- probe.py 补「本地仓缺失→自动重建」模式（今日 FATAL 的结构性修复）；w14-plus 补 W17 一行指向（第 6 次建议）
